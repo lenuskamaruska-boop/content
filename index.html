@@ -133,7 +133,8 @@
     }
     .nav-links a:hover { color: var(--gold-soft); }
     .nav-links .btn { padding: 10px 22px; }
-    .nav-toggle { display: none; background: none; border: none; color: var(--cream); font-size: 1.5rem; cursor: pointer; }
+    .nav-toggle { display: none; background: none; border: none; color: var(--cream); font-size: 1.5rem; cursor: pointer; line-height: 1; }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
 
     /* Language switch */
     .lang-switch {
@@ -457,13 +458,15 @@
         <a href="#how" data-i18n="nav.how">How It Works</a>
         <a href="#testimonials" data-i18n="nav.testimonials">Testimonials</a>
         <a href="#booking" class="btn btn-primary" data-i18n="nav.book">Book a Lesson</a>
+      </nav>
+      <div class="nav-right">
         <div class="lang-switch" role="group" aria-label="Language">
           <button type="button" data-lang="en" class="active">EN</button>
           <button type="button" data-lang="es">ES</button>
           <button type="button" data-lang="ru">RU</button>
         </div>
-      </nav>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+      </div>
     </div>
   </header>
 
@@ -1101,10 +1104,17 @@
       b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang')); });
     });
 
-    // Restore saved preference (default English)
+    // Restore saved preference, otherwise detect the browser language (RU / ES / EN)
     var saved;
     try { saved = localStorage.getItem('dp-lang'); } catch (e) {}
-    applyLang(I18N[saved] ? saved : 'en');
+    var initialLang;
+    if (I18N[saved]) {
+      initialLang = saved;
+    } else {
+      var browser = (navigator.language || navigator.userLanguage || 'en').slice(0, 2).toLowerCase();
+      initialLang = I18N[browser] ? browser : 'en';
+    }
+    applyLang(initialLang);
 
     // Current year in footer
     document.getElementById('year').textContent = new Date().getFullYear();
