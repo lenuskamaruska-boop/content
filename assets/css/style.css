@@ -225,18 +225,35 @@ a { color: inherit; text-decoration: none; }
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
-  min-height: 82vh;
+  min-height: 86vh;
   display: flex;
   align-items: center;
-  background: url("../img/hero.jpg") center 38%/cover no-repeat, var(--soft);
+  overflow: hidden;
+  background: #1d1812;
   text-align: center;
+}
+.hero::before {            /* мягко размытый фон-заполнитель */
+  content: "";
+  position: absolute;
+  inset: -6%;
+  z-index: 0;
+  background: url("../img/hero.jpg") center/cover no-repeat;
+  filter: blur(34px) brightness(0.55);
+}
+.hero::after {             /* фото целиком по центру */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: url("../img/hero.jpg") center/contain no-repeat;
 }
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(17,17,17,0.20) 0%, rgba(17,17,17,0.42) 100%);
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(17,17,17,0.16) 0%, rgba(17,17,17,0.40) 100%);
 }
-.hero-content { position: relative; z-index: 2; padding: 70px 0; }
+.hero-content { position: relative; z-index: 3; padding: 70px 0; }
 .hero-badge { border-radius: 50%; margin: 0 auto 26px; box-shadow: var(--shadow-md); }
 .hero-eyebrow {
   font-size: 0.7rem;
