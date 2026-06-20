@@ -1,16 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#f4f2f0"/>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#v)"/>
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#efe6da"/>
-      <stop offset="0.55" stop-color="#e3d2c6"/>
-      <stop offset="1" stop-color="#cdb3a8"/>
+    <linearGradient id="v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#dad6d1" stop-opacity="0.6"/>
     </linearGradient>
   </defs>
-  <rect width="1600" height="1000" fill="url(#g)"/>
-  <g fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5">
-    <circle cx="1230" cy="300" r="220"/>
-    <circle cx="1230" cy="300" r="150"/>
-  </g>
-  <text x="120" y="180" font-family="Cormorant Garamond, Georgia, serif" font-size="34" letter-spacing="14" fill="#7a5d54">P  A  R  I  S</text>
-  <text x="115" y="540" font-family="Cormorant Garamond, Georgia, serif" font-size="240" font-style="italic" fill="#ffffff" fill-opacity="0.5">Mode</text>
+  <text x="800" y="520" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="300" font-weight="600" letter-spacing="20" fill="#11111108">AVENUE</text>
+  <text x="800" y="560" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-size="22" letter-spacing="14" fill="#1111111f">FASHION BOUTIQUE · АКТАУ</text>
 </svg>

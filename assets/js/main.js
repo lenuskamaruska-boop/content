@@ -5,53 +5,54 @@
 
 /* --- НАСТРОЙКИ (легко менять) --- */
 const CONFIG = {
-  instagram: "avenue_fashion_boutique_",      // ник в Instagram (без @)
-  // Номер WhatsApp в международном формате, только цифры.
-  // Пустая строка => кнопки заказа ведут в Instagram Direct.
-  whatsapp: "",                                // например: "77001234567"
-  currency: "₽"
+  telegram: "avenueaktau",                      // ник в Telegram (без @), основной канал заказов
+  instagram: "avenue_fashion_boutique_",        // ник в Instagram (без @)
+  // Номер WhatsApp в международном формате, только цифры (необязательно).
+  // Если указан — WhatsApp подставит текст заказа автоматически.
+  whatsapp: "",                                 // например: "77001234567"
+  currency: "₸"
 };
 
 /* --- ТОВАРЫ (замените фото/названия/цены) --- */
 const PRODUCTS = [
   {
-    name: "Платье «Parisienne»",
-    price: 8900,
+    name: "Льняной костюм «Linen»",
+    price: 32000,
     badge: "Новинка",
     image: "assets/img/product-1.svg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
-    name: "Костюм «Rive Gauche»",
-    price: 12400,
+    name: "Костюм «Avenue»",
+    price: 38000,
     badge: "Хит",
     image: "assets/img/product-2.svg",
     sizes: ["S", "M", "L"]
   },
   {
-    name: "Блуза «Champagne»",
-    price: 5600,
+    name: "Льняная блуза",
+    price: 16500,
     badge: "",
     image: "assets/img/product-3.svg",
     sizes: ["XS", "S", "M", "L", "XL"]
   },
   {
-    name: "Юбка «Montmartre»",
-    price: 6200,
+    name: "Платье «Summer»",
+    price: 24000,
     badge: "",
     image: "assets/img/product-4.svg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
-    name: "Пальто «Élégance»",
-    price: 15800,
+    name: "Жакет «Classic»",
+    price: 29000,
     badge: "Premium",
     image: "assets/img/product-5.svg",
     sizes: ["S", "M", "L"]
   },
   {
-    name: "Тренч «Avenue»",
-    price: 13900,
+    name: "Брюки «Palazzo»",
+    price: 19000,
     badge: "Новинка",
     image: "assets/img/product-6.svg",
     sizes: ["XS", "S", "M", "L"]
@@ -62,21 +63,31 @@ const PRODUCTS = [
 const formatPrice = (value) =>
   value.toLocaleString("ru-RU") + " " + CONFIG.currency;
 
-// Возвращает данные заказа: ссылку, текст и флаг — идём ли в Instagram.
-// WhatsApp умеет подставлять текст (?text=), Instagram — нет, поэтому
-// для Instagram текст копируем в буфер обмена (см. handleOrderClick).
+// Возвращает данные заказа: ссылку, текст и флаг — нужно ли копировать текст.
+// WhatsApp подставляет текст автоматически (?text=). Telegram и Instagram
+// этого не умеют, поэтому текст копируем в буфер обмена (см. обработчик клика).
 function buildOrder(productName, size) {
   const text = `Привет! Хочу заказать: ${productName}, размер: ${size}`;
   if (CONFIG.whatsapp) {
     return {
       url: `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`,
-      viaInstagram: false,
+      needsCopy: false,
+      channel: "WhatsApp",
+      text
+    };
+  }
+  if (CONFIG.telegram) {
+    return {
+      url: `https://t.me/${CONFIG.telegram}`,
+      needsCopy: true,
+      channel: "Telegram",
       text
     };
   }
   return {
     url: `https://ig.me/m/${CONFIG.instagram}`,
-    viaInstagram: true,
+    needsCopy: true,
+    channel: "Instagram",
     text
   };
 }
@@ -164,12 +175,12 @@ function renderProducts() {
     card.querySelectorAll(`input[name="${groupName}"]`)
       .forEach((input) => input.addEventListener("change", refreshOrder));
 
-    // Для Instagram текст не подставляется автоматически — копируем в буфер.
+    // Telegram/Instagram не подставляют текст автоматически — копируем в буфер.
     orderBtn.addEventListener("click", () => {
       const order = buildOrder(product.name, currentSize());
-      if (order.viaInstagram) {
+      if (order.needsCopy) {
         copyText(order.text);
-        showToast("Текст заказа скопирован — вставьте его в чат Instagram ♡");
+        showToast(`Текст заказа скопирован — вставьте его в чат ${order.channel} ♡`);
       }
     });
 
@@ -179,18 +190,11 @@ function renderProducts() {
 
 /* --- Ссылки в секции контактов --- */
 function setupContactLinks() {
+  const tg = document.getElementById("contact-telegram");
+  if (tg) tg.href = `https://t.me/${CONFIG.telegram}`;
+
   const ig = document.getElementById("contact-instagram");
   if (ig) ig.href = `https://www.instagram.com/${CONFIG.instagram}`;
-
-  const wa = document.getElementById("contact-whatsapp");
-  if (wa) {
-    const hello = encodeURIComponent("Здравствуйте! Пишу из Avenue Fashion Boutique ♡");
-    wa.href = CONFIG.whatsapp
-      ? `https://wa.me/${CONFIG.whatsapp}?text=${hello}`
-      : `https://ig.me/m/${CONFIG.instagram}`;
-    // Если нет WhatsApp — переименуем кнопку
-    if (!CONFIG.whatsapp) wa.textContent = "Instagram Direct";
-  }
 }
 
 /* --- Год в подвале --- */
