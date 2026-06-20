@@ -62,14 +62,57 @@ const PRODUCTS = [
 const formatPrice = (value) =>
   value.toLocaleString("ru-RU") + " " + CONFIG.currency;
 
-function orderLink(productName, size) {
+// Возвращает данные заказа: ссылку, текст и флаг — идём ли в Instagram.
+// WhatsApp умеет подставлять текст (?text=), Instagram — нет, поэтому
+// для Instagram текст копируем в буфер обмена (см. handleOrderClick).
+function buildOrder(productName, size) {
   const text = `Привет! Хочу заказать: ${productName}, размер: ${size}`;
-  const encoded = encodeURIComponent(text);
   if (CONFIG.whatsapp) {
-    return `https://wa.me/${CONFIG.whatsapp}?text=${encoded}`;
+    return {
+      url: `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`,
+      viaInstagram: false,
+      text
+    };
   }
-  // Запасной вариант — Instagram Direct
-  return `https://ig.me/m/${CONFIG.instagram}?text=${encoded}`;
+  return {
+    url: `https://ig.me/m/${CONFIG.instagram}`,
+    viaInstagram: true,
+    text
+  };
+}
+
+// Маленькое всплывающее уведомление
+function showToast(message) {
+  let toast = document.getElementById("toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    toast.className = "toast";
+    toast.setAttribute("role", "status");
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("toast--show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove("toast--show"), 3500);
+}
+
+// Копирование текста в буфер (с запасным вариантом для старых браузеров)
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  }
+  return Promise.resolve(fallbackCopy(text));
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) { /* игнорируем */ }
+  document.body.removeChild(ta);
 }
 
 /* --- Рендер карточек --- */
@@ -103,16 +146,31 @@ function renderProducts() {
           <span class="size-label">Размер</span>
           <div class="size-options">${sizesHtml}</div>
         </div>
-        <a class="btn btn-primary order-btn" href="#" target="_blank" rel="noopener">Заказать</a>
+        <a class="btn btn-primary order-btn" target="_blank" rel="noopener">Заказать</a>
       </div>
     `;
 
-    // Обновление ссылки заказа при клике с актуальным размером
     const orderBtn = card.querySelector(".order-btn");
-    orderBtn.addEventListener("click", () => {
+
+    // Держим ссылку заказа всегда актуальной: при загрузке и при смене размера.
+    const currentSize = () => {
       const checked = card.querySelector(`input[name="${groupName}"]:checked`);
-      const size = checked ? checked.value : product.sizes[0];
-      orderBtn.href = orderLink(product.name, size);
+      return checked ? checked.value : product.sizes[0];
+    };
+    const refreshOrder = () => {
+      orderBtn.href = buildOrder(product.name, currentSize()).url;
+    };
+    refreshOrder();
+    card.querySelectorAll(`input[name="${groupName}"]`)
+      .forEach((input) => input.addEventListener("change", refreshOrder));
+
+    // Для Instagram текст не подставляется автоматически — копируем в буфер.
+    orderBtn.addEventListener("click", () => {
+      const order = buildOrder(product.name, currentSize());
+      if (order.viaInstagram) {
+        copyText(order.text);
+        showToast("Текст заказа скопирован — вставьте его в чат Instagram ♡");
+      }
     });
 
     grid.appendChild(card);
