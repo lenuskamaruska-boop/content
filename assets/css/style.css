@@ -4,23 +4,24 @@
    ============================================================ */
 
 :root {
-  /* Палитра — монохром */
-  --bg:        #ffffff;
-  --soft:      #f4f2f0;   /* мягкий светлый фон секций */
-  --soft-2:    #ece9e5;
-  --line:      #e4e0db;
-  --ink:       #111111;   /* почти чёрный — основной цвет */
-  --ink-soft:  #2c2c2c;
-  --muted:     #8a847e;
+  /* Палитра — парижский глянец (тёплые кремово-бежевые тона) */
+  --bg:        #faf6f0;   /* тёплый кремовый фон */
+  --soft:      #f1e8dd;   /* мягкий бежевый фон секций */
+  --soft-2:    #e8dccd;
+  --line:      #e6dccd;
+  --ink:       #2a241f;   /* тёплый почти-чёрный — текст и акценты */
+  --ink-soft:  #5c5249;
+  --muted:     #9b8f80;
+  --gold:      #b29469;   /* тёплый золотистый акцент */
   --white:     #ffffff;
 
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-body:    "Jost", "Helvetica Neue", Arial, sans-serif;
 
   --maxw: 1120px;
-  --radius: 4px;
-  --shadow-sm: 0 6px 22px rgba(17, 17, 17, 0.06);
-  --shadow-md: 0 20px 48px rgba(17, 17, 17, 0.14);
+  --radius: 8px;
+  --shadow-sm: 0 8px 28px rgba(74, 60, 45, 0.08);
+  --shadow-md: 0 24px 56px rgba(74, 60, 45, 0.16);
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -70,7 +71,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 0.7rem;
   letter-spacing: 0.34em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--gold);
   margin-bottom: 12px;
 }
 .section-eyebrow .section-num {
@@ -79,9 +80,10 @@ a { color: inherit; text-decoration: none; }
   font-size: 0.95rem;
   letter-spacing: 0;
   margin-right: 6px;
-  color: var(--ink);
+  color: var(--gold);
   vertical-align: -1px;
 }
+.section-title em, .hero-title em { color: var(--ink); }
 .section-title {
   font-family: var(--font-display);
   font-weight: 500;
@@ -214,14 +216,62 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ---------- О бренде ---------- */
-.about { padding: 88px 0; background: var(--bg); text-align: center; }
-.about-inner { max-width: 660px; margin: 0 auto; }
+.about { padding: 88px 0; background: var(--bg); }
+.about-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.about-text-col { text-align: left; }
 .about-text {
   font-family: var(--font-display);
   font-size: 1.4rem;
   line-height: 1.55;
   color: var(--ink-soft);
   margin-top: 22px;
+}
+.about-photo img {
+  width: 100%;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  object-fit: cover;
+}
+@media (min-width: 860px) {
+  .about-inner { grid-template-columns: 1.05fr 0.95fr; gap: 60px; }
+}
+
+/* ---------- Основательница ---------- */
+.founder { padding: 88px 0; background: var(--soft); }
+.founder-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.founder-photo img {
+  width: 100%;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+.founder-text { text-align: left; }
+.founder-lead {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--ink);
+  margin: 16px 0 14px;
+}
+.founder-body { color: var(--ink-soft); font-size: 1rem; }
+.founder-sign {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--gold);
+  margin-top: 20px;
+}
+@media (min-width: 860px) {
+  .founder-inner { grid-template-columns: 0.9fr 1.1fr; gap: 60px; }
 }
 
 /* ---------- Каталог ---------- */

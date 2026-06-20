@@ -56,6 +56,27 @@ const PRODUCTS = [
     badge: "Новинка",
     image: "assets/img/product-6.jpg",
     sizes: ["XS", "S", "M", "L"]
+  },
+  {
+    name: "Топ с кружевом «Lace»",
+    price: 9500,
+    badge: "Хит",
+    image: "assets/img/product-7.jpg",
+    sizes: ["XS", "S", "M", "L", "XL"]
+  },
+  {
+    name: "Очки солнцезащитные",
+    price: 7500,
+    badge: "",
+    image: "assets/img/product-8.jpg",
+    sizes: ["one size"]
+  },
+  {
+    name: "Кроссовки «On Cloud»",
+    price: 28000,
+    badge: "Хит",
+    image: "assets/img/product-9.jpg",
+    sizes: ["36", "37", "38", "39", "40"]
   }
 ];
 
