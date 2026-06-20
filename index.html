@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avenue Fashion Boutique — женская одежда</title>
+  <meta name="description" content="Avenue Fashion Boutique — тщательно отобранная женская одежда. Минимализм, качество и нежные оттенки. Заказ через Instagram и WhatsApp." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Avenue Fashion Boutique" />
+  <meta property="og:description" content="Тщательно отобранная женская одежда. Минимализм, качество и нежные оттенки." />
+  <meta property="og:type" content="website" />
+
+  <!-- Шрифты -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80' x='10'>A</text></svg>" />
+</head>
+<body>
+
+  <!-- ===== Masthead-полоса ===== -->
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <span>Paris · Mode</span>
+      <span class="topbar-center">Maison de Couture</span>
+      <span>Édition №1</span>
+    </div>
+  </div>
+
+  <!-- ===== Шапка ===== -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="#top" class="logo">Avenue<span>Fashion Boutique</span></a>
+      <nav class="nav" aria-label="Основная навигация">
+        <a href="#about">О нас</a>
+        <a href="#catalog">Каталог</a>
+        <a href="#contact">Контакты</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <p class="hero-eyebrow">Paris — Женская одежда · ручной отбор</p>
+      <h1 class="hero-title">Avenue <em>Fashion</em> Boutique</h1>
+      <p class="hero-tagline">Элегантность в каждой детали. Парижская эстетика и нежные образы — для особенных дней и каждого дня.</p>
+      <a href="#catalog" class="btn btn-primary">Смотреть каталог</a>
+    </div>
+  </section>
+
+  <!-- ===== О бренде ===== -->
+  <section class="about" id="about">
+    <div class="container about-inner">
+      <p class="section-eyebrow"><span class="section-num">01</span> О бутике</p>
+      <h2 class="section-title">Наша <em>история</em></h2>
+      <p class="about-text">
+        Avenue Fashion Boutique — это тщательно подобранная коллекция женской одежды,
+        созданная для тех, кто ценит мягкую эстетику и качество. Мы выбираем вещи,
+        в которых хочется жить каждый день — лаконичные, женственные и вне времени.
+        Каждый образ — это маленький праздник для вас.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Каталог ===== -->
+  <section class="catalog" id="catalog">
+    <div class="container">
+      <p class="section-eyebrow"><span class="section-num">02</span> Коллекция</p>
+      <h2 class="section-title">Каталог <em>сезона</em></h2>
+      <p class="catalog-subtitle">Выберите размер и оформите заказ в один клик.</p>
+
+      <div class="products" id="products">
+        <!-- Карточки товаров рендерятся из assets/js/main.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Контакты ===== -->
+  <section class="contact" id="contact">
+    <div class="container contact-inner">
+      <p class="section-eyebrow"><span class="section-num">03</span> Связь с нами</p>
+      <h2 class="section-title">Оформить <em>заказ</em></h2>
+      <p class="contact-text">
+        Напишите нам в Instagram или WhatsApp — поможем с выбором размера и расскажем
+        о наличии. Будем рады каждому сообщению ♡
+      </p>
+      <div class="contact-actions">
+        <a class="btn btn-primary" id="contact-instagram" href="https://www.instagram.com/avenue_fashion_boutique_" target="_blank" rel="noopener">
+          Instagram
+        </a>
+        <a class="btn btn-outline" id="contact-whatsapp" href="#" target="_blank" rel="noopener">
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Подвал ===== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a href="#top" class="logo logo-footer">Avenue<span>Fashion Boutique</span></a>
+      <p class="footer-copy">© <span id="year"></span> Avenue Fashion Boutique. Сделано с любовью.</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
