@@ -68,19 +68,13 @@ const formatPrice = (value) =>
 // этого не умеют, поэтому текст копируем в буфер обмена (см. обработчик клика).
 function buildOrder(productName, size) {
   const text = `Привет! Хочу заказать: ${productName}, размер: ${size}`;
+  // Заказ оформляется через Instagram Direct.
+  // (WhatsApp — необязательный вариант: подставляет текст автоматически.)
   if (CONFIG.whatsapp) {
     return {
       url: `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`,
       needsCopy: false,
       channel: "WhatsApp",
-      text
-    };
-  }
-  if (CONFIG.telegram) {
-    return {
-      url: `https://t.me/${CONFIG.telegram}`,
-      needsCopy: true,
-      channel: "Telegram",
       text
     };
   }
