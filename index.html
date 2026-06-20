@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demyan Petrov — Spanish, English &amp; Russian Tutor</title>
+  <meta name="description" content="Master Spanish, English & Russian with Demyan Petrov, a dedicated language tutor. Lessons for all levels (A1–C2), exam prep, conversation practice, and Russian as a foreign language." />
+
+  <!-- Fonts: Playfair Display (serif headings) + Inter (sans-serif body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --navy: #15233f;
+      --navy-deep: #0e1830;
+      --navy-soft: #1f3358;
+      --cream: #f7f1e3;
+      --cream-soft: #fbf7ee;
+      --gold: #c8a35b;
+      --gold-soft: #d8bd86;
+      --ink: #2a2a2a;
+      --muted: #6b6256;
+      --line: rgba(200, 163, 91, 0.28);
+      --shadow: 0 18px 50px rgba(14, 24, 48, 0.12);
+      --radius: 14px;
+      --maxw: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--cream);
+      line-height: 1.7;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, .serif {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      line-height: 1.2;
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      width: 100%;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .eyebrow {
+      font-family: 'Inter', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    section { padding: 92px 0; }
+
+    .section-head { max-width: 640px; margin-bottom: 52px; }
+    .section-head h2 { font-size: clamp(1.9rem, 3.5vw, 2.7rem); margin: 12px 0 0; }
+    .section-head p { color: var(--muted); margin: 16px 0 0; font-size: 1.05rem; }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 15px 32px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.98rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--navy-deep);
+      box-shadow: 0 10px 26px rgba(200, 163, 91, 0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(200, 163, 91, 0.45); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--cream);
+      border: 1.5px solid rgba(247, 241, 227, 0.4);
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold-soft); }
+
+    /* ===== Header / Nav ===== */
+    header.nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(14, 24, 48, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(200, 163, 91, 0.18);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      max-width: var(--maxw);
+      margin: 0 auto;
+    }
+    .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--cream);
+      text-decoration: none;
+      letter-spacing: 0.4px;
+    }
+    .brand span { color: var(--gold); }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a {
+      color: rgba(247, 241, 227, 0.82);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: color 0.16s ease;
+    }
+    .nav-links a:hover { color: var(--gold-soft); }
+    .nav-links .btn { padding: 10px 22px; }
+    .nav-toggle { display: none; background: none; border: none; color: var(--cream); font-size: 1.5rem; cursor: pointer; line-height: 1; }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+
+    /* Language switch */
+    .lang-switch {
+      display: inline-flex;
+      border: 1px solid rgba(200, 163, 91, 0.4);
+      border-radius: 50px;
+      overflow: hidden;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+    .lang-switch button {
+      background: transparent;
+      color: rgba(247, 241, 227, 0.7);
+      border: none;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: background 0.16s ease, color 0.16s ease;
+    }
+    .lang-switch button + button { border-left: 1px solid rgba(200, 163, 91, 0.3); }
+    .lang-switch button.active { background: var(--gold); color: var(--navy-deep); }
+
+    /* ===== Hero ===== */
+    .hero {
+      background:
+        radial-gradient(circle at 80% 18%, rgba(200, 163, 91, 0.16), transparent 42%),
+        radial-gradient(circle at 12% 88%, rgba(200, 163, 91, 0.10), transparent 40%),
+        linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
+      color: var(--cream);
+      position: relative;
+      overflow: hidden;
+      padding: 110px 0 110px;
+    }
+    .hero::after {
+      content: "“”";
+      position: absolute;
+      right: -10px;
+      bottom: -70px;
+      font-family: 'Playfair Display', serif;
+      font-size: 26rem;
+      color: rgba(200, 163, 91, 0.06);
+      pointer-events: none;
+      line-height: 1;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 56px; align-items: center; }
+    .hero h1 { font-size: clamp(2.3rem, 5vw, 3.7rem); margin: 18px 0 0; }
+    .hero h1 .accent { color: var(--gold-soft); }
+    .hero .tagline { font-size: 1.18rem; color: rgba(247, 241, 227, 0.85); margin: 22px 0 0; max-width: 540px; font-weight: 300; }
+    .hero-cta { margin-top: 34px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .hero-flags { margin-top: 34px; display: flex; gap: 22px; flex-wrap: wrap; color: rgba(247,241,227,0.7); font-size: 0.88rem; }
+    .hero-flags span.flag { display: flex; align-items: center; gap: 8px; }
+    .hero-flags .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gold); }
+
+    /* Hero photo */
+    .hero-photo { position: relative; }
+    .hero-photo img {
+      width: 100%;
+      display: block;
+      border-radius: var(--radius);
+      border: 1px solid rgba(200, 163, 91, 0.35);
+      box-shadow: var(--shadow);
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      object-position: center 22%;
+    }
+    .hero-badge {
+      position: absolute;
+      left: 18px; right: 18px; bottom: 18px;
+      background: rgba(14, 24, 48, 0.82);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(200, 163, 91, 0.3);
+      border-radius: 11px;
+      padding: 14px 18px;
+    }
+    .hero-badge strong { font-family: 'Playfair Display', serif; color: var(--cream); font-size: 1.15rem; display: block; }
+    .hero-badge span { color: var(--gold-soft); font-size: 0.82rem; }
+    .hero-stats { display: flex; gap: 26px; margin-top: 22px; padding-left: 4px; }
+    .hero-stats .stat strong { display: block; font-family: 'Playfair Display', serif; font-size: 1.7rem; color: var(--gold-soft); }
+    .hero-stats .stat span { font-size: 0.8rem; color: rgba(247,241,227,0.7); }
+
+    /* ===== About ===== */
+    .about { background: var(--cream); }
+    .about-grid { display: grid; grid-template-columns: 0.82fr 1.18fr; gap: 60px; align-items: center; }
+    .portrait {
+      aspect-ratio: 4/5;
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, var(--navy-soft), var(--navy-deep));
+      position: relative;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      display: block;
+    }
+    .portrait::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 1px solid rgba(200, 163, 91, 0.55);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .about h2 { font-size: clamp(1.9rem, 3.5vw, 2.7rem); margin: 12px 0 0; }
+    .about p { color: #463f33; margin: 18px 0 0; }
+    .creds { list-style: none; padding: 0; margin: 30px 0 0; display: grid; gap: 14px; }
+    .creds li { display: flex; gap: 14px; align-items: flex-start; }
+    .creds .mark { color: var(--gold); font-weight: 700; font-family: 'Playfair Display', serif; }
+    .creds strong { color: var(--navy); }
+
+    /* ===== Teach ===== */
+    .teach { background: var(--cream-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 22px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
+    .card .icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: rgba(200, 163, 91, 0.14);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+    }
+    .card h3 { font-size: 1.2rem; margin: 0 0 8px; color: var(--navy); }
+    .card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+    .card .level { margin-top: 14px; font-size: 0.76rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+
+    /* ===== How it works ===== */
+    .how { background: var(--navy); color: var(--cream); }
+    .how .section-head h2 { color: var(--cream); }
+    .how .section-head p { color: rgba(247,241,227,0.72); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+    .step {
+      position: relative;
+      padding: 34px 28px;
+      border: 1px solid rgba(200, 163, 91, 0.25);
+      border-radius: var(--radius);
+      background: rgba(247, 241, 227, 0.04);
+    }
+    .step .num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem;
+      color: var(--gold-soft);
+      line-height: 1;
+    }
+    .step h3 { color: var(--cream); margin: 14px 0 8px; font-size: 1.3rem; }
+    .step p { color: rgba(247,241,227,0.74); margin: 0; font-size: 0.96rem; }
+
+    /* ===== Booking ===== */
+    .booking { background: var(--cream); }
+    .booking-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: start; }
+    .booking-aside h2 { font-size: clamp(1.9rem, 3.5vw, 2.7rem); margin: 12px 0 0; }
+    .booking-aside p { color: var(--muted); margin: 18px 0 0; }
+    .booking-aside .perks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; }
+    .booking-aside .perks li { display: flex; gap: 12px; align-items: center; color: #463f33; }
+    .booking-aside .perks .mark { color: var(--gold); font-weight: 700; }
+
+    form {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
+    }
+    .field { margin-bottom: 20px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--navy); margin-bottom: 7px; }
+    input, select {
+      width: 100%;
+      padding: 13px 15px;
+      border: 1px solid #ddd3bf;
+      border-radius: 9px;
+      font-family: inherit;
+      font-size: 0.96rem;
+      color: var(--ink);
+      background: var(--cream-soft);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(200, 163, 91, 0.18);
+    }
+    .error { color: #b23b3b; font-size: 0.8rem; margin-top: 6px; display: none; }
+    .field.invalid input, .field.invalid select { border-color: #d08a8a; }
+    .field.invalid .error { display: block; }
+    form .btn-primary { width: 100%; margin-top: 8px; }
+    .form-note { font-size: 0.8rem; color: var(--muted); text-align: center; margin: 16px 0 0; }
+
+    .confirm {
+      display: none;
+      background: rgba(200, 163, 91, 0.12);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .confirm.show { display: block; animation: fadeUp 0.4s ease; }
+    .confirm .check {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: var(--gold); color: var(--navy-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; margin: 0 auto 18px;
+    }
+    .confirm h3 { color: var(--navy); margin: 0 0 10px; font-size: 1.5rem; }
+    .confirm p { color: #463f33; margin: 0; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== Testimonials ===== */
+    .testimonials { background: var(--cream-soft); border-top: 1px solid var(--line); }
+    .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+    .quote-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      position: relative;
+    }
+    .quote-card .mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      color: var(--gold-soft);
+      line-height: 0.6;
+      display: block;
+      margin-bottom: 12px;
+    }
+    .quote-card p { color: #3f3a30; font-style: italic; margin: 0 0 22px; font-size: 1.02rem; }
+    .quote-card .who { display: flex; align-items: center; gap: 12px; }
+    .quote-card .avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(150deg, var(--navy-soft), var(--navy-deep));
+      color: var(--gold-soft);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-weight: 600;
+    }
+    .quote-card .who strong { display: block; color: var(--navy); font-size: 0.95rem; }
+    .quote-card .who span { font-size: 0.82rem; color: var(--muted); }
+
+    /* ===== Footer ===== */
+    footer {
+      background: var(--navy-deep);
+      color: rgba(247, 241, 227, 0.8);
+      padding: 64px 0 32px;
+    }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; }
+    footer .brand { display: block; margin-bottom: 14px; }
+    footer p { margin: 0; font-size: 0.92rem; line-height: 1.7; color: rgba(247,241,227,0.7); }
+    footer h4 { font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 2px; font-size: 0.72rem; color: var(--gold); margin: 0 0 16px; }
+    footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    footer ul a { color: rgba(247,241,227,0.75); text-decoration: none; font-size: 0.92rem; transition: color 0.15s ease; }
+    footer ul a:hover { color: var(--gold-soft); }
+    .footer-bottom {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(200, 163, 91, 0.18);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.82rem;
+      color: rgba(247,241,227,0.55);
+    }
+    .footer-legal {
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: rgba(247,241,227,0.5);
+      line-height: 1.6;
+    }
+    .footer-legal strong { color: rgba(247,241,227,0.7); font-weight: 600; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 920px) {
+      .hero-grid, .about-grid, .booking-grid { grid-template-columns: 1fr; }
+      .steps, .quotes { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .hero-photo { order: -1; max-width: 380px; }
+      .portrait { max-width: 360px; }
+      .nav-links { display: none; }
+      .nav-toggle { display: block; }
+      .nav-links.open {
+        display: flex;
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+        background: var(--navy-deep);
+        padding: 24px 28px;
+        border-bottom: 1px solid rgba(200,163,91,0.2);
+      }
+    }
+    @media (max-width: 560px) {
+      section { padding: 70px 0; }
+      .field-row { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      form { padding: 26px; }
+      .hero-stats { gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Navigation ===== -->
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="#hero" class="brand">Demyan<span>.</span>Petrov</a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#about" data-i18n="nav.about">About</a>
+        <a href="#teach" data-i18n="nav.teach">What I Teach</a>
+        <a href="#how" data-i18n="nav.how">How It Works</a>
+        <a href="#testimonials" data-i18n="nav.testimonials">Testimonials</a>
+        <a href="#booking" class="btn btn-primary" data-i18n="nav.book">Book a Lesson</a>
+      </nav>
+      <div class="nav-right">
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" data-lang="en" class="active">EN</button>
+          <button type="button" data-lang="es">ES</button>
+          <button type="button" data-lang="ru">RU</button>
+        </div>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow" data-i18n="hero.eyebrow">Spanish · English · Russian · A1–C2</span>
+          <h1 data-i18n="hero.title">Master Spanish, English &amp; Russian with a <span class="accent">dedicated tutor</span></h1>
+          <p class="tagline" data-i18n="hero.tagline">Personalised lessons for Russian speakers learning Spanish and English — and for international students mastering Russian. Learn with clarity, speak with confidence.</p>
+          <div class="hero-cta">
+            <a href="#booking" class="btn btn-primary" data-i18n="hero.cta1">Book a Lesson</a>
+            <a href="#teach" class="btn btn-ghost" data-i18n="hero.cta2">Explore Courses</a>
+          </div>
+          <div class="hero-flags">
+            <span class="flag"><span class="dot"></span> <span data-i18n="hero.flag1">Español — todos los niveles</span></span>
+            <span class="flag"><span class="dot"></span> <span data-i18n="hero.flag2">English — every level</span></span>
+            <span class="flag"><span class="dot"></span> <span data-i18n="hero.flag3">Русский — для иностранцев</span></span>
+          </div>
+        </div>
+        <aside>
+          <div class="hero-photo">
+            <img src="images/demyan-full.jpeg" alt="Demyan Petrov, language tutor" loading="eager" />
+            <div class="hero-badge">
+              <strong>Demyan Petrov</strong>
+              <span data-i18n="hero.badge">Spanish · English · Russian tutor</span>
+            </div>
+          </div>
+          <div class="hero-stats">
+            <div class="stat"><strong>10+</strong><span data-i18n="hero.stat1">Years teaching</span></div>
+            <div class="stat"><strong>600+</strong><span data-i18n="hero.stat2">Students taught</span></div>
+            <div class="stat"><strong>3</strong><span data-i18n="hero.stat3">Languages</span></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== About ===== -->
+  <section class="about" id="about">
+    <div class="wrap">
+      <div class="about-grid">
+        <div class="portrait">
+          <img src="images/demyan-portrait.jpeg" alt="Portrait of Demyan Petrov" loading="lazy" />
+        </div>
+        <div>
+          <span class="eyebrow" data-i18n="about.eyebrow">About</span>
+          <h2 data-i18n="about.title">A scholar's rigour, a conversationalist's warmth</h2>
+          <p data-i18n="about.p1">I'm Demyan Petrov, a language tutor devoted to helping students move beyond textbooks and into fluent, natural communication. My teaching blends academic structure with the everyday rhythm of real speech — because grammar matters, but so does feeling at home in a language.</p>
+          <p data-i18n="about.p2">My philosophy is simple: every learner is different, so every lesson is built around <strong>you</strong> — your goals, your pace, and the moments where the language finally clicks.</p>
+          <p data-i18n="about.p3">Beyond teaching Spanish and English to Russian speakers, I also welcome international students who want to learn <strong>Russian as a foreign language</strong> — guiding them from the Cyrillic alphabet to confident everyday conversation.</p>
+          <ul class="creds">
+            <li><span class="mark">◆</span><span data-i18n="about.cred1"><strong>M.A. in Applied Linguistics</strong> — specialisation in second-language acquisition.</span></li>
+            <li><span class="mark">◆</span><span data-i18n="about.cred2"><strong>Certified examiner</strong> for DELE (Spanish) and Cambridge / IELTS (English).</span></li>
+            <li><span class="mark">◆</span><span data-i18n="about.cred3"><strong>10+ years</strong> of one-to-one tutoring, online and in person.</span></li>
+            <li><span class="mark">◆</span><span data-i18n="about.cred4"><strong>Trilingual fluency</strong> in Russian, Spanish and English, refined by years abroad.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== What I Teach ===== -->
+  <section class="teach" id="teach">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="teach.eyebrow">What I Teach</span>
+        <h2 data-i18n="teach.title">Courses for every goal and level</h2>
+        <p data-i18n="teach.subtitle">From your very first words to near-native mastery — structured pathways tailored to where you are and where you want to go.</p>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="icon">🇪🇸</div>
+          <h3 data-i18n="teach.c1.title">Spanish</h3>
+          <p data-i18n="teach.c1.desc">Grammar, vocabulary and pronunciation built step by step, from beginner foundations to advanced fluency.</p>
+          <div class="level" data-i18n="teach.c1.level">Levels A1 – C2</div>
+        </article>
+        <article class="card">
+          <div class="icon">🇬🇧</div>
+          <h3 data-i18n="teach.c2.title">English</h3>
+          <p data-i18n="teach.c2.desc">Clear, confident English for study, work and travel — with a focus on natural, real-world usage.</p>
+          <div class="level" data-i18n="teach.c2.level">Levels A1 – C2</div>
+        </article>
+        <article class="card">
+          <div class="icon">🇷🇺</div>
+          <h3 data-i18n="teach.c5.title">Russian as a Foreign Language</h3>
+          <p data-i18n="teach.c5.desc">For international students: Russian from the Cyrillic alphabet to natural, confident conversation — grammar made approachable.</p>
+          <div class="level" data-i18n="teach.c5.level">For non-native speakers</div>
+        </article>
+        <article class="card">
+          <div class="icon">📜</div>
+          <h3 data-i18n="teach.c3.title">Exam Preparation</h3>
+          <p data-i18n="teach.c3.desc">Targeted coaching for DELE, IELTS, Cambridge, TOEFL and TORFL — strategy, practice and steady progress.</p>
+          <div class="level" data-i18n="teach.c3.level">Certified examiner</div>
+        </article>
+        <article class="card">
+          <div class="icon">💬</div>
+          <h3 data-i18n="teach.c4.title">Conversation Practice</h3>
+          <p data-i18n="teach.c4.desc">Relaxed, guided speaking sessions to build fluency, expand vocabulary and lose the hesitation.</p>
+          <div class="level" data-i18n="teach.c4.level">Speak with confidence</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How It Works ===== -->
+  <section class="how" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="how.eyebrow">How It Works</span>
+        <h2 data-i18n="how.title">Getting started is simple</h2>
+        <p data-i18n="how.subtitle">Three easy steps stand between you and your first lesson.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">01</div>
+          <h3 data-i18n="how.s1.title">Choose a slot</h3>
+          <p data-i18n="how.s1.desc">Tell me your preferred language, level and time using the booking form. I'll confirm a slot that fits your schedule.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3 data-i18n="how.s2.title">First trial lesson</h3>
+          <p data-i18n="how.s2.desc">We meet for a relaxed introductory session to assess your level, discuss your goals and map out a plan.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3 data-i18n="how.s3.title">Start learning</h3>
+          <p data-i18n="how.s3.desc">Begin your personalised programme with regular lessons, clear materials and steady, measurable progress.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Booking ===== -->
+  <section class="booking" id="booking">
+    <div class="wrap">
+      <div class="booking-grid">
+        <div class="booking-aside">
+          <span class="eyebrow" data-i18n="booking.eyebrow">Book a Lesson</span>
+          <h2 data-i18n="booking.title">Reserve your trial lesson</h2>
+          <p data-i18n="booking.subtitle">Fill in a few details and I'll get back to you within 24 hours to confirm your first session. No commitment required.</p>
+          <ul class="perks">
+            <li><span class="mark">✓</span> <span data-i18n="booking.perk1">Friendly, no-pressure trial lesson</span></li>
+            <li><span class="mark">✓</span> <span data-i18n="booking.perk2">Flexible online scheduling</span></li>
+            <li><span class="mark">✓</span> <span data-i18n="booking.perk3">A learning plan tailored to you</span></li>
+          </ul>
+        </div>
+
+        <div>
+          <form id="bookingForm" novalidate>
+            <div class="field">
+              <label for="name" data-i18n="form.name">Full name</label>
+              <input type="text" id="name" name="name" data-i18n-ph="form.namePh" placeholder="Your name" />
+              <div class="error" data-error="name" data-i18n="form.nameErr">Please enter your name.</div>
+            </div>
+
+            <div class="field">
+              <label for="email" data-i18n="form.email">Email address</label>
+              <input type="email" id="email" name="email" data-i18n-ph="form.emailPh" placeholder="you@example.com" />
+              <div class="error" data-error="email" data-i18n="form.emailErr">Please enter a valid email address.</div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="language" data-i18n="form.language">Preferred language</label>
+                <select id="language" name="language">
+                  <option value="" data-i18n="form.select">Select…</option>
+                  <option value="Spanish" data-i18n="form.langSpanish">Spanish</option>
+                  <option value="English" data-i18n="form.langEnglish">English</option>
+                  <option value="Russian" data-i18n="form.langRussian">Russian (as a foreign language)</option>
+                </select>
+                <div class="error" data-error="language" data-i18n="form.languageErr">Please choose a language.</div>
+              </div>
+              <div class="field">
+                <label for="level" data-i18n="form.level">Level</label>
+                <select id="level" name="level">
+                  <option value="" data-i18n="form.select">Select…</option>
+                  <option value="A1" data-i18n="form.lvlA1">A1 — Beginner</option>
+                  <option value="A2" data-i18n="form.lvlA2">A2 — Elementary</option>
+                  <option value="B1" data-i18n="form.lvlB1">B1 — Intermediate</option>
+                  <option value="B2" data-i18n="form.lvlB2">B2 — Upper Intermediate</option>
+                  <option value="C1" data-i18n="form.lvlC1">C1 — Advanced</option>
+                  <option value="C2" data-i18n="form.lvlC2">C2 — Proficiency</option>
+                  <option value="Unsure" data-i18n="form.lvlUnsure">Not sure yet</option>
+                </select>
+                <div class="error" data-error="level" data-i18n="form.levelErr">Please choose a level.</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="time" data-i18n="form.time">Preferred time</label>
+              <input type="text" id="time" name="time" data-i18n-ph="form.timePh" placeholder="e.g. Weekday evenings, Sat mornings" />
+              <div class="error" data-error="time" data-i18n="form.timeErr">Please tell me your preferred time.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" data-i18n="form.submit">Send Inquiry</button>
+            <p class="form-note" data-i18n="form.note">I'll reply within 24 hours. Your details are never shared.</p>
+          </form>
+
+          <div class="confirm" id="confirm" role="status" aria-live="polite">
+            <div class="check">✓</div>
+            <h3 data-i18n="confirm.title">¡Gracias! Your inquiry is on its way</h3>
+            <p id="confirmMsg" data-i18n="confirm.msg">Thank you for reaching out. I'll be in touch within 24 hours to confirm your trial lesson.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Testimonials ===== -->
+  <section class="testimonials" id="testimonials">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="testi.eyebrow">Testimonials</span>
+        <h2 data-i18n="testi.title">What my students say</h2>
+      </div>
+      <div class="quotes">
+        <figure class="quote-card">
+          <span class="mark">“</span>
+          <p data-i18n="testi.q1">Demyan made Spanish finally click for me. After years of stalling, I passed my DELE B2 in six months. Patient, structured, and genuinely kind.</p>
+          <figcaption class="who">
+            <span class="avatar">EM</span>
+            <span><strong>Elena Moreau</strong><span data-i18n="testi.r1">DELE B2 · Paris</span></span>
+          </figcaption>
+        </figure>
+        <figure class="quote-card">
+          <span class="mark">“</span>
+          <p data-i18n="testi.q2">My English confidence transformed. The conversation lessons felt natural, never intimidating. I now lead meetings in English without a second thought.</p>
+          <figcaption class="who">
+            <span class="avatar">RK</span>
+            <span><strong>Rafael Klein</strong><span data-i18n="testi.r2">Business English · Berlin</span></span>
+          </figcaption>
+        </figure>
+        <figure class="quote-card">
+          <span class="mark">“</span>
+          <p data-i18n="testi.q3">I started learning Russian from zero, and Demyan made the alphabet and grammar feel approachable. Six months in, I can hold real conversations.</p>
+          <figcaption class="who">
+            <span class="avatar">MK</span>
+            <span><strong>María Castro</strong><span data-i18n="testi.r3">Russian as a foreign language · Madrid</span></span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer id="contact">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <a href="#hero" class="brand">Demyan<span>.</span>Petrov</a>
+          <p data-i18n="footer.about">Spanish, English &amp; Russian tutoring for curious minds. Lessons that build real fluency — one conversation at a time.</p>
+        </div>
+        <div>
+          <h4 data-i18n="footer.contact">Contact</h4>
+          <ul>
+            <li><a href="mailto:hello@demyanpetrov.com">hello@demyanpetrov.com</a></li>
+            <li><a href="#booking" data-i18n="footer.book">Book a lesson</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 data-i18n="footer.connect">Connect</h4>
+          <ul>
+            <li><a href="#" aria-label="Instagram">Instagram</a></li>
+            <li><a href="#" aria-label="Telegram">Telegram</a></li>
+            <li><a href="#" aria-label="YouTube">YouTube</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> Demyan Petrov. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span>Aprende · Learn · Habla · Speak · Изучай</span>
+      </div>
+      <div class="footer-legal">
+        <strong>ИП Петров Демьян Дмитриевич</strong> · <span data-i18n="footer.legalNote">Individual entrepreneur · Language tutoring services</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Translations (EN / ES / RU) =====
+    var I18N = {
+      en: {
+        'nav.about': 'About',
+        'nav.teach': 'What I Teach',
+        'nav.how': 'How It Works',
+        'nav.testimonials': 'Testimonials',
+        'nav.book': 'Book a Lesson',
+        'hero.eyebrow': 'Spanish · English · Russian · A1–C2',
+        'hero.title': 'Master Spanish, English &amp; Russian with a <span class="accent">dedicated tutor</span>',
+        'hero.tagline': 'Personalised lessons for Russian speakers learning Spanish and English — and for international students mastering Russian. Learn with clarity, speak with confidence.',
+        'hero.cta1': 'Book a Lesson',
+        'hero.cta2': 'Explore Courses',
+        'hero.flag1': 'Español — todos los niveles',
+        'hero.flag2': 'English — every level',
+        'hero.flag3': 'Русский — для иностранцев',
+        'hero.badge': 'Spanish · English · Russian tutor',
+        'hero.stat1': 'Years teaching',
+        'hero.stat2': 'Students taught',
+        'hero.stat3': 'Languages',
+        'about.eyebrow': 'About',
+        'about.title': "A scholar's rigour, a conversationalist's warmth",
+        'about.p1': "I'm Demyan Petrov, a language tutor devoted to helping students move beyond textbooks and into fluent, natural communication. My teaching blends academic structure with the everyday rhythm of real speech — because grammar matters, but so does feeling at home in a language.",
+        'about.p2': 'My philosophy is simple: every learner is different, so every lesson is built around <strong>you</strong> — your goals, your pace, and the moments where the language finally clicks.',
+        'about.p3': 'Beyond teaching Spanish and English to Russian speakers, I also welcome international students who want to learn <strong>Russian as a foreign language</strong> — guiding them from the Cyrillic alphabet to confident everyday conversation.',
+        'about.cred1': '<strong>M.A. in Applied Linguistics</strong> — specialisation in second-language acquisition.',
+        'about.cred2': '<strong>Certified examiner</strong> for DELE (Spanish) and Cambridge / IELTS (English).',
+        'about.cred3': '<strong>10+ years</strong> of one-to-one tutoring, online and in person.',
+        'about.cred4': '<strong>Trilingual fluency</strong> in Russian, Spanish and English, refined by years abroad.',
+        'teach.eyebrow': 'What I Teach',
+        'teach.title': 'Courses for every goal and level',
+        'teach.subtitle': 'From your very first words to near-native mastery — structured pathways tailored to where you are and where you want to go.',
+        'teach.c1.title': 'Spanish',
+        'teach.c1.desc': 'Grammar, vocabulary and pronunciation built step by step, from beginner foundations to advanced fluency.',
+        'teach.c1.level': 'Levels A1 – C2',
+        'teach.c2.title': 'English',
+        'teach.c2.desc': 'Clear, confident English for study, work and travel — with a focus on natural, real-world usage.',
+        'teach.c2.level': 'Levels A1 – C2',
+        'teach.c5.title': 'Russian as a Foreign Language',
+        'teach.c5.desc': 'For international students: Russian from the Cyrillic alphabet to natural, confident conversation — grammar made approachable.',
+        'teach.c5.level': 'For non-native speakers',
+        'teach.c3.title': 'Exam Preparation',
+        'teach.c3.desc': 'Targeted coaching for DELE, IELTS, Cambridge, TOEFL and TORFL — strategy, practice and steady progress.',
+        'teach.c3.level': 'Certified examiner',
+        'teach.c4.title': 'Conversation Practice',
+        'teach.c4.desc': 'Relaxed, guided speaking sessions to build fluency, expand vocabulary and lose the hesitation.',
+        'teach.c4.level': 'Speak with confidence',
+        'how.eyebrow': 'How It Works',
+        'how.title': 'Getting started is simple',
+        'how.subtitle': 'Three easy steps stand between you and your first lesson.',
+        'how.s1.title': 'Choose a slot',
+        'how.s1.desc': "Tell me your preferred language, level and time using the booking form. I'll confirm a slot that fits your schedule.",
+        'how.s2.title': 'First trial lesson',
+        'how.s2.desc': 'We meet for a relaxed introductory session to assess your level, discuss your goals and map out a plan.',
+        'how.s3.title': 'Start learning',
+        'how.s3.desc': 'Begin your personalised programme with regular lessons, clear materials and steady, measurable progress.',
+        'booking.eyebrow': 'Book a Lesson',
+        'booking.title': 'Reserve your trial lesson',
+        'booking.subtitle': "Fill in a few details and I'll get back to you within 24 hours to confirm your first session. No commitment required.",
+        'booking.perk1': 'Friendly, no-pressure trial lesson',
+        'booking.perk2': 'Flexible online scheduling',
+        'booking.perk3': 'A learning plan tailored to you',
+        'form.name': 'Full name',
+        'form.namePh': 'Your name',
+        'form.nameErr': 'Please enter your name.',
+        'form.email': 'Email address',
+        'form.emailPh': 'you@example.com',
+        'form.emailErr': 'Please enter a valid email address.',
+        'form.language': 'Preferred language',
+        'form.select': 'Select…',
+        'form.langSpanish': 'Spanish',
+        'form.langEnglish': 'English',
+        'form.langRussian': 'Russian (as a foreign language)',
+        'form.languageErr': 'Please choose a language.',
+        'form.level': 'Level',
+        'form.lvlA1': 'A1 — Beginner',
+        'form.lvlA2': 'A2 — Elementary',
+        'form.lvlB1': 'B1 — Intermediate',
+        'form.lvlB2': 'B2 — Upper Intermediate',
+        'form.lvlC1': 'C1 — Advanced',
+        'form.lvlC2': 'C2 — Proficiency',
+        'form.lvlUnsure': 'Not sure yet',
+        'form.levelErr': 'Please choose a level.',
+        'form.time': 'Preferred time',
+        'form.timePh': 'e.g. Weekday evenings, Sat mornings',
+        'form.timeErr': 'Please tell me your preferred time.',
+        'form.submit': 'Send Inquiry',
+        'form.note': "I'll reply within 24 hours. Your details are never shared.",
+        'confirm.title': '¡Gracias! Your inquiry is on its way',
+        'confirm.msg': "Thank you for reaching out. I'll be in touch within 24 hours to confirm your trial lesson.",
+        'confirm.dynamic': "Thank you, {name}! Your {language} inquiry has been received. I'll be in touch within 24 hours to confirm your trial lesson.",
+        'testi.eyebrow': 'Testimonials',
+        'testi.title': 'What my students say',
+        'testi.q1': 'Demyan made Spanish finally click for me. After years of stalling, I passed my DELE B2 in six months. Patient, structured, and genuinely kind.',
+        'testi.r1': 'DELE B2 · Paris',
+        'testi.q2': 'My English confidence transformed. The conversation lessons felt natural, never intimidating. I now lead meetings in English without a second thought.',
+        'testi.r2': 'Business English · Berlin',
+        'testi.q3': 'I started learning Russian from zero, and Demyan made the alphabet and grammar feel approachable. Six months in, I can hold real conversations.',
+        'testi.r3': 'Russian as a foreign language · Madrid',
+        'footer.about': 'Spanish, English &amp; Russian tutoring for curious minds. Lessons that build real fluency — one conversation at a time.',
+        'footer.contact': 'Contact',
+        'footer.book': 'Book a lesson',
+        'footer.connect': 'Connect',
+        'footer.rights': 'All rights reserved.',
+        'footer.legalNote': 'Individual entrepreneur · Language tutoring services'
+      },
+      es: {
+        'nav.about': 'Sobre mí',
+        'nav.teach': 'Qué enseño',
+        'nav.how': 'Cómo funciona',
+        'nav.testimonials': 'Opiniones',
+        'nav.book': 'Reservar clase',
+        'hero.eyebrow': 'Español · Inglés · Ruso · A1–C2',
+        'hero.title': 'Domina español, inglés y ruso con un <span class="accent">profesor dedicado</span>',
+        'hero.tagline': 'Clases personalizadas para rusohablantes que aprenden español e inglés, y para estudiantes internacionales que dominan el ruso. Aprende con claridad, habla con confianza.',
+        'hero.cta1': 'Reservar clase',
+        'hero.cta2': 'Ver cursos',
+        'hero.flag1': 'Español — todos los niveles',
+        'hero.flag2': 'English — every level',
+        'hero.flag3': 'Русский — для иностранцев',
+        'hero.badge': 'Profesor de español, inglés y ruso',
+        'hero.stat1': 'Años enseñando',
+        'hero.stat2': 'Estudiantes',
+        'hero.stat3': 'Idiomas',
+        'about.eyebrow': 'Sobre mí',
+        'about.title': 'El rigor de un académico, la calidez de un conversador',
+        'about.p1': 'Soy Demyan Petrov, profesor de idiomas dedicado a ayudar a los estudiantes a ir más allá de los libros de texto hacia una comunicación fluida y natural. Mi enseñanza combina la estructura académica con el ritmo cotidiano del habla real, porque la gramática importa, pero también sentirse como en casa en un idioma.',
+        'about.p2': 'Mi filosofía es simple: cada estudiante es diferente, así que cada clase se construye en torno a <strong>ti</strong>: tus objetivos, tu ritmo y esos momentos en que el idioma por fin encaja.',
+        'about.p3': 'Además de enseñar español e inglés a estudiantes de habla rusa, también doy la bienvenida a estudiantes internacionales que desean aprender <strong>ruso como lengua extranjera</strong>, guiándolos desde el alfabeto cirílico hasta una conversación cotidiana con confianza.',
+        'about.cred1': '<strong>Máster en Lingüística Aplicada</strong> — especialización en adquisición de segundas lenguas.',
+        'about.cred2': '<strong>Examinador certificado</strong> de DELE (español) y Cambridge / IELTS (inglés).',
+        'about.cred3': '<strong>Más de 10 años</strong> de clases particulares, en línea y presenciales.',
+        'about.cred4': '<strong>Fluidez trilingüe</strong> en ruso, español e inglés, perfeccionada con años en el extranjero.',
+        'teach.eyebrow': 'Qué enseño',
+        'teach.title': 'Cursos para cada objetivo y nivel',
+        'teach.subtitle': 'Desde tus primeras palabras hasta un dominio casi nativo: itinerarios estructurados adaptados a dónde estás y a dónde quieres llegar.',
+        'teach.c1.title': 'Español',
+        'teach.c1.desc': 'Gramática, vocabulario y pronunciación paso a paso, desde las bases para principiantes hasta la fluidez avanzada.',
+        'teach.c1.level': 'Niveles A1 – C2',
+        'teach.c2.title': 'Inglés',
+        'teach.c2.desc': 'Inglés claro y seguro para estudiar, trabajar y viajar, con énfasis en el uso natural y real.',
+        'teach.c2.level': 'Niveles A1 – C2',
+        'teach.c5.title': 'Ruso como lengua extranjera',
+        'teach.c5.desc': 'Para estudiantes internacionales: ruso desde el alfabeto cirílico hasta una conversación natural y segura, con gramática accesible.',
+        'teach.c5.level': 'Para no nativos',
+        'teach.c3.title': 'Preparación de exámenes',
+        'teach.c3.desc': 'Preparación específica para DELE, IELTS, Cambridge, TOEFL y TORFL: estrategia, práctica y progreso constante.',
+        'teach.c3.level': 'Examinador certificado',
+        'teach.c4.title': 'Práctica de conversación',
+        'teach.c4.desc': 'Sesiones de habla relajadas y guiadas para ganar fluidez, ampliar vocabulario y perder la vacilación.',
+        'teach.c4.level': 'Habla con confianza',
+        'how.eyebrow': 'Cómo funciona',
+        'how.title': 'Empezar es muy fácil',
+        'how.subtitle': 'Solo tres sencillos pasos te separan de tu primera clase.',
+        'how.s1.title': 'Elige un horario',
+        'how.s1.desc': 'Indícame en el formulario tu idioma, nivel y horario preferidos. Confirmaré un hueco que se adapte a tu agenda.',
+        'how.s2.title': 'Primera clase de prueba',
+        'how.s2.desc': 'Nos vemos en una sesión introductoria relajada para evaluar tu nivel, hablar de tus objetivos y trazar un plan.',
+        'how.s3.title': 'Empieza a aprender',
+        'how.s3.desc': 'Comienza tu programa personalizado con clases regulares, materiales claros y un progreso constante y medible.',
+        'booking.eyebrow': 'Reservar clase',
+        'booking.title': 'Reserva tu clase de prueba',
+        'booking.subtitle': 'Completa unos datos y te responderé en 24 horas para confirmar tu primera sesión. Sin compromiso.',
+        'booking.perk1': 'Clase de prueba amistosa y sin presión',
+        'booking.perk2': 'Horario en línea flexible',
+        'booking.perk3': 'Un plan de aprendizaje hecho a tu medida',
+        'form.name': 'Nombre completo',
+        'form.namePh': 'Tu nombre',
+        'form.nameErr': 'Por favor, introduce tu nombre.',
+        'form.email': 'Correo electrónico',
+        'form.emailPh': 'tu@ejemplo.com',
+        'form.emailErr': 'Por favor, introduce un correo válido.',
+        'form.language': 'Idioma preferido',
+        'form.select': 'Selecciona…',
+        'form.langSpanish': 'Español',
+        'form.langEnglish': 'Inglés',
+        'form.langRussian': 'Ruso (como lengua extranjera)',
+        'form.languageErr': 'Por favor, elige un idioma.',
+        'form.level': 'Nivel',
+        'form.lvlA1': 'A1 — Principiante',
+        'form.lvlA2': 'A2 — Elemental',
+        'form.lvlB1': 'B1 — Intermedio',
+        'form.lvlB2': 'B2 — Intermedio alto',
+        'form.lvlC1': 'C1 — Avanzado',
+        'form.lvlC2': 'C2 — Dominio',
+        'form.lvlUnsure': 'Aún no lo sé',
+        'form.levelErr': 'Por favor, elige un nivel.',
+        'form.time': 'Horario preferido',
+        'form.timePh': 'p. ej. entre semana por la tarde, sábados por la mañana',
+        'form.timeErr': 'Por favor, indica tu horario preferido.',
+        'form.submit': 'Enviar solicitud',
+        'form.note': 'Responderé en 24 horas. Tus datos nunca se comparten.',
+        'confirm.title': '¡Gracias! Tu solicitud está en camino',
+        'confirm.msg': 'Gracias por escribir. Me pondré en contacto en 24 horas para confirmar tu clase de prueba.',
+        'confirm.dynamic': '¡Gracias, {name}! Hemos recibido tu solicitud de {language}. Me pondré en contacto en 24 horas para confirmar tu clase de prueba.',
+        'testi.eyebrow': 'Opiniones',
+        'testi.title': 'Lo que dicen mis estudiantes',
+        'testi.q1': 'Con Demyan el español por fin encajó. Tras años estancada, aprobé mi DELE B2 en seis meses. Paciente, estructurado y de verdad amable.',
+        'testi.r1': 'DELE B2 · París',
+        'testi.q2': 'Mi confianza con el inglés se transformó. Las clases de conversación eran naturales, nunca intimidantes. Ahora dirijo reuniones en inglés sin pensarlo.',
+        'testi.r2': 'Inglés de negocios · Berlín',
+        'testi.q3': 'Empecé a aprender ruso desde cero y Demyan hizo que el alfabeto y la gramática resultaran accesibles. A los seis meses ya mantengo conversaciones reales.',
+        'testi.r3': 'Ruso como lengua extranjera · Madrid',
+        'footer.about': 'Clases de español, inglés y ruso para mentes curiosas. Lecciones que construyen fluidez real, una conversación a la vez.',
+        'footer.contact': 'Contacto',
+        'footer.book': 'Reservar clase',
+        'footer.connect': 'Redes',
+        'footer.rights': 'Todos los derechos reservados.',
+        'footer.legalNote': 'Empresario individual (IP) · Servicios de tutoría de idiomas'
+      },
+      ru: {
+        'nav.about': 'Обо мне',
+        'nav.teach': 'Что я преподаю',
+        'nav.how': 'Как это работает',
+        'nav.testimonials': 'Отзывы',
+        'nav.book': 'Записаться на урок',
+        'hero.eyebrow': 'Испанский · Английский · Русский · A1–C2',
+        'hero.title': 'Освойте испанский, английский и русский с <span class="accent">внимательным репетитором</span>',
+        'hero.tagline': 'Индивидуальные уроки для русскоязычных, изучающих испанский и английский, и для иностранцев, осваивающих русский. Учитесь с ясностью, говорите с уверенностью.',
+        'hero.cta1': 'Записаться на урок',
+        'hero.cta2': 'Смотреть курсы',
+        'hero.flag1': 'Español — todos los niveles',
+        'hero.flag2': 'English — every level',
+        'hero.flag3': 'Русский — для иностранцев',
+        'hero.badge': 'Репетитор испанского, английского и русского',
+        'hero.stat1': 'Лет преподавания',
+        'hero.stat2': 'Учеников обучено',
+        'hero.stat3': 'Языка',
+        'about.eyebrow': 'Обо мне',
+        'about.title': 'Академическая строгость и тёплое живое общение',
+        'about.p1': 'Я Демьян Петров, репетитор, который помогает ученикам выйти за рамки учебников к свободному, естественному общению. Моё преподавание сочетает академическую структуру с ритмом живой речи — ведь грамматика важна, но не менее важно чувствовать себя в языке как дома.',
+        'about.p2': 'Моя философия проста: все ученики разные, поэтому каждый урок строится вокруг <strong>вас</strong> — ваших целей, вашего темпа и тех моментов, когда язык наконец «складывается».',
+        'about.p3': 'Помимо испанского и английского для русскоязычных, я с радостью занимаюсь с иностранными студентами, которые хотят выучить <strong>русский как иностранный</strong> — веду их от кириллицы до уверенного повседневного общения.',
+        'about.cred1': '<strong>Магистр прикладной лингвистики</strong> — специализация на освоении второго языка.',
+        'about.cred2': '<strong>Сертифицированный экзаменатор</strong> DELE (испанский) и Cambridge / IELTS (английский).',
+        'about.cred3': '<strong>Более 10 лет</strong> индивидуальных занятий — онлайн и очно.',
+        'about.cred4': '<strong>Свободное владение тремя языками</strong> — русским, испанским и английским, отточенное за годы за рубежом.',
+        'teach.eyebrow': 'Что я преподаю',
+        'teach.title': 'Курсы для любой цели и уровня',
+        'teach.subtitle': 'От первых слов до уровня, близкого к носителю — выстроенные программы под то, где вы сейчас и куда хотите прийти.',
+        'teach.c1.title': 'Испанский',
+        'teach.c1.desc': 'Грамматика, лексика и произношение шаг за шагом — от основ для начинающих до свободного владения.',
+        'teach.c1.level': 'Уровни A1 – C2',
+        'teach.c2.title': 'Английский',
+        'teach.c2.desc': 'Понятный и уверенный английский для учёбы, работы и путешествий — с упором на естественную живую речь.',
+        'teach.c2.level': 'Уровни A1 – C2',
+        'teach.c5.title': 'Русский как иностранный',
+        'teach.c5.desc': 'Для иностранных студентов: русский от кириллицы до естественного уверенного общения — грамматика понятным языком.',
+        'teach.c5.level': 'Для иностранцев',
+        'teach.c3.title': 'Подготовка к экзаменам',
+        'teach.c3.desc': 'Целенаправленная подготовка к DELE, IELTS, Cambridge, TOEFL и ТРКИ — стратегия, практика и устойчивый прогресс.',
+        'teach.c3.level': 'Сертифицированный экзаменатор',
+        'teach.c4.title': 'Разговорная практика',
+        'teach.c4.desc': 'Спокойные направляемые беседы, чтобы развить беглость, расширить словарный запас и избавиться от скованности.',
+        'teach.c4.level': 'Говорите уверенно',
+        'how.eyebrow': 'Как это работает',
+        'how.title': 'Начать очень просто',
+        'how.subtitle': 'Всего три шага отделяют вас от первого урока.',
+        'how.s1.title': 'Выберите время',
+        'how.s1.desc': 'Укажите в форме желаемый язык, уровень и удобное время. Я подтвержу слот, который подходит вашему расписанию.',
+        'how.s2.title': 'Первый пробный урок',
+        'how.s2.desc': 'Мы встречаемся на спокойном вводном занятии: оцениваем уровень, обсуждаем цели и намечаем план.',
+        'how.s3.title': 'Начинаем учиться',
+        'how.s3.desc': 'Стартуем по индивидуальной программе с регулярными уроками, понятными материалами и заметным прогрессом.',
+        'booking.eyebrow': 'Записаться на урок',
+        'booking.title': 'Забронируйте пробный урок',
+        'booking.subtitle': 'Заполните несколько полей, и я свяжусь с вами в течение 24 часов, чтобы подтвердить первое занятие. Без обязательств.',
+        'booking.perk1': 'Дружелюбный пробный урок без давления',
+        'booking.perk2': 'Гибкое онлайн-расписание',
+        'booking.perk3': 'План обучения под ваши задачи',
+        'form.name': 'Имя и фамилия',
+        'form.namePh': 'Ваше имя',
+        'form.nameErr': 'Пожалуйста, укажите имя.',
+        'form.email': 'Электронная почта',
+        'form.emailPh': 'you@example.com',
+        'form.emailErr': 'Пожалуйста, введите корректный email.',
+        'form.language': 'Желаемый язык',
+        'form.select': 'Выберите…',
+        'form.langSpanish': 'Испанский',
+        'form.langEnglish': 'Английский',
+        'form.langRussian': 'Русский (как иностранный)',
+        'form.languageErr': 'Пожалуйста, выберите язык.',
+        'form.level': 'Уровень',
+        'form.lvlA1': 'A1 — Начальный',
+        'form.lvlA2': 'A2 — Элементарный',
+        'form.lvlB1': 'B1 — Средний',
+        'form.lvlB2': 'B2 — Выше среднего',
+        'form.lvlC1': 'C1 — Продвинутый',
+        'form.lvlC2': 'C2 — В совершенстве',
+        'form.lvlUnsure': 'Пока не знаю',
+        'form.levelErr': 'Пожалуйста, выберите уровень.',
+        'form.time': 'Удобное время',
+        'form.timePh': 'напр. будни вечером, суббота утром',
+        'form.timeErr': 'Пожалуйста, укажите удобное время.',
+        'form.submit': 'Отправить заявку',
+        'form.note': 'Я отвечу в течение 24 часов. Ваши данные не передаются третьим лицам.',
+        'confirm.title': '¡Gracias! Ваша заявка отправлена',
+        'confirm.msg': 'Спасибо за обращение. Я свяжусь с вами в течение 24 часов, чтобы подтвердить пробный урок.',
+        'confirm.dynamic': 'Спасибо, {name}! Ваша заявка на язык «{language}» получена. Я свяжусь с вами в течение 24 часов, чтобы подтвердить пробный урок.',
+        'testi.eyebrow': 'Отзывы',
+        'testi.title': 'Что говорят мои ученики',
+        'testi.q1': 'С Демьяном испанский наконец-то «сложился». После лет топтания на месте я сдала DELE B2 за полгода. Терпеливый, системный и по-настоящему добрый преподаватель.',
+        'testi.r1': 'DELE B2 · Париж',
+        'testi.q2': 'Моя уверенность в английском полностью преобразилась. Разговорные уроки были естественными и совсем не пугающими. Теперь я веду встречи на английском не задумываясь.',
+        'testi.r2': 'Деловой английский · Берлин',
+        'testi.q3': 'Я начала учить русский с нуля, и Демьян сделал алфавит и грамматику понятными. Через полгода я уже поддерживаю настоящие разговоры.',
+        'testi.r3': 'Русский как иностранный · Мадрид',
+        'footer.about': 'Репетиторство по испанскому, английскому и русскому для любознательных. Уроки, которые формируют настоящую беглость — одна беседа за другой.',
+        'footer.contact': 'Контакты',
+        'footer.book': 'Записаться на урок',
+        'footer.connect': 'Соцсети',
+        'footer.rights': 'Все права защищены.',
+        'footer.legalNote': 'Индивидуальный предприниматель · Услуги репетиторства'
+      }
+    };
+
+    var LANG_TITLE = {
+      en: 'Demyan Petrov — Spanish, English & Russian Tutor',
+      es: 'Demyan Petrov — Profesor de Español, Inglés y Ruso',
+      ru: 'Демьян Петров — репетитор испанского, английского и русского'
+    };
+
+    var currentLang = 'en';
+
+    function applyLang(lang) {
+      var dict = I18N[lang];
+      if (!dict) return;
+      currentLang = lang;
+
+      // Text / HTML content
+      document.querySelectorAll('[data-i18n]').forEach(function (el) {
+        var key = el.getAttribute('data-i18n');
+        if (dict[key] !== undefined) el.innerHTML = dict[key];
+      });
+
+      // Placeholders
+      document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
+        var key = el.getAttribute('data-i18n-ph');
+        if (dict[key] !== undefined) el.setAttribute('placeholder', dict[key]);
+      });
+
+      document.documentElement.lang = lang;
+      document.title = LANG_TITLE[lang] || document.title;
+
+      document.querySelectorAll('.lang-switch button').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+      });
+
+      try { localStorage.setItem('dp-lang', lang); } catch (e) {}
+    }
+
+    // Wire up the language switch
+    document.querySelectorAll('.lang-switch button').forEach(function (b) {
+      b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang')); });
+    });
+
+    // Restore saved preference, otherwise detect the browser language (RU / ES / EN)
+    var saved;
+    try { saved = localStorage.getItem('dp-lang'); } catch (e) {}
+    var initialLang;
+    if (I18N[saved]) {
+      initialLang = saved;
+    } else {
+      var browser = (navigator.language || navigator.userLanguage || 'en').slice(0, 2).toLowerCase();
+      initialLang = I18N[browser] ? browser : 'en';
+    }
+    applyLang(initialLang);
+
+    // Current year in footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Mobile nav toggle
+    var navToggle = document.getElementById('navToggle');
+    var navLinks = document.getElementById('navLinks');
+    navToggle.addEventListener('click', function () {
+      navLinks.classList.toggle('open');
+    });
+    navLinks.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') navLinks.classList.remove('open');
+    });
+
+    // ===== Booking form validation =====
+    var form = document.getElementById('bookingForm');
+    var confirmBox = document.getElementById('confirm');
+    var confirmMsg = document.getElementById('confirmMsg');
+
+    function setInvalid(field, isInvalid) {
+      field.closest('.field').classList.toggle('invalid', isInvalid);
+    }
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var name = form.name;
+      var email = form.email;
+      var language = form.language;
+      var level = form.level;
+      var time = form.time;
+      var ok = true;
+
+      var nameBad = name.value.trim() === '';
+      setInvalid(name, nameBad); if (nameBad) ok = false;
+
+      var emailBad = !isValidEmail(email.value);
+      setInvalid(email, emailBad); if (emailBad) ok = false;
+
+      var langBad = language.value === '';
+      setInvalid(language, langBad); if (langBad) ok = false;
+
+      var levelBad = level.value === '';
+      setInvalid(level, levelBad); if (levelBad) ok = false;
+
+      var timeBad = time.value.trim() === '';
+      setInvalid(time, timeBad); if (timeBad) ok = false;
+
+      if (!ok) {
+        var firstError = form.querySelector('.field.invalid');
+        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      // Success — simulate sending the inquiry (client-side only)
+      var langLabel = language.options[language.selectedIndex].text;
+      confirmMsg.textContent = I18N[currentLang]['confirm.dynamic']
+        .replace('{name}', name.value.trim())
+        .replace('{language}', langLabel);
+
+      form.style.display = 'none';
+      confirmBox.classList.add('show');
+      confirmBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Clear error state as the user corrects a field
+    form.querySelectorAll('input, select').forEach(function (el) {
+      el.addEventListener('input', function () { setInvalid(el, false); });
+      el.addEventListener('change', function () { setInvalid(el, false); });
+    });
+  </script>
+</body>
+</html>
