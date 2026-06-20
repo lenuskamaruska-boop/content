@@ -17,63 +17,63 @@ const CONFIG = {
 const PRODUCTS = [
   {
     name: "Льняной костюм «Linen»",
-    price: 32000,
+    price: 50000,
     badge: "Новинка",
     image: "assets/img/product-1.jpg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
     name: "Костюм «Avenue»",
-    price: 38000,
+    price: 50000,
     badge: "Хит",
     image: "assets/img/product-2.jpg",
     sizes: ["S", "M", "L"]
   },
   {
     name: "Льняное платье «Summer»",
-    price: 24000,
+    price: 50000,
     badge: "",
     image: "assets/img/product-3.jpg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
     name: "Платье макси «Sunset»",
-    price: 27000,
+    price: 50000,
     badge: "",
     image: "assets/img/product-4.jpg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
     name: "Льняной жакет «Classic»",
-    price: 29000,
+    price: 50000,
     badge: "Premium",
     image: "assets/img/product-5.jpg",
     sizes: ["S", "M", "L"]
   },
   {
     name: "Спортивный костюм «Active»",
-    price: 21000,
+    price: 50000,
     badge: "Новинка",
     image: "assets/img/product-6.jpg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
     name: "Топ с кружевом «Lace»",
-    price: 9500,
+    price: 50000,
     badge: "Хит",
     image: "assets/img/product-7.jpg",
     sizes: ["XS", "S", "M", "L", "XL"]
   },
   {
     name: "Очки солнцезащитные",
-    price: 7500,
+    price: 50000,
     badge: "",
     image: "assets/img/product-8.jpg",
     sizes: ["one size"]
   },
   {
     name: "Кроссовки «On Cloud»",
-    price: 28000,
+    price: 50000,
     badge: "Хит",
     image: "assets/img/product-9.jpg",
     sizes: ["36", "37", "38", "39", "40"]
