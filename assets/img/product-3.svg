@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
-  <rect width="400" height="500" fill="#f4f2f0"/>
-  <circle cx="200" cy="205" r="62" fill="#111111"/>
-  <text x="200" y="214" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="30" font-weight="600" letter-spacing="2" fill="#ffffff">AV</text>
-  <text x="200" y="320" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="30" fill="#111111">Блуза</text>
-  <text x="200" y="350" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-size="10" letter-spacing="3" fill="#9a948e">ФОТО 400 × 500</text>
-</svg>

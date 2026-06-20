@@ -179,21 +179,21 @@ a { color: inherit; text-decoration: none; }
   min-height: 82vh;
   display: flex;
   align-items: center;
-  background: url("../img/hero.svg") center/cover no-repeat, var(--soft);
+  background: url("../img/hero.jpg") center 25%/cover no-repeat, var(--soft);
   text-align: center;
 }
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.7) 100%);
+  background: linear-gradient(180deg, rgba(17,17,17,0.30) 0%, rgba(17,17,17,0.50) 100%);
 }
 .hero-content { position: relative; z-index: 2; padding: 70px 0; }
-.hero-badge { border-radius: 50%; margin: 0 auto 26px; box-shadow: var(--shadow-sm); }
+.hero-badge { border-radius: 50%; margin: 0 auto 26px; box-shadow: var(--shadow-md); }
 .hero-eyebrow {
   font-size: 0.7rem;
   letter-spacing: 0.36em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: rgba(255,255,255,0.9);
   margin-bottom: 18px;
 }
 .hero-title {
@@ -201,14 +201,16 @@ a { color: inherit; text-decoration: none; }
   font-weight: 600;
   font-size: clamp(2.6rem, 11vw, 4.6rem);
   line-height: 1.02;
-  color: var(--ink);
+  color: #ffffff;
   margin-bottom: 18px;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.35);
 }
 .hero-tagline {
   font-size: 1.02rem;
-  color: var(--ink-soft);
+  color: rgba(255,255,255,0.92);
   max-width: 470px;
   margin: 0 auto 32px;
+  text-shadow: 0 1px 12px rgba(0,0,0,0.3);
 }
 
 /* ---------- О бренде ---------- */

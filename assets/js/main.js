@@ -19,42 +19,42 @@ const PRODUCTS = [
     name: "Льняной костюм «Linen»",
     price: 32000,
     badge: "Новинка",
-    image: "assets/img/product-1.svg",
+    image: "assets/img/product-1.jpg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
     name: "Костюм «Avenue»",
     price: 38000,
     badge: "Хит",
-    image: "assets/img/product-2.svg",
+    image: "assets/img/product-2.jpg",
     sizes: ["S", "M", "L"]
   },
   {
-    name: "Льняная блуза",
-    price: 16500,
-    badge: "",
-    image: "assets/img/product-3.svg",
-    sizes: ["XS", "S", "M", "L", "XL"]
-  },
-  {
-    name: "Платье «Summer»",
+    name: "Льняное платье «Summer»",
     price: 24000,
     badge: "",
-    image: "assets/img/product-4.svg",
+    image: "assets/img/product-3.jpg",
     sizes: ["XS", "S", "M", "L"]
   },
   {
-    name: "Жакет «Classic»",
+    name: "Платье макси «Sunset»",
+    price: 27000,
+    badge: "",
+    image: "assets/img/product-4.jpg",
+    sizes: ["XS", "S", "M", "L"]
+  },
+  {
+    name: "Льняной жакет «Classic»",
     price: 29000,
     badge: "Premium",
-    image: "assets/img/product-5.svg",
+    image: "assets/img/product-5.jpg",
     sizes: ["S", "M", "L"]
   },
   {
-    name: "Брюки «Palazzo»",
-    price: 19000,
+    name: "Спортивный костюм «Active»",
+    price: 21000,
     badge: "Новинка",
-    image: "assets/img/product-6.svg",
+    image: "assets/img/product-6.jpg",
     sizes: ["XS", "S", "M", "L"]
   }
 ];
