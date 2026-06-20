@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demyan Petrov — Spanish &amp; English Tutor</title>
+  <meta name="description" content="Master Spanish &amp; English with Demyan Petrov, a dedicated language tutor. Lessons for all levels (A1–C2), exam prep, and conversation practice." />
+
+  <!-- Fonts: Playfair Display (serif headings) + Inter (sans-serif body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --navy: #15233f;
+      --navy-deep: #0e1830;
+      --navy-soft: #1f3358;
+      --cream: #f7f1e3;
+      --cream-soft: #fbf7ee;
+      --gold: #c8a35b;
+      --gold-soft: #d8bd86;
+      --ink: #2a2a2a;
+      --muted: #6b6256;
+      --line: rgba(200, 163, 91, 0.28);
+      --shadow: 0 18px 50px rgba(14, 24, 48, 0.12);
+      --radius: 14px;
+      --maxw: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--cream);
+      line-height: 1.7;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, .serif {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      line-height: 1.2;
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      width: 100%;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .eyebrow {
+      font-family: 'Inter', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    section { padding: 92px 0; }
+
+    .section-head { max-width: 640px; margin-bottom: 52px; }
+    .section-head h2 { font-size: clamp(1.9rem, 3.5vw, 2.7rem); margin: 12px 0 0; }
+    .section-head p { color: var(--muted); margin: 16px 0 0; font-size: 1.05rem; }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 15px 32px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.98rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--navy-deep);
+      box-shadow: 0 10px 26px rgba(200, 163, 91, 0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(200, 163, 91, 0.45); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--cream);
+      border: 1.5px solid rgba(247, 241, 227, 0.4);
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold-soft); }
+
+    /* ===== Header / Nav ===== */
+    header.nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(14, 24, 48, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(200, 163, 91, 0.18);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      max-width: var(--maxw);
+      margin: 0 auto;
+    }
+    .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--cream);
+      text-decoration: none;
+      letter-spacing: 0.4px;
+    }
+    .brand span { color: var(--gold); }
+    .nav-links { display: flex; gap: 30px; align-items: center; }
+    .nav-links a {
+      color: rgba(247, 241, 227, 0.82);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: color 0.16s ease;
+    }
+    .nav-links a:hover { color: var(--gold-soft); }
+    .nav-links .btn { padding: 10px 22px; }
+    .nav-toggle { display: none; background: none; border: none; color: var(--cream); font-size: 1.5rem; cursor: pointer; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background:
+        radial-gradient(circle at 80% 18%, rgba(200, 163, 91, 0.16), transparent 42%),
+        radial-gradient(circle at 12% 88%, rgba(200, 163, 91, 0.10), transparent 40%),
+        linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
+      color: var(--cream);
+      position: relative;
+      overflow: hidden;
+      padding: 120px 0 130px;
+    }
+    .hero::after {
+      content: "“”";
+      position: absolute;
+      right: -10px;
+      bottom: -70px;
+      font-family: 'Playfair Display', serif;
+      font-size: 26rem;
+      color: rgba(200, 163, 91, 0.06);
+      pointer-events: none;
+      line-height: 1;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 50px; align-items: center; }
+    .hero h1 { font-size: clamp(2.4rem, 5.4vw, 4rem); margin: 18px 0 0; }
+    .hero h1 .accent { color: var(--gold-soft); }
+    .hero .tagline { font-size: 1.25rem; color: rgba(247, 241, 227, 0.85); margin: 22px 0 0; max-width: 520px; font-weight: 300; }
+    .hero-cta { margin-top: 38px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .hero-flags { margin-top: 40px; display: flex; gap: 26px; color: rgba(247,241,227,0.7); font-size: 0.9rem; }
+    .hero-flags span { display: flex; align-items: center; gap: 8px; }
+    .hero-flags .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gold); }
+
+    .hero-card {
+      background: rgba(247, 241, 227, 0.06);
+      border: 1px solid rgba(200, 163, 91, 0.25);
+      border-radius: var(--radius);
+      padding: 34px;
+      backdrop-filter: blur(6px);
+    }
+    .hero-card .quote { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-style: italic; line-height: 1.45; color: var(--cream); }
+    .hero-card .stat-row { display: flex; gap: 28px; margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(200,163,91,0.2); }
+    .hero-card .stat strong { display: block; font-family: 'Playfair Display', serif; font-size: 1.9rem; color: var(--gold-soft); }
+    .hero-card .stat span { font-size: 0.82rem; color: rgba(247,241,227,0.7); }
+
+    /* ===== About ===== */
+    .about { background: var(--cream); }
+    .about-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 60px; align-items: center; }
+    .portrait {
+      aspect-ratio: 4/5;
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, var(--navy-soft), var(--navy-deep));
+      position: relative;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .portrait .monogram {
+      font-family: 'Playfair Display', serif;
+      font-size: 6rem;
+      color: var(--gold-soft);
+      opacity: 0.9;
+    }
+    .portrait::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 1px solid rgba(200, 163, 91, 0.35);
+      border-radius: 8px;
+    }
+    .about h2 { font-size: clamp(1.9rem, 3.5vw, 2.7rem); margin: 12px 0 0; }
+    .about p { color: #463f33; margin: 18px 0 0; }
+    .creds { list-style: none; padding: 0; margin: 30px 0 0; display: grid; gap: 14px; }
+    .creds li { display: flex; gap: 14px; align-items: flex-start; }
+    .creds .mark { color: var(--gold); font-weight: 700; font-family: 'Playfair Display', serif; }
+    .creds strong { color: var(--navy); }
+
+    /* ===== Teach ===== */
+    .teach { background: var(--cream-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 26px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
+    .card .icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: rgba(200, 163, 91, 0.14);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+    }
+    .card h3 { font-size: 1.25rem; margin: 0 0 8px; color: var(--navy); }
+    .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .card .level { margin-top: 14px; font-size: 0.78rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+
+    /* ===== How it works ===== */
+    .how { background: var(--navy); color: var(--cream); }
+    .how .section-head h2 { color: var(--cream); }
+    .how .section-head p { color: rgba(247,241,227,0.72); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; counter-reset: step; }
+    .step {
+      position: relative;
+      padding: 34px 28px;
+      border: 1px solid rgba(200, 163, 91, 0.25);
+      border-radius: var(--radius);
+      background: rgba(247, 241, 227, 0.04);
+    }
+    .step .num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem;
+      color: var(--gold-soft);
+      line-height: 1;
+    }
+    .step h3 { color: var(--cream); margin: 14px 0 8px; font-size: 1.3rem; }
+    .step p { color: rgba(247,241,227,0.74); margin: 0; font-size: 0.96rem; }
+
+    /* ===== Booking ===== */
+    .booking { background: var(--cream); }
+    .booking-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: start; }
+    .booking-aside h2 { font-size: clamp(1.9rem, 3.5vw, 2.7rem); margin: 12px 0 0; }
+    .booking-aside p { color: var(--muted); margin: 18px 0 0; }
+    .booking-aside .perks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; }
+    .booking-aside .perks li { display: flex; gap: 12px; align-items: center; color: #463f33; }
+    .booking-aside .perks .mark { color: var(--gold); font-weight: 700; }
+
+    form {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: var(--shadow);
+    }
+    .field { margin-bottom: 20px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--navy); margin-bottom: 7px; }
+    input, select {
+      width: 100%;
+      padding: 13px 15px;
+      border: 1px solid #ddd3bf;
+      border-radius: 9px;
+      font-family: inherit;
+      font-size: 0.96rem;
+      color: var(--ink);
+      background: var(--cream-soft);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(200, 163, 91, 0.18);
+    }
+    .error { color: #b23b3b; font-size: 0.8rem; margin-top: 6px; display: none; }
+    .field.invalid input, .field.invalid select { border-color: #d08a8a; }
+    .field.invalid .error { display: block; }
+    form .btn-primary { width: 100%; margin-top: 8px; }
+    .form-note { font-size: 0.8rem; color: var(--muted); text-align: center; margin: 16px 0 0; }
+
+    .confirm {
+      display: none;
+      background: rgba(200, 163, 91, 0.12);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .confirm.show { display: block; animation: fadeUp 0.4s ease; }
+    .confirm .check {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: var(--gold); color: var(--navy-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; margin: 0 auto 18px;
+    }
+    .confirm h3 { color: var(--navy); margin: 0 0 10px; font-size: 1.5rem; }
+    .confirm p { color: #463f33; margin: 0; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== Testimonials ===== */
+    .testimonials { background: var(--cream-soft); border-top: 1px solid var(--line); }
+    .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+    .quote-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      position: relative;
+    }
+    .quote-card .mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      color: var(--gold-soft);
+      line-height: 0.6;
+      display: block;
+      margin-bottom: 12px;
+    }
+    .quote-card p { color: #3f3a30; font-style: italic; margin: 0 0 22px; font-size: 1.02rem; }
+    .quote-card .who { display: flex; align-items: center; gap: 12px; }
+    .quote-card .avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(150deg, var(--navy-soft), var(--navy-deep));
+      color: var(--gold-soft);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-weight: 600;
+    }
+    .quote-card .who strong { display: block; color: var(--navy); font-size: 0.95rem; }
+    .quote-card .who span { font-size: 0.82rem; color: var(--muted); }
+
+    /* ===== Footer ===== */
+    footer {
+      background: var(--navy-deep);
+      color: rgba(247, 241, 227, 0.8);
+      padding: 64px 0 32px;
+    }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; }
+    footer .brand { display: block; margin-bottom: 14px; }
+    footer p { margin: 0; font-size: 0.92rem; line-height: 1.7; color: rgba(247,241,227,0.7); }
+    footer h4 { font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 2px; font-size: 0.72rem; color: var(--gold); margin: 0 0 16px; }
+    footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    footer ul a { color: rgba(247,241,227,0.75); text-decoration: none; font-size: 0.92rem; transition: color 0.15s ease; }
+    footer ul a:hover { color: var(--gold-soft); }
+    .footer-bottom {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(200, 163, 91, 0.18);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.82rem;
+      color: rgba(247,241,227,0.55);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 920px) {
+      .hero-grid, .about-grid, .booking-grid { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .steps, .quotes { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .hero-card { order: -1; }
+      .portrait { max-width: 360px; }
+      .nav-links { display: none; }
+      .nav-toggle { display: block; }
+      .nav-links.open {
+        display: flex;
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        flex-direction: column;
+        gap: 18px;
+        background: var(--navy-deep);
+        padding: 24px 28px;
+        border-bottom: 1px solid rgba(200,163,91,0.2);
+      }
+    }
+    @media (max-width: 560px) {
+      section { padding: 70px 0; }
+      .cards { grid-template-columns: 1fr; }
+      .field-row { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      form { padding: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Navigation ===== -->
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="#hero" class="brand">Demyan<span>.</span>Petrov</a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#about">About</a>
+        <a href="#teach">What I Teach</a>
+        <a href="#how">How It Works</a>
+        <a href="#testimonials">Testimonials</a>
+        <a href="#booking" class="btn btn-primary">Book a Lesson</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">Spanish &amp; English · A1–C2</span>
+          <h1>Master Spanish &amp; English with a <span class="accent">dedicated tutor</span></h1>
+          <p class="tagline">Personalised lessons rooted in real conversation, structured grammar, and a genuine love of language. Learn with clarity, speak with confidence.</p>
+          <div class="hero-cta">
+            <a href="#booking" class="btn btn-primary">Book a Lesson</a>
+            <a href="#teach" class="btn btn-ghost">Explore Courses</a>
+          </div>
+          <div class="hero-flags">
+            <span><span class="dot"></span> Español — todos los niveles</span>
+            <span><span class="dot"></span> English — every level</span>
+          </div>
+        </div>
+        <aside class="hero-card">
+          <p class="quote">“Language is the road map of a culture. I help you walk it with confidence.”</p>
+          <div class="stat-row">
+            <div class="stat"><strong>10+</strong><span>Years teaching</span></div>
+            <div class="stat"><strong>600+</strong><span>Students taught</span></div>
+            <div class="stat"><strong>2</strong><span>Languages</span></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== About ===== -->
+  <section class="about" id="about">
+    <div class="wrap">
+      <div class="about-grid">
+        <div class="portrait" aria-hidden="true">
+          <span class="monogram">DP</span>
+        </div>
+        <div>
+          <span class="eyebrow">About</span>
+          <h2>A scholar's rigour, a conversationalist's warmth</h2>
+          <p>I'm Demyan Petrov, a language tutor devoted to helping students move beyond textbooks and into fluent, natural communication. My teaching blends academic structure with the everyday rhythm of real speech — because grammar matters, but so does feeling at home in a language.</p>
+          <p>My philosophy is simple: every learner is different, so every lesson is built around <strong>you</strong> — your goals, your pace, and the moments where the language finally clicks.</p>
+          <ul class="creds">
+            <li><span class="mark">◆</span><span><strong>M.A. in Applied Linguistics</strong> — specialisation in second-language acquisition.</span></li>
+            <li><span class="mark">◆</span><span><strong>Certified examiner</strong> for DELE (Spanish) and Cambridge / IELTS (English).</span></li>
+            <li><span class="mark">◆</span><span><strong>10+ years</strong> of one-to-one tutoring, online and in person.</span></li>
+            <li><span class="mark">◆</span><span><strong>Bilingual fluency</strong> developed through years living in Spain and the UK.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== What I Teach ===== -->
+  <section class="teach" id="teach">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">What I Teach</span>
+        <h2>Courses for every goal and level</h2>
+        <p>From your very first words to near-native mastery — structured pathways tailored to where you are and where you want to go.</p>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="icon">🇪🇸</div>
+          <h3>Spanish</h3>
+          <p>Grammar, vocabulary and pronunciation built step by step, from beginner foundations to advanced fluency.</p>
+          <div class="level">Levels A1 – C2</div>
+        </article>
+        <article class="card">
+          <div class="icon">🇬🇧</div>
+          <h3>English</h3>
+          <p>Clear, confident English for study, work and travel — with a focus on natural, real-world usage.</p>
+          <div class="level">Levels A1 – C2</div>
+        </article>
+        <article class="card">
+          <div class="icon">📜</div>
+          <h3>Exam Preparation</h3>
+          <p>Targeted coaching for DELE, IELTS, Cambridge and TOEFL — strategy, practice and steady progress.</p>
+          <div class="level">Certified examiner</div>
+        </article>
+        <article class="card">
+          <div class="icon">💬</div>
+          <h3>Conversation Practice</h3>
+          <p>Relaxed, guided speaking sessions to build fluency, expand vocabulary and lose the hesitation.</p>
+          <div class="level">Speak with confidence</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How It Works ===== -->
+  <section class="how" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">How It Works</span>
+        <h2>Getting started is simple</h2>
+        <p>Three easy steps stand between you and your first lesson.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">01</div>
+          <h3>Choose a slot</h3>
+          <p>Tell me your preferred language, level and time using the booking form. I'll confirm a slot that fits your schedule.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3>First trial lesson</h3>
+          <p>We meet for a relaxed introductory session to assess your level, discuss your goals and map out a plan.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3>Start learning</h3>
+          <p>Begin your personalised programme with regular lessons, clear materials and steady, measurable progress.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Booking ===== -->
+  <section class="booking" id="booking">
+    <div class="wrap">
+      <div class="booking-grid">
+        <div class="booking-aside">
+          <span class="eyebrow">Book a Lesson</span>
+          <h2>Reserve your trial lesson</h2>
+          <p>Fill in a few details and I'll get back to you within 24 hours to confirm your first session. No commitment required.</p>
+          <ul class="perks">
+            <li><span class="mark">✓</span> Friendly, no-pressure trial lesson</li>
+            <li><span class="mark">✓</span> Flexible online scheduling</li>
+            <li><span class="mark">✓</span> A learning plan tailored to you</li>
+          </ul>
+        </div>
+
+        <div>
+          <form id="bookingForm" novalidate>
+            <div class="field">
+              <label for="name">Full name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" />
+              <div class="error" data-error="name">Please enter your name.</div>
+            </div>
+
+            <div class="field">
+              <label for="email">Email address</label>
+              <input type="email" id="email" name="email" placeholder="you@example.com" />
+              <div class="error" data-error="email">Please enter a valid email address.</div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="language">Preferred language</label>
+                <select id="language" name="language">
+                  <option value="">Select…</option>
+                  <option>Spanish</option>
+                  <option>English</option>
+                  <option>Both</option>
+                </select>
+                <div class="error" data-error="language">Please choose a language.</div>
+              </div>
+              <div class="field">
+                <label for="level">Level</label>
+                <select id="level" name="level">
+                  <option value="">Select…</option>
+                  <option>A1 — Beginner</option>
+                  <option>A2 — Elementary</option>
+                  <option>B1 — Intermediate</option>
+                  <option>B2 — Upper Intermediate</option>
+                  <option>C1 — Advanced</option>
+                  <option>C2 — Proficiency</option>
+                  <option>Not sure yet</option>
+                </select>
+                <div class="error" data-error="level">Please choose a level.</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="time">Preferred time</label>
+              <input type="text" id="time" name="time" placeholder="e.g. Weekday evenings, Sat mornings" />
+              <div class="error" data-error="time">Please tell me your preferred time.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Send Inquiry</button>
+            <p class="form-note">I'll reply within 24 hours. Your details are never shared.</p>
+          </form>
+
+          <div class="confirm" id="confirm" role="status" aria-live="polite">
+            <div class="check">✓</div>
+            <h3>¡Gracias! Your inquiry is on its way</h3>
+            <p id="confirmMsg">Thank you for reaching out. I'll be in touch within 24 hours to confirm your trial lesson.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Testimonials ===== -->
+  <section class="testimonials" id="testimonials">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Testimonials</span>
+        <h2>What my students say</h2>
+      </div>
+      <div class="quotes">
+        <figure class="quote-card">
+          <span class="mark">“</span>
+          <p>Demyan made Spanish finally click for me. After years of stalling, I passed my DELE B2 in six months. Patient, structured, and genuinely kind.</p>
+          <figcaption class="who">
+            <span class="avatar">EM</span>
+            <span><strong>Elena Moreau</strong><span>DELE B2 · Paris</span></span>
+          </figcaption>
+        </figure>
+        <figure class="quote-card">
+          <span class="mark">“</span>
+          <p>My English confidence transformed. The conversation lessons felt natural, never intimidating. I now lead meetings in English without a second thought.</p>
+          <figcaption class="who">
+            <span class="avatar">RK</span>
+            <span><strong>Rafael Klein</strong><span>Business English · Berlin</span></span>
+          </figcaption>
+        </figure>
+        <figure class="quote-card">
+          <span class="mark">“</span>
+          <p>The best language teacher I've had. Every lesson was tailored to me, and the trial lesson alone taught me more than a whole term elsewhere.</p>
+          <figcaption class="who">
+            <span class="avatar">ST</span>
+            <span><strong>Sofia Tanaka</strong><span>IELTS Prep · Tokyo</span></span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer id="contact">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <a href="#hero" class="brand">Demyan<span>.</span>Petrov</a>
+          <p>Spanish &amp; English tutoring for curious minds. Lessons that build real fluency — one conversation at a time.</p>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:hello@demyanpetrov.com">hello@demyanpetrov.com</a></li>
+            <li><a href="#booking">Book a lesson</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="#" aria-label="Instagram">Instagram</a></li>
+            <li><a href="#" aria-label="LinkedIn">LinkedIn</a></li>
+            <li><a href="#" aria-label="YouTube">YouTube</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> Demyan Petrov. All rights reserved.</span>
+        <span>Aprende · Learn · Habla · Speak</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Current year in footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Mobile nav toggle
+    var navToggle = document.getElementById('navToggle');
+    var navLinks = document.getElementById('navLinks');
+    navToggle.addEventListener('click', function () {
+      navLinks.classList.toggle('open');
+    });
+    navLinks.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') navLinks.classList.remove('open');
+    });
+
+    // ===== Booking form validation =====
+    var form = document.getElementById('bookingForm');
+    var confirm = document.getElementById('confirm');
+    var confirmMsg = document.getElementById('confirmMsg');
+
+    function setInvalid(field, isInvalid) {
+      field.closest('.field').classList.toggle('invalid', isInvalid);
+    }
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var name = form.name;
+      var email = form.email;
+      var language = form.language;
+      var level = form.level;
+      var time = form.time;
+      var ok = true;
+
+      var nameBad = name.value.trim() === '';
+      setInvalid(name, nameBad); if (nameBad) ok = false;
+
+      var emailBad = !isValidEmail(email.value);
+      setInvalid(email, emailBad); if (emailBad) ok = false;
+
+      var langBad = language.value === '';
+      setInvalid(language, langBad); if (langBad) ok = false;
+
+      var levelBad = level.value === '';
+      setInvalid(level, levelBad); if (levelBad) ok = false;
+
+      var timeBad = time.value.trim() === '';
+      setInvalid(time, timeBad); if (timeBad) ok = false;
+
+      if (!ok) {
+        var firstError = form.querySelector('.field.invalid');
+        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      // Success — simulate sending the inquiry (client-side only)
+      confirmMsg.textContent =
+        'Thank you, ' + name.value.trim() + '! Your ' + language.value +
+        ' inquiry has been received. I\'ll be in touch within 24 hours to confirm your trial lesson.';
+
+      form.style.display = 'none';
+      confirm.classList.add('show');
+      confirm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Clear error state as the user corrects a field
+    form.querySelectorAll('input, select').forEach(function (el) {
+      el.addEventListener('input', function () { setInvalid(el, false); });
+      el.addEventListener('change', function () { setInvalid(el, false); });
+    });
+  </script>
+</body>
+</html>
