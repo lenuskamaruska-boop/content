@@ -21,24 +21,30 @@ const BADGES = {
 
 /* --- ТОВАРЫ (цены тестовые: 50 000) --- */
 const PRODUCTS = [
-  { price: 50000, badge: "new",     image: "assets/img/product-1.jpg", sizes: ["XS","S","M","L"],
+  { price: 50000, badge: "new",     cat: "suits", image: "assets/img/product-1.jpg", sizes: ["XS","S","M","L"],
     name: { kk: "Зығыр костюмі «Linen»", ru: "Льняной костюм «Linen»", en: "Linen suit «Linen»" } },
-  { price: 50000, badge: "hit",     image: "assets/img/product-2.jpg", sizes: ["S","M","L"],
+  { price: 50000, badge: "hit",     cat: "suits", image: "assets/img/product-2.jpg", sizes: ["S","M","L"],
     name: { kk: "Костюм «Avenue»", ru: "Костюм «Avenue»", en: "Suit «Avenue»" } },
-  { price: 50000, badge: "",        image: "assets/img/product-3.jpg", sizes: ["XS","S","M","L"],
+  { price: 50000, badge: "",        cat: "dresses", image: "assets/img/product-3.jpg", sizes: ["XS","S","M","L"],
     name: { kk: "Зығыр көйлек «Summer»", ru: "Льняное платье «Summer»", en: "Linen dress «Summer»" } },
-  { price: 50000, badge: "",        image: "assets/img/product-4.jpg", sizes: ["XS","S","M","L"],
+  { price: 50000, badge: "",        cat: "dresses", image: "assets/img/product-4.jpg", sizes: ["XS","S","M","L"],
     name: { kk: "Ұзын көйлек «Sunset»", ru: "Платье макси «Sunset»", en: "Maxi dress «Sunset»" } },
-  { price: 50000, badge: "premium", image: "assets/img/product-5.jpg", sizes: ["S","M","L"],
+  { price: 50000, badge: "premium", cat: "suits", image: "assets/img/product-5.jpg", sizes: ["S","M","L"],
     name: { kk: "Зығыр жакет «Classic»", ru: "Льняной жакет «Classic»", en: "Linen blazer «Classic»" } },
-  { price: 50000, badge: "new",     image: "assets/img/product-6.jpg", sizes: ["XS","S","M","L"],
+  { price: 50000, badge: "new",     cat: "suits", image: "assets/img/product-6.jpg", sizes: ["XS","S","M","L"],
     name: { kk: "Спорттық костюм «Active»", ru: "Спортивный костюм «Active»", en: "Tracksuit «Active»" } },
-  { price: 50000, badge: "hit",     image: "assets/img/product-7.jpg", sizes: ["XS","S","M","L","XL"],
+  { price: 50000, badge: "hit",     cat: "accessories", image: "assets/img/product-7.jpg", sizes: ["XS","S","M","L","XL"],
     name: { kk: "Шілтерлі топ «Lace»", ru: "Топ с кружевом «Lace»", en: "Lace top «Lace»" } },
-  { price: 50000, badge: "",        image: "assets/img/product-8.jpg", sizes: ["one size"],
+  { price: 50000, badge: "",        cat: "accessories", image: "assets/img/product-8.jpg", sizes: ["one size"],
     name: { kk: "Күннен қорғайтын көзілдірік", ru: "Очки солнцезащитные", en: "Sunglasses" } },
-  { price: 50000, badge: "hit",     image: "assets/img/product-9.jpg", sizes: ["36","37","38","39","40"],
-    name: { kk: "Кроссовкалар «On Cloud»", ru: "Кроссовки «On Cloud»", en: "Sneakers «On Cloud»" } }
+  { price: 50000, badge: "hit",     cat: "accessories", image: "assets/img/product-9.jpg", sizes: ["36","37","38","39","40"],
+    name: { kk: "Кроссовкалар «On Cloud»", ru: "Кроссовки «On Cloud»", en: "Sneakers «On Cloud»" } },
+  { price: 50000, badge: "new",     cat: "bags", image: "assets/img/product-10.jpg", sizes: ["one size"],
+    name: { kk: "Тоқыма сөмке «Straw»", ru: "Сумка плетёная «Straw»", en: "Woven bag «Straw»" } },
+  { price: 50000, badge: "",        cat: "bags", image: "assets/img/product-11.jpg", sizes: ["one size"],
+    name: { kk: "Сөмке «Noir»", ru: "Сумка «Noir»", en: "Bag «Noir»" } },
+  { price: 50000, badge: "hit",     cat: "bags", image: "assets/img/product-12.jpg", sizes: ["one size"],
+    name: { kk: "Сөмке «Cognac»", ru: "Сумка «Cognac»", en: "Bucket bag «Cognac»" } }
 ];
 
 /* --- ПЕРЕВОДЫ ИНТЕРФЕЙСА --- */
@@ -49,6 +55,7 @@ const I18N = {
     nav_home: "Басты бет", nav_about: "Біз туралы", nav_founder: "Галина", nav_catalog: "Каталог", nav_delivery: "Жеткізу", nav_contact: "Байланыс",
     home_featured_eyebrow: "Коллекция", home_featured_title: "Таңдаулы", btn_all_catalog: "Толық каталог", hero_btn2: "Бутик туралы",
     page_about_eyebrow: "Avenue туралы",
+    cat_all: "Барлығы", cat_dresses: "Көйлектер", cat_suits: "Костюмдер", cat_bags: "Сөмкелер", cat_accessories: "Аксессуарлар", cat_empty: "Жақында жаңа түсімдер",
     hero_eyebrow: "Әйелдер киімі · Ақтау",
     hero_tagline: "Жинақы бейнелер және табиғи маталар. Күн сайын киюге жарасатын талғампаздық.",
     hero_btn: "Каталогты қарау",
@@ -86,6 +93,7 @@ const I18N = {
     nav_home: "Главная", nav_about: "О нас", nav_founder: "Галина", nav_catalog: "Каталог", nav_delivery: "Доставка", nav_contact: "Контакты",
     home_featured_eyebrow: "Коллекция", home_featured_title: "Избранное", btn_all_catalog: "Весь каталог", hero_btn2: "О бутике",
     page_about_eyebrow: "Об Avenue",
+    cat_all: "Все", cat_dresses: "Платья", cat_suits: "Костюмы", cat_bags: "Сумки", cat_accessories: "Аксессуары", cat_empty: "Скоро новые поступления",
     hero_eyebrow: "Женская одежда · Актау",
     hero_tagline: "Лаконичные образы и натуральные ткани. Элегантность, в которой хочется жить каждый день.",
     hero_btn: "Смотреть каталог",
@@ -123,6 +131,7 @@ const I18N = {
     nav_home: "Home", nav_about: "About", nav_founder: "Galina", nav_catalog: "Catalog", nav_delivery: "Delivery", nav_contact: "Contact",
     home_featured_eyebrow: "Collection", home_featured_title: "Featured", btn_all_catalog: "View all", hero_btn2: "About",
     page_about_eyebrow: "About Avenue",
+    cat_all: "All", cat_dresses: "Dresses", cat_suits: "Suits", cat_bags: "Bags", cat_accessories: "Accessories", cat_empty: "Coming soon",
     hero_eyebrow: "Women's clothing · Aktau",
     hero_tagline: "Refined looks in natural fabrics. Elegance you'll want to live in every day.",
     hero_btn: "View catalog",
@@ -159,6 +168,7 @@ const I18N = {
 /* --- Текущий язык --- */
 let LANG = localStorage.getItem("avenue_lang") || CONFIG.defaultLang;
 if (!I18N[LANG]) LANG = CONFIG.defaultLang;
+let activeCat = "all";
 const t = (key) => (I18N[LANG] && I18N[LANG][key]) || key;
 
 /* --- Утилиты --- */
@@ -207,8 +217,13 @@ function renderProducts() {
   if (!grid) return;
   grid.innerHTML = "";
 
+  let list = activeCat === "all" ? PRODUCTS : PRODUCTS.filter((p) => p.cat === activeCat);
   const limit = parseInt(grid.dataset.limit, 10);
-  const list = Number.isInteger(limit) ? PRODUCTS.slice(0, limit) : PRODUCTS;
+  if (Number.isInteger(limit)) list = list.slice(0, limit);
+  if (list.length === 0) {
+    grid.innerHTML = `<p class="empty-note">${t("cat_empty")}</p>`;
+    return;
+  }
   list.forEach((product, index) => {
     const card = document.createElement("article");
     card.className = "card";
@@ -291,10 +306,23 @@ function setupContactLinks() {
   if (ig) ig.href = `https://www.instagram.com/${CONFIG.instagram}`;
 }
 
+/* --- Фильтр по категориям (на странице каталога) --- */
+function setupFilters() {
+  const tabs = document.querySelectorAll(".filters button");
+  tabs.forEach((b) => {
+    b.addEventListener("click", () => {
+      activeCat = b.getAttribute("data-cat");
+      tabs.forEach((x) => x.classList.toggle("active", x === b));
+      renderProducts();
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".lang-switch button").forEach((b) => {
     b.addEventListener("click", () => setLang(b.getAttribute("data-lang")));
   });
+  setupFilters();
   applyTranslations();
   renderProducts();
   setupContactLinks();
