@@ -228,6 +228,7 @@ a { color: inherit; text-decoration: none; }
   min-height: 82vh;
   display: flex;
   align-items: center;
+  padding-top: 18vh;
   background: url("../img/hero.jpg") center 18%/cover no-repeat, var(--soft);
   text-align: center;
 }
