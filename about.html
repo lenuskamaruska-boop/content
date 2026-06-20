@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Avenue Fashion Boutique — женская одежда, Актау</title>
-  <meta name="description" content="Avenue Fashion Boutique — женская одежда в Актау. Доставка по всему миру, оплата Kaspi RED. Заказ через Instagram." />
-  <meta property="og:title" content="Avenue Fashion Boutique" />
-  <meta property="og:description" content="Женская одежда в Актау. Доставка по всему миру · Kaspi RED." />
-  <meta property="og:type" content="website" />
+  <title>О нас — Avenue Fashion Boutique</title>
+  <meta name="description" content="О бутике Avenue Fashion Boutique и его основательнице Галине. Женская одежда в Актау более 15 лет." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
@@ -30,8 +27,8 @@
         <img src="assets/img/logo.jpg" alt="Avenue Fashion Boutique" width="50" height="50" />
       </a>
       <nav class="nav" aria-label="Навигация">
-        <a href="index.html" class="active" data-i18n="nav_home">Главная</a>
-        <a href="about.html" data-i18n="nav_about">О нас</a>
+        <a href="index.html" data-i18n="nav_home">Главная</a>
+        <a href="about.html" class="active" data-i18n="nav_about">О нас</a>
         <a href="catalog.html" data-i18n="nav_catalog">Каталог</a>
         <a href="delivery.html" data-i18n="nav_delivery">Доставка</a>
         <a href="contacts.html" data-i18n="nav_contact">Контакты</a>
@@ -44,29 +41,35 @@
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-overlay"></div>
-    <div class="container hero-content">
-      <p class="hero-eyebrow" data-i18n="hero_eyebrow">Женская одежда · Актау</p>
-      <h1 class="hero-title">Avenue <em>Fashion</em> Boutique</h1>
-      <p class="hero-tagline" data-i18n="hero_tagline">Лаконичные образы и натуральные ткани. Элегантность, в которой хочется жить каждый день.</p>
-      <div class="hero-actions">
-        <a href="catalog.html" class="btn btn-primary" data-i18n="hero_btn">Смотреть каталог</a>
-        <a href="about.html" class="btn btn-light" data-i18n="hero_btn2">О бутике</a>
+  <!-- О бренде -->
+  <section class="about" id="about">
+    <div class="container about-inner">
+      <div class="about-text-col">
+        <p class="section-eyebrow" data-i18n="about_eyebrow">О бутике</p>
+        <h2 class="section-title" data-i18n-html="about_title">Наша <em>история</em></h2>
+        <p class="about-text" data-i18n="about_text">
+          Avenue Fashion Boutique — это женская одежда из Актау для тех, кто ценит
+          чистый минимализм и качество.
+        </p>
+      </div>
+      <div class="about-photo">
+        <img src="assets/img/about.jpg" alt="Интерьер бутика Avenue в Актау" width="900" height="1125" loading="lazy" />
       </div>
     </div>
   </section>
 
-  <!-- Избранное -->
-  <section class="catalog">
-    <div class="container">
-      <p class="section-eyebrow" data-i18n="home_featured_eyebrow">Коллекция</p>
-      <h2 class="section-title" data-i18n="home_featured_title">Избранное</h2>
-      <p class="catalog-subtitle" data-i18n="catalog_subtitle">Выберите размер и оформите заказ в один клик.</p>
-      <div class="products" id="products" data-limit="3"></div>
-      <div class="center-cta">
-        <a href="catalog.html" class="btn btn-outline" data-i18n="btn_all_catalog">Весь каталог</a>
+  <!-- Основательница -->
+  <section class="founder" id="founder">
+    <div class="container founder-inner">
+      <div class="founder-photo">
+        <img src="assets/img/founder.jpg" alt="Галина — основательница Avenue Fashion Boutique" width="900" height="1125" loading="lazy" />
+      </div>
+      <div class="founder-text">
+        <p class="section-eyebrow" data-i18n="founder_eyebrow">Основательница</p>
+        <h2 class="section-title" data-i18n="founder_title">Галина</h2>
+        <p class="founder-lead" data-i18n="founder_lead">Я Галина — основательница Avenue Fashion Boutique.</p>
+        <p class="founder-body" data-i18n="founder_body">Текст о Галине.</p>
+        <p class="founder-sign" data-i18n="founder_sign">С любовью, Галина ♡</p>
       </div>
     </div>
   </section>

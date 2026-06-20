@@ -46,7 +46,9 @@ const I18N = {
   kk: {
     topbar_delivery: "Бүкіл әлемге жеткізу",
     topbar_hours: "Ақтау · 10:00–22:00",
-    nav_about: "Біз туралы", nav_founder: "Галина", nav_catalog: "Каталог", nav_contact: "Байланыс",
+    nav_home: "Басты бет", nav_about: "Біз туралы", nav_founder: "Галина", nav_catalog: "Каталог", nav_delivery: "Жеткізу", nav_contact: "Байланыс",
+    home_featured_eyebrow: "Коллекция", home_featured_title: "Таңдаулы", btn_all_catalog: "Толық каталог", hero_btn2: "Бутик туралы",
+    page_about_eyebrow: "Avenue туралы",
     hero_eyebrow: "Әйелдер киімі · Ақтау",
     hero_tagline: "Жинақы бейнелер және табиғи маталар. Күн сайын киюге жарасатын талғампаздық.",
     hero_btn: "Каталогты қарау",
@@ -81,7 +83,9 @@ const I18N = {
   ru: {
     topbar_delivery: "Доставка по всему миру",
     topbar_hours: "Актау · 10:00–22:00",
-    nav_about: "О нас", nav_founder: "Галина", nav_catalog: "Каталог", nav_contact: "Контакты",
+    nav_home: "Главная", nav_about: "О нас", nav_founder: "Галина", nav_catalog: "Каталог", nav_delivery: "Доставка", nav_contact: "Контакты",
+    home_featured_eyebrow: "Коллекция", home_featured_title: "Избранное", btn_all_catalog: "Весь каталог", hero_btn2: "О бутике",
+    page_about_eyebrow: "Об Avenue",
     hero_eyebrow: "Женская одежда · Актау",
     hero_tagline: "Лаконичные образы и натуральные ткани. Элегантность, в которой хочется жить каждый день.",
     hero_btn: "Смотреть каталог",
@@ -116,7 +120,9 @@ const I18N = {
   en: {
     topbar_delivery: "Worldwide delivery",
     topbar_hours: "Aktau · 10:00–22:00",
-    nav_about: "About", nav_founder: "Galina", nav_catalog: "Catalog", nav_contact: "Contact",
+    nav_home: "Home", nav_about: "About", nav_founder: "Galina", nav_catalog: "Catalog", nav_delivery: "Delivery", nav_contact: "Contact",
+    home_featured_eyebrow: "Collection", home_featured_title: "Featured", btn_all_catalog: "View all", hero_btn2: "About",
+    page_about_eyebrow: "About Avenue",
     hero_eyebrow: "Women's clothing · Aktau",
     hero_tagline: "Refined looks in natural fabrics. Elegance you'll want to live in every day.",
     hero_btn: "View catalog",
@@ -201,7 +207,9 @@ function renderProducts() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  PRODUCTS.forEach((product, index) => {
+  const limit = parseInt(grid.dataset.limit, 10);
+  const list = Number.isInteger(limit) ? PRODUCTS.slice(0, limit) : PRODUCTS;
+  list.forEach((product, index) => {
     const card = document.createElement("article");
     card.className = "card";
     const name = product.name[LANG] || product.name.ru;
