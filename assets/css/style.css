@@ -169,10 +169,23 @@ a { color: inherit; text-decoration: none; }
   transition: width 0.3s var(--ease);
 }
 .nav a:hover::after { width: 100%; }
-@media (max-width: 680px) {
+/* На узких экранах шапка переносится в две строки:
+   1-я — логотип + переключатель языка, 2-я — меню по центру. */
+@media (max-width: 820px) {
+  .header-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 0;
+    row-gap: 10px;
+  }
+  .logo { order: 1; flex-shrink: 0; }
+  .lang-switch { order: 2; margin-left: auto; }
+  .nav { order: 3; width: 100%; justify-content: center; gap: 22px; }
+}
+@media (max-width: 380px) {
   .logo-text { display: none; }
-  .nav { gap: 15px; }
-  .nav a { font-size: 0.7rem; letter-spacing: 0.08em; }
+  .nav { gap: 14px; }
+  .nav a { font-size: 0.72rem; letter-spacing: 0.06em; }
 }
 
 /* ---------- Переключатель языка ---------- */
@@ -194,10 +207,6 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 680px) {
   .lang-switch button { padding: 5px 7px; font-size: 0.58rem; }
 }
-@media (max-width: 420px) {
-  .nav { gap: 10px; }
-  .nav a { font-size: 0.64rem; letter-spacing: 0.04em; }
-}
 
 /* ---------- Hero ---------- */
 .hero {
@@ -205,13 +214,13 @@ a { color: inherit; text-decoration: none; }
   min-height: 82vh;
   display: flex;
   align-items: center;
-  background: url("../img/hero.jpg") center 25%/cover no-repeat, var(--soft);
+  background: url("../img/hero.jpg") center 38%/cover no-repeat, var(--soft);
   text-align: center;
 }
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(17,17,17,0.30) 0%, rgba(17,17,17,0.50) 100%);
+  background: linear-gradient(180deg, rgba(17,17,17,0.20) 0%, rgba(17,17,17,0.42) 100%);
 }
 .hero-content { position: relative; z-index: 2; padding: 70px 0; }
 .hero-badge { border-radius: 50%; margin: 0 auto 26px; box-shadow: var(--shadow-md); }
@@ -393,6 +402,14 @@ a { color: inherit; text-decoration: none; }
 .site-footer { background: var(--ink); color: var(--white); padding: 46px 0; }
 .footer-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
 .footer-inner img { border-radius: 50%; }
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--bg);
+}
+.footer-logo-v { font-style: normal; }
 .footer-tag {
   font-family: var(--font-display);
   font-style: italic;
