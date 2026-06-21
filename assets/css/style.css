@@ -237,6 +237,14 @@ a { color: inherit; text-decoration: none; }
   background: linear-gradient(180deg, rgba(17,17,17,0) 42%, rgba(17,17,17,0.58) 100%);
 }
 .hero-content { position: relative; z-index: 2; padding: 0 0 56px; width: 100%; }
+/* На телефоне — вертикальное фото и пониже высота, чтобы баннер не обрезался */
+@media (max-width: 700px) {
+  .hero {
+    min-height: 66vh;
+    background-image: url("../img/hero-mobile.jpg");
+    background-position: center center;
+  }
+}
 .sr-only {
   position: absolute; width: 1px; height: 1px;
   padding: 0; margin: -1px; overflow: hidden;
