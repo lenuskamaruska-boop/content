@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>О нас — Avenue Fashion Boutique</title>
+  <meta name="description" content="О бутике Avenue Fashion Boutique и его основательнице Галине. Женская одежда в Актау более 15 лет." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="icon" href="assets/img/logo.jpg" />
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <span data-i18n="topbar_delivery">Доставка по всему миру</span>
+      <span class="topbar-center">Kaspi RED · 0-0-12</span>
+      <span data-i18n="topbar_hours">Актау · 10:00–22:00</span>
+    </div>
+  </div>
+
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="assets/img/logo.jpg" alt="Avenue Fashion Boutique" width="50" height="50" />
+      </a>
+      <nav class="nav" aria-label="Навигация">
+        <a href="index.html" data-i18n="nav_home">Главная</a>
+        <a href="about.html" class="active" data-i18n="nav_about">О нас</a>
+        <a href="catalog.html" data-i18n="nav_catalog">Каталог</a>
+        <a href="delivery.html" data-i18n="nav_delivery">Доставка</a>
+        <a href="contacts.html" data-i18n="nav_contact">Контакты</a>
+      </nav>
+      <div class="lang-switch" role="group" aria-label="Язык">
+        <button type="button" data-lang="kk">ҚАЗ</button>
+        <button type="button" data-lang="ru">РУС</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- О бренде -->
+  <section class="about" id="about">
+    <div class="container store-banner">
+      <img src="assets/img/about-store.jpg" alt="Бутик Avenue Fashion Boutique в Актау" width="1100" height="628" loading="lazy" />
+      <p class="store-caption" data-i18n="store_caption">Наш бутик · Актау, ЖК Green plaza</p>
+    </div>
+    <div class="container about-inner">
+      <div class="about-text-col">
+        <p class="section-eyebrow" data-i18n="about_eyebrow">О бутике</p>
+        <h2 class="section-title" data-i18n-html="about_title">Наша <em>история</em></h2>
+        <p class="about-text" data-i18n="about_text">
+          Avenue Fashion Boutique — это женская одежда из Актау для тех, кто ценит
+          чистый минимализм и качество.
+        </p>
+      </div>
+      <div class="about-photo">
+        <img src="assets/img/about.jpg" alt="Интерьер бутика Avenue в Актау" width="900" height="1125" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Основательница -->
+  <section class="founder" id="founder">
+    <div class="container founder-inner">
+      <div class="founder-photo">
+        <img src="assets/img/founder.jpg" alt="Галина — основательница Avenue Fashion Boutique" width="900" height="1125" loading="lazy" />
+      </div>
+      <div class="founder-text">
+        <p class="section-eyebrow" data-i18n="founder_eyebrow">Основательница</p>
+        <h2 class="section-title" data-i18n="founder_title">Галина</h2>
+        <p class="founder-lead" data-i18n="founder_lead">Я Галина — основательница Avenue Fashion Boutique.</p>
+        <p class="founder-body" data-i18n="founder_body">Текст о Галине.</p>
+        <p class="founder-sign" data-i18n="founder_sign">С любовью, Галина ♡</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-logo">AVEN<span class="footer-logo-v">V</span>Ē</p>
+      <p class="footer-tag" data-i18n="footer_tag">Женская одежда · Актау</p>
+      <p class="footer-copy" id="footer-copy">© <span id="year"></span> Avenue Fashion Boutique.</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Каталог — Avenue Fashion Boutique</title>
+  <meta name="description" content="Каталог Avenue Fashion Boutique: льняные костюмы, платья, жакеты, аксессуары. Заказ через Instagram." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="icon" href="assets/img/logo.jpg" />
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <span data-i18n="topbar_delivery">Доставка по всему миру</span>
+      <span class="topbar-center">Kaspi RED · 0-0-12</span>
+      <span data-i18n="topbar_hours">Актау · 10:00–22:00</span>
+    </div>
+  </div>
+
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="assets/img/logo.jpg" alt="Avenue Fashion Boutique" width="50" height="50" />
+      </a>
+      <nav class="nav" aria-label="Навигация">
+        <a href="index.html" data-i18n="nav_home">Главная</a>
+        <a href="about.html" data-i18n="nav_about">О нас</a>
+        <a href="catalog.html" class="active" data-i18n="nav_catalog">Каталог</a>
+        <a href="delivery.html" data-i18n="nav_delivery">Доставка</a>
+        <a href="contacts.html" data-i18n="nav_contact">Контакты</a>
+      </nav>
+      <div class="lang-switch" role="group" aria-label="Язык">
+        <button type="button" data-lang="kk">ҚАЗ</button>
+        <button type="button" data-lang="ru">РУС</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="catalog" id="catalog">
+    <div class="container">
+      <p class="section-eyebrow" data-i18n="catalog_eyebrow">Коллекция</p>
+      <h2 class="section-title" data-i18n-html="catalog_title">Каталог <em>сезона</em></h2>
+      <p class="catalog-subtitle" data-i18n="catalog_subtitle">Выберите размер и оформите заказ в один клик.</p>
+      <div class="filters" role="tablist">
+        <button class="active" data-cat="all" data-i18n="cat_all">Все</button>
+        <button data-cat="dresses" data-i18n="cat_dresses">Платья</button>
+        <button data-cat="suits" data-i18n="cat_suits">Костюмы</button>
+        <button data-cat="bags" data-i18n="cat_bags">Сумки</button>
+        <button data-cat="accessories" data-i18n="cat_accessories">Аксессуары</button>
+      </div>
+      <div class="products" id="products"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-logo">AVEN<span class="footer-logo-v">V</span>Ē</p>
+      <p class="footer-tag" data-i18n="footer_tag">Женская одежда · Актау</p>
+      <p class="footer-copy" id="footer-copy">© <span id="year"></span> Avenue Fashion Boutique.</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
