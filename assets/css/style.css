@@ -301,6 +301,22 @@ a { color: inherit; text-decoration: none; }
   .about-inner { grid-template-columns: 1.05fr 0.95fr; gap: 60px; }
 }
 
+/* ---------- Баннер «Наш бутик» в О нас ---------- */
+.store-banner { margin-bottom: 56px; text-align: center; }
+.store-banner img {
+  width: 100%;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  object-fit: cover;
+}
+.store-caption {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--ink-soft);
+  margin-top: 16px;
+}
+
 /* ---------- Основательница ---------- */
 .founder { padding: 88px 0; background: var(--soft); }
 .founder-inner {
