@@ -1,0 +1,31 @@
+{
+  "name": "content-factory-full",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Контент-завод ФУЛЛ — 8 AI-агентов для Instagram, Telegram и Threads",
+  "main": "factory.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "start": "node factory.js",
+    "run-all": "node factory.js run-all",
+    "analyst": "node factory.js run analyst",
+    "manager": "node factory.js run manager",
+    "copywriter": "node factory.js run copywriter",
+    "carousel": "node factory.js run carousel",
+    "reels": "node factory.js run reels",
+    "listen": "node factory.js listen",
+    "review-test": "node factory.js review-test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.5.0",
+    "googleapis": "^144.0.0",
+    "heic-convert": "^2.1.0",
+    "node-cron": "^3.0.3",
+    "openai": "^6.40.0",
+    "puppeteer": "^25.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
