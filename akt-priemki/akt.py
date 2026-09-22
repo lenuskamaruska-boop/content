@@ -22,6 +22,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional
 
 # ---------- вспомогательные ----------
+RU_MONTHS_GEN = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'}
 RU_MONTHS = {'января':1,'февраля':2,'марта':3,'апреля':4,'мая':5,'июня':6,'июля':7,
              'августа':8,'сентября':9,'октября':10,'ноября':11,'декабря':12}
 
@@ -117,9 +118,11 @@ def parse_gtd(path: str) -> Optional[Gtd]:
     if 'ДЕКЛАРАЦИЯ НА ТОВАРЫ' not in t:
         return None
     g = Gtd(file=os.path.basename(path))
-    m = re.search(r'(\d{8})/(\d{6})/(\d{7})', t)
-    if m:
-        g.number = m.group(0); d = m.group(2)
+    nums = re.findall(r'\d{8}/\d{6}/\d{7}', t)
+    fn = re.search(r'(\d{8})[_/](\d{6})[_/](\d{7})', os.path.basename(path))
+    pick = f"{fn.group(1)}/{fn.group(2)}/{fn.group(3)}" if fn else (max(set(nums), key=nums.count) if nums else '')
+    if pick:
+        g.number = pick; d = pick.split('/')[1]
         g.date = dt.date(2000+int(d[4:6]), int(d[2:4]), int(d[0:2]))
     # графа 22/23: валюта, сумма по счёту, курс
     flat = t.replace('\n',' ')
@@ -202,6 +205,20 @@ def read_xlsx_pairs(path: str, code_hdr=('артикул','code','арт'), qty_
         if out: break
     return out
 
+def xlsx_kind(path: str) -> str:
+    """'fact' если есть колонка «Факт», 'order' если «Заказ»/«приобретение», иначе ''."""
+    from openpyxl import load_workbook
+    low = os.path.basename(path).lower()
+    if 'приобрет' in low or 'заказ' in low or 'order' in low: return 'order'
+    if 'пакинг' in low or 'packing' in low or 'факт' in low: return 'fact'
+    wb = load_workbook(path, read_only=True, data_only=True)
+    for ws in wb.worksheets:
+        for r in ws.iter_rows(min_row=1, max_row=10, values_only=True):
+            vals = ' '.join(str(v).lower() for v in r if v is not None)
+            if 'факт' in vals: return 'fact'
+            if 'заказ' in vals: return 'order'
+    return ''
+
 # ---------- курсы ЦБ ----------
 def cbr_rates(date: dt.date) -> dict:
     """{'USD': x, 'EUR': y} на дату (ЦБ РФ). При недоступности сети — {}."""
@@ -233,7 +250,10 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
     ws['A1'].value = ws['A1'].value  # no-op
     act_no = str(params.get('act_no', '1')); act_date = params.get('act_date')
     ws['B7'] = f'Акт № {act_no}'
-    ws['B9'] = f"от {act_date}" if act_date else 'от '
+    ad = ru_date(act_date) if isinstance(act_date, str) else act_date
+    ws['B9'] = f"от {ad:%d.%m.%Y} г." if ad else 'от '
+    if ad:
+        for c in ('F76','F79','F82'): ws[c] = f'"{ad:%d}" {RU_MONTHS_GEN[ad.month]} {ad.year}г.'
     inv_str = f"Инвойс {sup.number} от {sup.date:%d.%m.%Y}" if sup.date else f"Инвойс {sup.number}"
     ws['B11'] = inv_str
     if pack:
@@ -288,8 +308,6 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
         ws['M72'] = gtd.fee; ws['O72'] = gtd.duty; ws['Q72'] = gtd.vat
     if usd: ws['U78'] = usd
     if eur: ws['U79'] = eur
-    if act_date:
-        for c in ('F76','F79','F82'): ws[c] = act_date if isinstance(act_date,str) else f'{act_date:%d.%m.%Y}'
     wb.save(out)
     return {'label': label, 'invoice': asdict(sup) | {'rows': len(sup.rows)}, 'kvt': [asdict(k) for k in kvt],
             'gtd': asdict(gtd) if gtd else None, 'packing': asdict(pack) if pack else None,
@@ -308,8 +326,12 @@ def main():
     pj = os.path.join(a.folder, 'params.json')
     if os.path.exists(pj): params = json.load(open(pj, encoding='utf-8'))
     sup = None; kvt = []; gtd = None; pack = None; fact = {}; order = {}
+    import hashlib; seen = set()
     for f in sorted(glob.glob(os.path.join(a.folder, '*'))):
         low = os.path.basename(f).lower()
+        h = hashlib.md5(open(f,'rb').read()).hexdigest()
+        if h in seen: continue
+        seen.add(h)
         if low.endswith('.pdf'):
             k = parse_kvt(f)
             if k: kvt.append(k); continue
@@ -320,8 +342,9 @@ def main():
             s = parse_supplier_invoice(f)
             if s: sup = s; continue
         elif low.endswith('.xlsx'):
-            if 'пакинг' in low or 'packing' in low or 'факт' in low: fact = read_xlsx_pairs(f)
-            elif 'приобрет' in low or 'заказ' in low or 'order' in low: order = read_xlsx_pairs(f, qty_hdr=('кол','qty','заказ'))
+            kind = xlsx_kind(f)
+            if kind == 'fact': fact = read_xlsx_pairs(f)
+            elif kind == 'order': order = read_xlsx_pairs(f, qty_hdr=('кол','qty','заказ'))
     if not sup: sys.exit('Не найден инвойс поставщика (PDF со словом INVOICE).')
     # --- ручные добавки из params.json (для документов, которых нет в папке) ---
     for e in params.get('extra_costs', []):   # {"number":"1043","currency":"USD","total":2050,"category":"border","note":"..."}
