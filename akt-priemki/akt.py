@@ -1,0 +1,353 @@
+#!/usr/bin/env python3
+"""
+Генератор «Акта приёмки ТМЦ» (РИТЕТ) из первичных документов.
+
+Вход (папка с файлами, любые имена):
+  • инвойс поставщика (PDF)              — строки товара, сумма EUR, номер/дата
+  • счета КВТ Сервис (PDF, любое число)  — доставка/ПРР/брокер/хранение → категории раздела 6
+  • ГТД / ДТ (PDF)                       — сбор/пошлина/НДС, дата ТО, курс EUR
+  • упаковочный лист (PDF/XLSX)          — места, паллеты, вес, объём → шапка акта
+  • пакинг «факт» (XLSX)                 — фактически пришедшее кол-во → этап 2
+  • заказ поставщику (XLSX)              — этап 4 (справочно)
+  • params.json                          — номер акта, даты, ярлык отгрузки, ответственные
+
+Выход: заполненный шаблон «Акт приёмки … .xlsx» + summary.json (что откуда взято).
+
+Использование:
+  python3 akt.py <папка_с_документами> [--template template.xlsx] [--out результат.xlsx]
+"""
+from __future__ import annotations
+import re, sys, json, glob, os, argparse, datetime as dt
+from dataclasses import dataclass, field, asdict
+from typing import Optional
+
+# ---------- вспомогательные ----------
+RU_MONTHS = {'января':1,'февраля':2,'марта':3,'апреля':4,'мая':5,'июня':6,'июля':7,
+             'августа':8,'сентября':9,'октября':10,'ноября':11,'декабря':12}
+
+def num(s: str) -> float:
+    """'1 606 036,83' / '169988.26' / '2 050,00' -> float"""
+    s = s.replace('\xa0',' ').replace(' ','').replace(' ','')
+    if ',' in s and '.' in s:      # 1.606.036,83
+        s = s.replace('.','').replace(',','.')
+    else:
+        s = s.replace(',','.')
+    return float(s)
+
+def pdf_text(path: str) -> str:
+    import pymupdf
+    return '\n'.join(p.get_text() for p in pymupdf.open(path)).replace('\xa0',' ')
+
+def ru_date(s: str) -> Optional[dt.date]:
+    m = re.search(r'(\d{1,2})\s+([а-я]+)\s+(\d{4})', s)
+    if m and m.group(2) in RU_MONTHS:
+        return dt.date(int(m.group(3)), RU_MONTHS[m.group(2)], int(m.group(1)))
+    m = re.search(r'(\d{2})[./](\d{2})[./](\d{2,4})', s)
+    if m:
+        y = int(m.group(3)); y = y+2000 if y < 100 else y
+        return dt.date(y, int(m.group(2)), int(m.group(1)))
+    return None
+
+# ---------- модели ----------
+@dataclass
+class KvtInvoice:
+    number: str; date: Optional[dt.date]; currency: str  # RUB / USD / EUR
+    total: float; vat: float; lines: list = field(default_factory=list)
+    category: str = ''   # border | rf_broker | prr | other
+    file: str = ''
+
+@dataclass
+class Gtd:
+    number: str = ''; date: Optional[dt.date] = None
+    currency: str = ''; invoice_sum: float = 0.0; rate: float = 0.0
+    fee: float = 0.0; duty: float = 0.0; vat: float = 0.0; total: float = 0.0
+    duty_rate: str = ''; vat_rate: str = ''; file: str = ''
+
+@dataclass
+class SupplierInvoice:
+    number: str = ''; date: Optional[dt.date] = None; currency: str = 'EUR'
+    total: float = 0.0; rows: list = field(default_factory=list)   # (code, desc, qty, price, value)
+    supplier: str = ''; file: str = ''
+
+@dataclass
+class Packing:
+    boxes: int = 0; pallets: int = 0; volume: float = 0.0
+    gross: float = 0.0; net: float = 0.0; pieces: int = 0; file: str = ''
+
+# ---------- классификация счетов КВТ ----------
+CATEGORY_RULES = [
+    # (категория, регулярка по тексту услуги)
+    ('prr',       r'ПРР|погрузо-?разгрузочн'),
+    ('border',    r'(ISTANBUL|СТАМБУЛ|TURKIYE|ТУРЦИЯ).{0,200}(порт Новороссийск|РФ)|международной перевозки груза по маршруту:.{0,120}(TURK|ТУРЦ|ISTANBUL)'),
+    ('rf_broker', r'таможенн|брокер|ДТ \d{8}/|хранени|СВХ|терминальн|линейный сбор|сверхнормативн|Организация перевозки груза по маршруту: Росси|Славянск|Новороссийск порт - '),
+]
+
+def classify(text: str, currency: str) -> str:
+    t = text.replace('\n',' ')
+    for cat, rx in CATEGORY_RULES:
+        if re.search(rx, t, re.I):
+            # ПРР в порту Новороссийск упоминает Стамбул в маршруте — ПРР проверяем первым
+            return cat
+    if currency == 'USD':   # фрахт до границы КВТ выставляет в USD
+        return 'border'
+    return 'other'
+
+def parse_kvt(path: str) -> Optional[KvtInvoice]:
+    t = pdf_text(path)
+    if 'КВТ СЕРВИС' not in t.upper() or 'Счет на оплату' not in t:
+        return None
+    m = re.search(r'Счет на оплату №\s*(\d+)\s+от\s+([^\n]+)', t)
+    number = m.group(1) if m else '?'
+    date = ru_date(m.group(2)) if m else None
+    cur = 'RUB'
+    if re.search(r'\((Usd|USD)\d?\)', t): cur = 'USD'
+    elif re.search(r'\((Eur|EUR)\d?\)', t): cur = 'EUR'
+    mt = re.search(r'Всего к оплате:\s*\n?\s*([\d\s.,]+)', t)
+    total = num(mt.group(1)) if mt else 0.0
+    mv = re.search(r'(?:Сумма НДС|В том числе НДС):\s*\n?\s*([\d\s.,]+)', t)
+    vat = num(mv.group(1)) if mv else 0.0
+    # блок услуг — между заголовком таблицы и "Итого:"
+    body = t.split('Сумма',1)[-1].split('Итого:')[0]
+    cat = classify(body, cur)
+    return KvtInvoice(number, date, cur, total, vat, [body.strip()[:400]], cat, os.path.basename(path))
+
+# ---------- ГТД ----------
+def parse_gtd(path: str) -> Optional[Gtd]:
+    t = pdf_text(path)
+    if 'ДЕКЛАРАЦИЯ НА ТОВАРЫ' not in t:
+        return None
+    g = Gtd(file=os.path.basename(path))
+    m = re.search(r'(\d{8})/(\d{6})/(\d{7})', t)
+    if m:
+        g.number = m.group(0); d = m.group(2)
+        g.date = dt.date(2000+int(d[4:6]), int(d[2:4]), int(d[0:2]))
+    # графа 22/23: валюта, сумма по счёту, курс
+    flat = t.replace('\n',' ')
+    m = re.search(r'\b(EUR|USD)\b\s+([\d]+\.\d{2})\s+(\d{2,3}\.\d{4})', flat)
+    if m:
+        g.currency, g.invoice_sum, g.rate = m.group(1), float(m.group(2)), float(m.group(3))
+    # раздел B: 1010-сумма-643-ИНН  (итоги по видам платежей за всю ДТ)
+    sums = {}
+    for kind, val in re.findall(r'\b(1010|2010|5010)-([\d]+\.\d{2})-643-', flat):
+        sums[kind] = sums.get(kind, 0.0) + float(val)
+    g.fee, g.duty, g.vat = sums.get('1010',0.0), sums.get('2010',0.0), sums.get('5010',0.0)
+    g.total = round(g.fee+g.duty+g.vat, 2)
+    mr = re.search(r'2010\D{0,40}?(\d{1,2}(?:\.\d)?%)', flat); g.duty_rate = mr.group(1) if mr else ''
+    mv = re.search(r'5010\D{0,60}?(\d{2}%)', flat); g.vat_rate = mv.group(1) if mv else ''
+    return g
+
+# ---------- инвойс поставщика ----------
+def parse_supplier_invoice(path: str) -> Optional[SupplierInvoice]:
+    t = pdf_text(path)
+    if 'INVOICE' not in t.upper() or 'КВТ' in t or 'ДЕКЛАРАЦИЯ' in t:
+        return None
+    inv = SupplierInvoice(file=os.path.basename(path))
+    m = re.search(r'\b([A-Z]{2,4}\d{10,})\b\s*\n\s*(\d{2}\.\d{2}\.\d{4})', t)
+    if m: inv.number = m.group(1); inv.date = ru_date(m.group(2))
+    if 'ÇETİNKAYA' in t or 'CETINKAYA' in t.upper(): inv.supplier = 'Cetinkaya Pano'
+    elif 'EMAS' in t: inv.supplier = 'EMAS'
+    mt = re.search(r'€\s*([\d.]+,\d{2})', t)
+    if mt: inv.total = num(mt.group(1))
+    lines = [l.strip() for l in t.split('\n')]
+    i = 0
+    while i < len(lines)-4:
+        code, desc, q, p, v = lines[i:i+5]
+        if (re.fullmatch(r'[A-Z][A-Z0-9][A-Z0-9\-\. /]{1,}', code) and re.fullmatch(r'\d{1,3}(?:\.\d{3})*', q)
+                and re.fullmatch(r'[\d.]*\d,\d{2}', p) and re.fullmatch(r'[\d.]*\d,\d{2}', v)):
+            inv.rows.append((code, desc, int(q.replace('.','')), num(p), num(v))); i += 5
+        else:
+            i += 1
+    return inv
+
+# ---------- упаковочный лист (PDF) ----------
+def parse_packing_pdf(path: str) -> Optional[Packing]:
+    t = pdf_text(path)
+    if 'PACKING LIST' not in t.upper(): return None
+    p = Packing(file=os.path.basename(path)); flat = re.sub(r'\s+', ' ', t)
+    def grab(rx):
+        mm = re.search(rx, flat, re.I); return mm.group(1) if mm else None
+    v = grab(r'Total Quantity of Package\s*:\s*([\d.,]+)')
+    if v: p.pallets = int(num(v))
+    v = grab(r'Total Quantity of (?:Box|Carton|Koli)\w*\s*:\s*([\d.,]+)')
+    if v: p.boxes = int(num(v))
+    v = grab(r'Total Volume\s*:\s*([\d.,]+)')
+    if v: p.volume = num(v)
+    v = grab(r'Total Net K\.?g\.?\s*:\s*([\d.,]+)')
+    if v: p.net = num(v)
+    v = grab(r'Total Gross K\.?g\.?\s*:\s*([\d.,]+)')
+    if v: p.gross = num(v)
+    v = grab(r'Total Quantity of Products\s*:\s*([\d.,]+)')
+    p.pieces = int(v.replace('.','').replace(',','')) if v else 0
+    return p
+
+# ---------- пакинг «факт» / заказ поставщику (XLSX) ----------
+def read_xlsx_pairs(path: str, code_hdr=('артикул','code','арт'), qty_hdr=('факт','кол','qty','quantity')) -> dict:
+    """Возвращает {артикул: кол-во} — берёт колонку артикула и первую колонку с количеством."""
+    from openpyxl import load_workbook
+    wb = load_workbook(path, data_only=True); out = {}
+    for ws in wb.worksheets:
+        hdr_row = None
+        for r in ws.iter_rows(min_row=1, max_row=15):
+            vals = [str(c.value).strip().lower() if c.value is not None else '' for c in r]
+            if any(any(h in v for h in code_hdr) for v in vals):
+                hdr_row = r[0].row; hdr = vals; break
+        if not hdr_row: continue
+        ci = next(i for i,v in enumerate(hdr) if any(h in v for h in code_hdr))
+        qi = next((i for i,v in enumerate(hdr) if any(h in v for h in qty_hdr) and i != ci), None)
+        if qi is None: continue
+        for r in ws.iter_rows(min_row=hdr_row+1, values_only=True):
+            code = r[ci]; q = r[qi]
+            if code and isinstance(q,(int,float)):
+                out[str(code).strip()] = out.get(str(code).strip(), 0) + float(q)
+        if out: break
+    return out
+
+# ---------- курсы ЦБ ----------
+def cbr_rates(date: dt.date) -> dict:
+    """{'USD': x, 'EUR': y} на дату (ЦБ РФ). При недоступности сети — {}."""
+    import urllib.request, xml.etree.ElementTree as ET
+    url = f"https://www.cbr.ru/scripts/XML_daily.asp?date_req={date:%d/%m/%Y}"
+    try:
+        xml = urllib.request.urlopen(url, timeout=15).read()
+        root = ET.fromstring(xml); out = {}
+        for v in root.findall('Valute'):
+            code = v.find('CharCode').text
+            if code in ('USD','EUR'):
+                out[code] = float(v.find('VunitRate').text.replace(',','.'))
+        return out
+    except Exception:
+        return {}
+
+# ---------- заполнение шаблона ----------
+def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd: Optional[Gtd],
+                  pack: Optional[Packing], fact: dict, order: dict, params: dict, rates: dict) -> dict:
+    from openpyxl import load_workbook
+    from copy import copy
+    wb = load_workbook(template); ws = wb.worksheets[0]; ws2 = wb.worksheets[1]
+    label = params.get('label', f"Отгрузка {sup.supplier or 'поставщик'} {params.get('shipment','1')} в {params.get('year', dt.date.today().year)}")
+    old = ws.title; ws.title = label[:31]
+    # ссылки второго листа на первый
+    for row in ws2.iter_rows():
+        for c in row:
+            if isinstance(c.value, str) and old in c.value: c.value = c.value.replace(old, ws.title)
+    ws['A1'].value = ws['A1'].value  # no-op
+    act_no = str(params.get('act_no', '1')); act_date = params.get('act_date')
+    ws['B7'] = f'Акт № {act_no}'
+    ws['B9'] = f"от {act_date}" if act_date else 'от '
+    inv_str = f"Инвойс {sup.number} от {sup.date:%d.%m.%Y}" if sup.date else f"Инвойс {sup.number}"
+    ws['B11'] = inv_str
+    if pack:
+        ws['B12'] = (f"Упаковочный лист (количество мест,  вес, объем) {pack.boxes} коробок, {pack.pallets} паллет, "
+                     f"{pack.volume:g} м³, вес брутто - {pack.gross:g} кг, вес нетто - {pack.net:g} кг.")
+    for key, cell in [('pickup_date','F14'), ('depart_date','G15'), ('to_date','F16'), ('arrival_date','G17')]:
+        v = params.get(key) or (gtd.date if key=='to_date' and gtd else None)
+        if v:
+            if isinstance(v, str): v = ru_date(v)
+            ws[cell] = v; ws[cell].number_format = 'dd.mm.yyyy'
+    ws['D19'] = f"{sup.supplier} инвойс"; ws['F19'] = round(sup.total, 2)
+    ws['C73'] = sup.supplier or 'EMAS'
+    if params.get('responsible'): ws['T27'] = params['responsible']
+    # этап 2 — расхождения факт/инвойс
+    r = 28; inv_map = {c: (q, p) for c, _, q, p, _ in sup.rows}
+    diffs = []
+    for code, q_fact in sorted(fact.items()):
+        q_inv, price = inv_map.get(code, (0, 0.0))
+        if q_fact != q_inv: diffs.append((code, q_inv, q_fact, price))
+    for code in inv_map:
+        if fact and code not in fact: diffs.append((code, inv_map[code][0], 0, inv_map[code][1]))
+    for code, qi, qf, price in diffs[:12]:
+        ws[f'E{r}'] = code; ws[f'G{r}'] = qi; ws[f'H{r}'] = qf; ws[f'I{r}'] = f'=H{r}-G{r}'
+        ws[f'J{r}'] = price; ws[f'K{r}'] = f'=J{r}*I{r}'
+        ws[f'P{r}'] = 'Излишек' if qf > qi else '+30% от стоимости затраты НДС, пошлины'
+        r += 1
+    if not diffs and fact: ws['E28'] = 'Нет'
+    # этап 4 — заказ поставщику (справочно)
+    r = 42; od = []
+    for code, q_ord in sorted(order.items()):
+        q_inv = inv_map.get(code, (0, 0))[0]
+        if q_ord != q_inv: od.append((code, q_inv, q_ord, inv_map.get(code,(0,0.0))[1]))
+    if od:
+        ws['E42'] = None
+        for code, qi, qo, price in od[:23]:
+            ws[f'E{r}'] = code; ws[f'G{r}'] = qi; ws[f'H{r}'] = qo; ws[f'I{r}'] = f'=H{r}-G{r}'
+            ws[f'J{r}'] = price; ws[f'K{r}'] = f'=J{r}*I{r}'; r += 1
+    # раздел 6 — затраты (рубли, строка 72)
+    usd = rates.get('USD'); eur = rates.get('EUR') or (gtd.rate if gtd and gtd.currency=='EUR' else None)
+    cat_sum = {'border':0.0,'rf_broker':0.0,'prr':0.0,'other':0.0}; conv_notes = []
+    for k in kvt:
+        amt = k.total
+        if k.currency == 'USD':
+            if usd: amt = round(k.total * usd, 2); conv_notes.append(f"счёт {k.number}: {k.total:,.2f} USD × {usd} = {amt:,.2f} ₽")
+            else: conv_notes.append(f"счёт {k.number}: {k.total:,.2f} USD — курс USD неизвестен, в рубли не переведён"); amt = 0.0
+        elif k.currency == 'EUR' and eur:
+            amt = round(k.total * eur, 2)
+        cat_sum[k.category] += amt
+    cat_sum['rf_broker'] += cat_sum.pop('other')
+    ws['G72'] = round(cat_sum['border'],2); ws['I72'] = round(cat_sum['rf_broker'],2); ws['K72'] = round(cat_sum['prr'],2)
+    if gtd:
+        ws['M72'] = gtd.fee; ws['O72'] = gtd.duty; ws['Q72'] = gtd.vat
+    if usd: ws['U78'] = usd
+    if eur: ws['U79'] = eur
+    if act_date:
+        for c in ('F76','F79','F82'): ws[c] = act_date if isinstance(act_date,str) else f'{act_date:%d.%m.%Y}'
+    wb.save(out)
+    return {'label': label, 'invoice': asdict(sup) | {'rows': len(sup.rows)}, 'kvt': [asdict(k) for k in kvt],
+            'gtd': asdict(gtd) if gtd else None, 'packing': asdict(pack) if pack else None,
+            'rates': {'USD': usd, 'EUR': eur}, 'conversions': conv_notes,
+            'section6_rub': {'border': cat_sum['border'], 'rf_broker': cat_sum['rf_broker'], 'prr': cat_sum['prr'],
+                             'fee': gtd.fee if gtd else None, 'duty': gtd.duty if gtd else None, 'vat': gtd.vat if gtd else None},
+            'stage2_diffs': diffs, 'stage4_diffs': od}
+
+# ---------- главный сценарий ----------
+def main():
+    ap = argparse.ArgumentParser(); ap.add_argument('folder'); ap.add_argument('--template', default=None)
+    ap.add_argument('--out', default=None); a = ap.parse_args()
+    here = os.path.dirname(os.path.abspath(__file__))
+    template = a.template or os.path.join(here, 'template.xlsx')
+    params = {}
+    pj = os.path.join(a.folder, 'params.json')
+    if os.path.exists(pj): params = json.load(open(pj, encoding='utf-8'))
+    sup = None; kvt = []; gtd = None; pack = None; fact = {}; order = {}
+    for f in sorted(glob.glob(os.path.join(a.folder, '*'))):
+        low = os.path.basename(f).lower()
+        if low.endswith('.pdf'):
+            k = parse_kvt(f)
+            if k: kvt.append(k); continue
+            g = parse_gtd(f)
+            if g: gtd = g; continue
+            p = parse_packing_pdf(f)
+            if p: pack = p; continue
+            s = parse_supplier_invoice(f)
+            if s: sup = s; continue
+        elif low.endswith('.xlsx'):
+            if 'пакинг' in low or 'packing' in low or 'факт' in low: fact = read_xlsx_pairs(f)
+            elif 'приобрет' in low or 'заказ' in low or 'order' in low: order = read_xlsx_pairs(f, qty_hdr=('кол','qty','заказ'))
+    if not sup: sys.exit('Не найден инвойс поставщика (PDF со словом INVOICE).')
+    # --- ручные добавки из params.json (для документов, которых нет в папке) ---
+    for e in params.get('extra_costs', []):   # {"number":"1043","currency":"USD","total":2050,"category":"border","note":"..."}
+        kvt.append(KvtInvoice(str(e['number']), ru_date(e.get('date','')) if e.get('date') else None,
+                              e.get('currency','RUB'), float(e['total']), float(e.get('vat',0)),
+                              [e.get('note','вручную из params.json')], e.get('category','rf_broker'), 'params.json'))
+    if params.get('customs') and not gtd:      # {"number":"...","date":"24.08.2026","fee":..,"duty":..,"vat":..,"eur_rate":..}
+        c = params['customs']; gtd = Gtd(number=c.get('number',''), date=ru_date(c.get('date','')) if c.get('date') else None,
+                                         currency='EUR', rate=float(c.get('eur_rate',0)), fee=float(c.get('fee',0)),
+                                         duty=float(c.get('duty',0)), vat=float(c.get('vat',0)), file='params.json')
+        gtd.total = round(gtd.fee+gtd.duty+gtd.vat,2)
+    if params.get('fact_overrides'):           # {"CP1043Y": 12, ...} — факт только по расхождениям; остальное = инвойсу
+        base = {c: q for c, _, q, _, _ in sup.rows}; base.update({k: float(v) for k, v in params['fact_overrides'].items()}); fact = base
+    rates = {}
+    rate_date = params.get('to_date') and ru_date(params['to_date']) or (gtd.date if gtd else None)
+    if rate_date: rates = cbr_rates(rate_date)
+    if 'usd_rate' in params: rates['USD'] = float(params['usd_rate'])
+    if 'eur_rate' in params: rates['EUR'] = float(params['eur_rate'])
+    if gtd and gtd.currency == 'EUR' and gtd.rate and 'EUR' not in rates: rates['EUR'] = gtd.rate
+    label = params.get('label') or f"Отгрузка {'СР' if (sup.supplier or '').startswith('Cet') else sup.supplier} {params.get('shipment','1')} в {dt.date.today().year}"
+    params.setdefault('label', label)
+    out = a.out or os.path.join(a.folder, f"Акт приёмки №{params.get('act_no','1')} ({label}).xlsx")
+    summary = fill_template(template, out, sup, kvt, gtd, pack, fact, order, params, rates)
+    summary['output'] = out
+    json.dump(summary, open(os.path.join(a.folder, 'summary.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1, default=str)
+    print(json.dumps(summary, ensure_ascii=False, indent=1, default=str))
+
+if __name__ == '__main__':
+    main()
