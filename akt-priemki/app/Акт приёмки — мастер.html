@@ -192,12 +192,15 @@ function normalizeRows(rows){ if(rows.length<4) return rows; const gaps=[]; for(
 function cropData(c,r,w){ const k=w/r.width; const c2=document.createElement('canvas'); c2.width=w; c2.height=Math.round(r.height*k); c2.getContext('2d').drawImage(c,r.left,r.top,r.width,r.height,0,0,c2.width,c2.height); return c2.toDataURL('image/jpeg',.8); }
 // варианты прочтения чисел с «ценой» правки: OCR часто теряет запятую или добавляет лишнюю цифру
 const uniqC=a=>{ const m=new Map(); for(const [v,sc] of a) if(v>0&&isFinite(v)&&(!m.has(v)||m.get(v)>sc)) m.set(v,sc); return [...m.entries()]; };
+const subs=(D,sc,f)=>{ const out=[]; for(let i=0;i<D.length;i++) for(let k=0;k<10;k++){ if(D[i]===String(k)) continue; const v=f(D.slice(0,i)+k+D.slice(i+1)); if(v!=null) out.push([v,sc]); } return out; };
 function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{4})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(D.length>=5) out.push([+(D.slice(0,-4)+'.'+D.slice(-4)),1]); if(D.length===4) out.push([+('0.'+D),1]);
+  if(D.length>=5&&D.length<=7) out.push(...subs(D,3,E=>+(E.slice(0,-4)+'.'+E.slice(-4))));
   if(D.length>=6) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-4)+'.'+E.slice(-4)),4]); } return uniqC(out); }
-function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,3]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
+function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,3]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]);
+  if(D.length>=3&&D.length<=8) out.push(...subs(D,3,E=>+(E.slice(0,-2)+'.'+E.slice(-2)))); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
   if(D.length>=4) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-2)+'.'+E.slice(-2)),4]); out.push([+E,4]); } return uniqC(out); }
-function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push([+D,0]); const sw={'0':'8','8':'0','9':'0','6':'0','5':'6','1':'7','7':'1','2':'7','3':'8'}; for(let k=0;k<10;k++) out.push([+(D+k),3]); // потерянная последняя цифра
-  for(let i=0;i<D.length;i++) if(sw[D[i]]) out.push([+(D.slice(0,i)+sw[D[i]]+D.slice(i+1)),2]); if(D.length>=2) for(let i=0;i<D.length;i++) out.push([+(D.slice(0,i)+D.slice(i+1)),4]); return uniqC(out); }
+function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push([+D,0]); for(let k=0;k<10;k++) out.push([+(D+k),3]); // потерянная последняя цифра
+  if(D.length<=5) out.push(...subs(D,2,E=>+E)); if(D.length>=2) for(let i=0;i<D.length;i++) out.push([+(D.slice(0,i)+D.slice(i+1)),4]); return uniqC(out); }
 // допуск: цена в инвойсе печатается с 4 знаками, а сумма считается от точной цены — расхождение растёт с количеством
 const tol=q=>0.011+Math.min(q,3000)*0.00006;
 function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
@@ -236,10 +239,10 @@ async function ocrInvoice(file, progress){
       await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn},{text:true,blocks:true})).data;
       const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
       const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
-      if(!looksCode(code)&&digits<2){ dropped++; continue; } // шум (печать, подпись), не строка таблицы
+      if((!looksCode(code)&&digits<2)||(code.length<=2&&!/\d/.test(code)&&digits<2)){ dropped++; continue; } // шум (печать, подпись), не строка таблицы
       const res=resolveRow(raw);
       const gq=parseInt(q.replace(/\D/g,''))||0, gp=(candsPrice(pr)[0]||[0])[0];
-      const row={pg:p, i, code, desc:'', qty:res?res.qty:gq, price:res?res.price:gp, value:res?res.value:Math.round(gq*gp*100)/100, ocr:true, ok:!!res, raw};
+      const row={pg:p, i, code, desc:'', score:res?res.score:null, qty:res?res.qty:gq, price:res?res.price:gp, value:res?res.value:Math.round(gq*gp*100)/100, ocr:true, ok:!!res, raw};
       if(!res){ row.img=cropData(c,{left:x0,top:G.rows[i],width:x5-x0,height:h},1000); flagged.push(row); }
       rows.push(row);
     }
@@ -510,6 +513,7 @@ function render(){ renderSteps(); const st=S.step; let h='';
     ${Math.abs(sumRows-sup.total)>0.05?`<div class=note>Сумма строк (${fmt(sumRows)} €) не совпадает с итогом инвойса (${fmt(sup.total)} €)${sup.ocr?' — проверьте строки ниже и исправьте, что распозналось неверно.':' — часть строк не распознана. Проверьте PDF.'}</div>`:'<p class=ok>✓ Сумма строк совпадает с итогом инвойса</p>'}
     ${bad.length?`<h3 style="margin:16px 0 4px">Проверьте ${bad.length} строк: не сошлось «кол-во × цена = сумма»</h3><p class=hint>Сверьте с картинкой и впишите верные значения. Сумма пересчитается сама.</p>
     <table><tr><th>Скан строки</th><th>Артикул</th><th class=num>Кол-во</th><th class=num>Цена €</th><th class=num>Сумма €</th><th></th></tr>${bad.map(([r,i])=>`<tr><td style="width:46%"><img src="${r.img}" style="width:100%;border:1px solid var(--line);border-radius:6px"><div class=mute style="font-size:12px">прочитано: ${r.raw.qty||'—'} · ${r.raw.price||'—'} · ${r.raw.total||'—'}</div></td><td><input type=text value="${r.code}" onchange="updRow(${i},'code',this.value)"></td><td><input type=text class=short value="${r.qty||''}" onchange="updRow(${i},'qty',this.value)"></td><td><input type=text class=short value="${r.price||''}" onchange="updRow(${i},'price',this.value)"></td><td class=num>${fmt(r.value)}</td><td><button class=sec title="удалить строку" onclick="delRow(${i})">✕</button></td></tr>`).join('')}</table>`:''}
+    ${sup.ocr&&sup.rows.some(r=>r.ok&&r.score>=2)?`<details style="margin-top:10px"><summary class=mute style="cursor:pointer;font-size:13px">Исправлено автоматически по проверке «кол-во × цена = сумма»: ${sup.rows.filter(r=>r.ok&&r.score>=2).length} строк (показать)</summary><p class=mute style="font-size:12.5px">${sup.rows.filter(r=>r.ok&&r.score>=2).map(r=>`${r.code}: прочитано ${r.raw.qty||'—'} · ${r.raw.price||'—'} · ${r.raw.total||'—'} → ${r.qty} × ${r.price} = ${fmt(r.value)}`).join('<br>')}</p></details>`:''}
     ${sup.rows.some(r=>r.fixed)?`<p class=mute style="font-size:13px">Артикулы, уточнённые по упаковочному листу / факту: ${sup.rows.filter(r=>r.fixed).map(r=>`${r.orig}→${r.code}`).join(', ')}</p>`:''}
     <div class=btns><button class=sec onclick="if(confirm('Убрать загруженный инвойс?')){S.sup=null;render();}">Сбросить инвойс</button></div>`:''}${nav(true,!!sup&&!S.ocr)}</div>`; }
   if(st===1){ h=`<div class=card><h2>2. Счета КВТ Сервис</h2><p class=hint>Все счета по этой поставке (фрахт, ПРР, хранение, брокер, перевозка по РФ). Категорию можно поправить. Счёт без PDF — добавьте вручную.</p>${dropzone('kvt','.pdf',true,'PDF, можно сразу несколько')}
