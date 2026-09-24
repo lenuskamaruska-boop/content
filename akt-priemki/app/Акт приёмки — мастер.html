@@ -237,7 +237,7 @@ async function ocrInvoice(file, progress){
       progress(`страница ${p} из ${pdf.numPages}: строка ${i+1} из ${G.rows.length-1}`);
       const band={left:x0,top:G.rows[i],width:x5-x0,height:h}; if(inkFrac(c,band)<0.004) continue; // пустая строка
       await w.setParameters(PARAMS_CODE); let code=(await w.recognize(clean,{rectangle:rect(x0,x1)})).data.text.trim().replace(/\s+/g,'');
-      if(/^PARTCODE/.test(code)) continue;
+      if(/^PARTCODE/.test(code)||(p===1&&i===0&&!looksCode(code))) continue; // шапка таблицы
       await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn},{text:true,blocks:true})).data;
       const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
       const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
