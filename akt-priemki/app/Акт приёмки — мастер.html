@@ -194,22 +194,28 @@ function cropData(c,r,w){ const k=w/r.width; const c2=document.createElement('ca
 // варианты прочтения чисел с «ценой» правки: OCR часто теряет запятую или добавляет лишнюю цифру
 const uniqC=a=>{ const m=new Map(); for(const [v,sc] of a) if(v>0&&isFinite(v)&&(!m.has(v)||m.get(v)>sc)) m.set(v,sc); return [...m.entries()]; };
 const subs=(D,sc,f)=>{ const out=[]; for(let i=0;i<D.length;i++) for(let k=0;k<10;k++){ if(D[i]===String(k)) continue; const v=f(D.slice(0,i)+k+D.slice(i+1)); if(v!=null) out.push([v,sc]); } return out; };
-function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{4})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(D.length>=5) out.push([+(D.slice(0,-4)+'.'+D.slice(-4)),1]); if(D.length===4) out.push([+('0.'+D),1]);
-  if(D.length>=5&&D.length<=7) out.push(...subs(D,3,E=>+(E.slice(0,-4)+'.'+E.slice(-4))));
-  if(D.length>=6) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-4)+'.'+E.slice(-4)),4]); } return uniqC(out); }
-function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,3]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]);
-  if(D.length>=3&&D.length<=8) out.push(...subs(D,3,E=>+(E.slice(0,-2)+'.'+E.slice(-2)))); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
+const uniqC3=a=>{ const m=new Map(); for(const [v,sc,dec] of a){ const key=v+'/'+dec; if(v>0&&isFinite(v)&&(!m.has(key)||m.get(key)[1]>sc)) m.set(key,[v,sc,dec]); } return [...m.values()]; };
+// цена: в инвойсах EMAS бывает 4 знака (1,1360) и 3 знака (0,823) после запятой
+function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{3,4})$/); if(m) out.push([+(m[1]+'.'+m[2]),0,m[2].length]); const D=s.replace(/\D/g,'');
+  for(const dec of [4,3]){ const cut=E=>+(E.slice(0,-dec)+'.'+E.slice(-dec)); if(D.length>dec) out.push([cut(D),1,dec]); if(D.length===dec) out.push([+('0.'+D),1,dec]);
+    if(D.length>dec&&D.length<=dec+3) for(const [v,sc] of subs(D,3,cut)) out.push([v,sc,dec]);
+    if(D.length>=dec+2) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([cut(E),4,dec]); } }
+  return uniqC3(out); }
+// сумма: «4.584,45», «12.155,72», «115», «60,3»
+function candsTotal(s){ const out=[]; s=s.replace(/^(\d{1,3})(?:\.(\d{3}))+(,\d{1,2})?$/,(a)=>a.replace(/\./g,'')); const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,3]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
+  if(D.length>=3&&D.length<=8) out.push(...subs(D,3,E=>+(E.slice(0,-2)+'.'+E.slice(-2))));
   if(D.length>=4) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-2)+'.'+E.slice(-2)),4]); out.push([+E,4]); } return uniqC(out); }
+// кол-во: «700», «1.000», «2.744»
 function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push([+D,0]); for(let k=0;k<10;k++) out.push([+(D+k),3]); // потерянная последняя цифра
   if(D.length<=5) out.push(...subs(D,2,E=>+E)); if(D.length>=2) for(let i=0;i<D.length;i++) out.push([+(D.slice(0,i)+D.slice(i+1)),4]); return uniqC(out); }
-// допуск: цена в инвойсе печатается с 4 знаками, а сумма считается от точной цены — расхождение растёт с количеством
-const tol=q=>0.011+Math.min(q,3000)*0.00006;
+// допуск: сумма в инвойсе посчитана от точной цены, а напечатана цена с 3–4 знаками — расхождение растёт с количеством
+const tol=(q,dec)=>0.011+Math.min(q,3000)*(dec===3?0.00055:0.00006);
 function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
-  for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st+st*0.1; if(!best||sc<best.sc) best={qty:q,price:p,value:t,score:Math.round(sc),sc}; } // сумма — как напечатано в инвойсе (считана от точной цены)
+  for(const [q,sq] of Q) for(const [p,sp,dec] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q,dec)){ const sc=sq+sp+st+st*0.1+(dec===3?0.05:0); if(!best||sc<best.sc) best={qty:q,price:p,value:t,score:Math.round(sc),sc}; } // сумма — как напечатано в инвойсе
   if(best) return best;
   // кол-во не прочиталось: выводим из суммы и цены, но только если оно согласуется с прочитанными цифрами
   const rq=raw.qty.replace(/\D/g,'');
-  for(const [p,sp] of P) for(const [t,st] of T){ const q=Math.round(t/p); if(q>0&&q<100000&&Math.abs(q*p-t)<=tol(q)&&(!rq||String(q).startsWith(rq)||String(q).endsWith(rq))&&(rq.length>=3||q<10000)) return {qty:q,price:p,value:Math.round(q*p*100)/100,score:99,derived:true}; }
+  for(const [p,sp,dec] of P) for(const [t,st] of T){ const q=Math.round(t/p); if(q>0&&q<100000&&Math.abs(q*p-t)<=tol(q,dec)&&(!rq||String(q).startsWith(rq)||String(q).endsWith(rq))&&(rq.length>=3||q<10000)) return {qty:q,price:p,value:t,score:99,derived:true}; }
   return null; }
 const looksCode=c=>/^[A-Z0-9][A-Z0-9\-\/.]{1,24}$/.test(c)&&(/\d/.test(c)||c.length<=6);
 // вертикальные линии колонок закрашиваем белым, иначе OCR читает их как «1»
@@ -290,6 +296,30 @@ function fixCodes(){
   let n=0; for(const row of S.sup.rows){ const k=norm(row.code); if(refs.has(k)) continue; const cand=byCanon[canon(k)]; if(cand&&cand.length===1){ row.orig=row.orig||row.code; row.code=cand[0]; row.fixed=true; n++; } }
   if(n) log(`Артикулы уточнены по упаковочному листу / факту / 1С: ${n}`); return n;
 }
+
+// ===================== упаковочный лист-скан (EMAS, по коробкам) =====================
+// Итоги (коробки, паллеты, объём, вес) и шапка (инвойсы, контейнер) читаются с двух страниц — быстро.
+// Количества по артикулам — отдельно, по запросу: колонка артикула и колонка количества каждой полосы таблицы.
+async function ocrPacking(file, progress, withItems, base){
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; const w=await ocrWorker();
+  const p=base||{pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0,items:null,container:'',invoices:[],kind:'emas',ocr:true};
+  if(!base){ progress('упаковочный лист: читаю шапку и итоги…'); await w.setParameters(PARAMS_TEXT);
+    const first=deskew(await renderPage(await pdf.getPage(1),1653)); const head=(await w.recognize(cropCanvas(first,{left:0,top:0,width:first.width,height:Math.round(first.height*.3)}))).data.text;
+    const last=deskew(await renderPage(await pdf.getPage(pdf.numPages),1653)); const foot=(await w.recognize(last)).data.text; const t=head+'\n'+foot;
+    let m=t.match(/TOTAL\s+(\d+)\s+BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM/i); if(m){p.boxes=+m[1];p.pallets=+m[2];p.volume=num(m[3]);}
+    m=t.match(/GROSS WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.gross=num(m[1]); m=t.match(/NET WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.net=num(m[1]);
+    m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=[...new Set(t.match(/[A-Z]{2,4}\d{10,}/g)||[])]; }
+  if(!withItems) return p;
+  const items={};
+  for(let pg=1;pg<=pdf.numPages;pg++){ const c=deskew(await renderPage(await pdf.getPage(pg),3300)); const G=tableGeom(c); if(!G) continue; const K=c.width/1653, cols=G.cols; const xc0=cols[cols.length-3], xc1=cols[cols.length-2], xq1=cols[cols.length-1];
+    for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h<15*K) continue; const y=G.rows[i]+3*K, hh=h-6*K; progress(`упаковочный лист: страница ${pg} из ${pdf.numPages}, строка ${i+1} из ${G.rows.length-1}`);
+      const rc=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'}); const codes=linesOf((await w.recognize(c,{rectangle:rc(xc0,xc1)},{text:true,blocks:true})).data); if(!codes.some(l=>looksCode(l.text))) continue;
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789'}); const qtys=linesOf((await w.recognize(c,{rectangle:rc(xc1,xq1)},{text:true,blocks:true})).data);
+      for(const cl of codes){ if(!looksCode(cl.text)) continue; let bq=null; for(const ql of qtys) if(/^\d+$/.test(ql.text)&&(bq===null||Math.abs(ql.y-cl.y)<Math.abs(bq.y-cl.y))) bq=ql; if(bq&&Math.abs(bq.y-cl.y)<14*K) items[cl.text]=(items[cl.text]||0)+ +bq.text; } } }
+  p.items=items; p.pieces=Object.values(items).reduce((a,b)=>a+b,0); return p;
+}
+function linesOf(d){ const out=[]; for(const b of d.blocks||[]) for(const par of b.paragraphs||[]) for(const l of par.lines||[]){ const text=(l.words||[]).map(w=>w.text).join('').replace(/\s+/g,'').trim(); if(text) out.push({text,y:(l.bbox.y0+l.bbox.y1)/2}); } return out; }
 </script>
 <script>
 // ===================== состояние =====================
@@ -533,9 +563,11 @@ function render(){ renderSteps(); const st=S.step; let h='';
     <label class=f>Таможенный сбор, ₽<input type=number step=0.01 value="${g.fee}" onchange="S.gtd.fee=+this.value"></label><label class=f>Пошлина, ₽<input type=number step=0.01 value="${g.duty}" onchange="S.gtd.duty=+this.value"></label><label class=f>НДС, ₽<input type=number step=0.01 value="${g.vat}" onchange="S.gtd.vat=+this.value"></label></div>
     ${S.sup&&g.invoice_sum&&Math.abs(g.invoice_sum-S.sup.total)>0.05?`<div class=note>Сумма по ДТ (${fmt(g.invoice_sum)} ${g.currency}) не равна сумме инвойса (${fmt(S.sup.total)} €). Проверьте, что ДТ относится к этой поставке.</div>`:(g.invoice_sum?'<p class=ok>✓ Сумма в ДТ совпадает с инвойсом</p>':'')}`:''}
     <div class=btns><button class=sec onclick="S.gtd=S.gtd||{number:'',date:null,currency:'EUR',invoice_sum:0,rate:0,fee:0,duty:0,vat:0};render()">Ввести платежи вручную (без PDF)</button></div>${nav()}</div>`; }
-  if(st===3){ const p=S.pack; h=`<div class=card><h2>4. Упаковочный лист</h2><p class=hint>PDF Packing List поставщика: паллеты, объём, вес брутто/нетто. Коробки — при необходимости вручную.</p>${dropzone('pack','.pdf',false,'PDF, один файл')}
+  if(st===3){ const p=S.pack; h=`<div class=card><h2>4. Упаковочный лист</h2><p class=hint>PDF Packing List поставщика: паллеты, объём, вес брутто/нетто. Скан (EMAS) распознаётся: итоги — сразу, количества по артикулам — по кнопке.</p>${dropzone('pack','.pdf',false,'PDF, один файл')}
+    ${S.ocr?`<div class=note>⏳ <span id=ocrmsg>${S.ocr.msg}</span></div>`:''}
     ${p?`<div class=row style="margin-top:14px"><label class=f>Паллет<input type=number value="${p.pallets}" onchange="S.pack.pallets=+this.value"></label><label class=f>Коробок<input type=number value="${S.params.boxes||p.boxes||''}" placeholder="если есть" onchange="S.params.boxes=this.value"></label><label class=f>Объём, м³<input type=number step=0.01 value="${p.volume}" onchange="S.pack.volume=+this.value"></label><label class=f>Брутто, кг<input type=number step=0.01 value="${p.gross}" onchange="S.pack.gross=+this.value"></label><label class=f>Нетто, кг<input type=number step=0.01 value="${p.net}" onchange="S.pack.net=+this.value"></label><label class=f>Всего шт<input type=number value="${p.pieces}" onchange="S.pack.pieces=+this.value"></label></div>
-    ${p.kind==='emas'?`<p class=ok>✓ Упаковочный лист EMAS: ${p.boxes} коробок, ${Object.keys(p.items).length} артикулов${p.container?`, контейнер ${p.container}`:''}${p.invoices.length?`, инвойсы ${p.invoices.join(', ')}`:''}</p>`:''}
+    ${p.kind==='emas'?`<p class=ok>✓ Упаковочный лист EMAS${p.ocr?' (скан)':''}: ${p.boxes} коробок${p.items?`, ${Object.keys(p.items).length} артикулов`:''}${p.container?`, контейнер ${p.container}`:''}${p.invoices.length?`, инвойсы ${p.invoices.join(', ')}`:''}</p>`:''}
+    ${p.ocr&&!p.items&&S.packFile&&!S.ocr?`<div class=btns><button class=sec onclick="ocrPackItems()">Распознать количества по артикулам (несколько минут) — для сверки с инвойсом</button></div>`:''}
     ${(()=>{ const C=S.sup&&p.items?compute():null; if(!C) return ''; return C.pack1.length?`<div class=note><b>Упаковочный лист ≠ инвойс: ${C.pack1.length} поз.</b> (попадёт в этап 1 акта)<br>${C.pack1.slice(0,15).map(d=>`${d.code}: инвойс ${d.qi}, упаковочный ${d.qp}`).join('<br>')}${C.pack1.length>15?'<br>…':''}</div>`:'<p class=ok>✓ Количества в упаковочном листе совпадают с инвойсом</p>'; })()}`:''}
     <div class=btns><button class=sec onclick="S.pack=S.pack||{pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0};render()">Ввести вручную</button></div>${nav()}</div>`; }
   if(st===4){ const C=S.sup&&S.fact?compute():null; h=`<div class=card><h2>5. Факт приёмки на складе</h2><p class=hint>XLSX с колонками «Артикул» (или «Модель») и «Факт». Артикулы, которых нет в файле, считаются непришедшими.</p>${dropzone('fact','.xlsx',false,'XLSX')}
@@ -565,14 +597,18 @@ window.saveJson=()=>{ const C=compute(); download(new TextEncoder().encode(JSON.
 function mergeSup(s){ if(!S.sup){ S.sup=s; return; } const a=S.sup; const nums=[...new Set([...a.number.split(/,\s*/),...s.number.split(/,\s*/)].filter(x=>x&&x!=='?'))]; a.number=nums.join(', '); a.rows=a.rows.concat(s.rows); a.total=Math.round((a.total+s.total)*100)/100; a.grand=(a.grand||0)+(s.grand||0); a.pcs=(a.pcs||0)+(s.pcs||0); a.flagged=(a.flagged||[]).concat(s.flagged||[]); a.ocr=a.ocr||s.ocr; a.date=a.date||s.date; a.supplier=a.supplier||s.supplier; }
 window.updRow=(i,k,v)=>{ const r=S.sup.rows[i]; if(k==='code') r.code=v.trim().toUpperCase(); else r[k]=+String(v).replace(',','.')||0; r.value=Math.round(r.qty*r.price*100)/100; r.ok=r.qty>0&&r.price>0; r.edited=true; render(); };
 window.delRow=i=>{ S.sup.rows.splice(i,1); render(); };
+const ocrMsg=m=>{ S.ocr={msg:m}; const el=document.getElementById('ocrmsg'); if(el) el.textContent=m; };
+window.ocrPackItems=async()=>{ if(!S.packFile) return; S.ocr={msg:'упаковочный лист: распознаю количества по артикулам…'}; render(); try{ const p=await ocrPacking(S.packFile,ocrMsg,true,S.pack); S.pack=p; fixCodes(); }catch(e){ alert('Ошибка распознавания: '+e.message); } finally{ S.ocr=null; render(); } };
 window.handleFiles=async(id,files)=>{ const list=[...files]; try{
   for(const f of list){ const low=f.name.toLowerCase();
     if(id==='sup'){ let s=null; if(await pdfHasText(f)){ s=parseSupplier(await pdfLines(f,'\t')); }
-      if(!s||!s.rows.length){ S.ocr={msg:'запуск распознавания скана…'}; render(); try{ s=await ocrInvoice(f,m=>{ S.ocr={msg:m}; const el=document.getElementById('ocrmsg'); if(el) el.textContent=m; }); } finally { S.ocr=null; } }
+      if(!s||!s.rows.length){ S.ocr={msg:'запуск распознавания скана…'}; render(); try{ s=await ocrInvoice(f,ocrMsg); } finally { S.ocr=null; } }
       if(!s||!s.rows.length) throw new Error('Не удалось прочитать инвойс (нет строк таблицы): '+f.name); mergeSup(s); fixCodes(); }
     if(id==='kvt'){ const k=parseKvt(await pdfLines(f)); if(!k) throw new Error('Это не счёт КВТ Сервис: '+f.name); if(!S.kvt.some(x=>x.number===k.number&&!x.manual)) S.kvt.push(k); }
     if(id==='gtd'){ const g=parseGtd(await pdfLines(f),f.name); if(!g) throw new Error('Это не декларация на товары: '+f.name); S.gtd=g; }
-    if(id==='pack'){ const L=await pdfLines(f,'\t'); const p=parsePackingEmas(L)||parsePacking(L.map(l=>l.replace(/\t/g,' '))); if(!p) throw new Error('Это не Packing List: '+f.name); S.pack=p; fixCodes(); }
+    if(id==='pack'){ let p=null; if(await pdfHasText(f)){ const L=await pdfLines(f,'\t'); p=parsePackingEmas(L)||parsePacking(L.map(l=>l.replace(/\t/g,' '))); }
+      else { S.ocr={msg:'упаковочный лист: распознаю скан…'}; render(); try{ p=await ocrPacking(f,ocrMsg,false); S.packFile=f; } finally{ S.ocr=null; } }
+      if(!p) throw new Error('Это не Packing List: '+f.name); S.pack=p; fixCodes(); }
     if(id==='fact'){ const x=parseFact(await xlsxRows(f)); if(!x) throw new Error('Не нашёл колонки «Артикул» и «Факт»: '+f.name); S.fact=x; fixCodes(); }
     if(id==='receipt'){ const x=parseReceipt(await xlsxRows(f)); if(!x) throw new Error('Не нашёл таблицу артикул/количество/цена: '+f.name); S.receipt=x; fixCodes(); } }
   }catch(e){ alert(e.message); } render(); };

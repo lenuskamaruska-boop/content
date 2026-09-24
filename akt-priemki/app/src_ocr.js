@@ -53,22 +53,28 @@ function cropData(c,r,w){ const k=w/r.width; const c2=document.createElement('ca
 // варианты прочтения чисел с «ценой» правки: OCR часто теряет запятую или добавляет лишнюю цифру
 const uniqC=a=>{ const m=new Map(); for(const [v,sc] of a) if(v>0&&isFinite(v)&&(!m.has(v)||m.get(v)>sc)) m.set(v,sc); return [...m.entries()]; };
 const subs=(D,sc,f)=>{ const out=[]; for(let i=0;i<D.length;i++) for(let k=0;k<10;k++){ if(D[i]===String(k)) continue; const v=f(D.slice(0,i)+k+D.slice(i+1)); if(v!=null) out.push([v,sc]); } return out; };
-function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{4})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(D.length>=5) out.push([+(D.slice(0,-4)+'.'+D.slice(-4)),1]); if(D.length===4) out.push([+('0.'+D),1]);
-  if(D.length>=5&&D.length<=7) out.push(...subs(D,3,E=>+(E.slice(0,-4)+'.'+E.slice(-4))));
-  if(D.length>=6) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-4)+'.'+E.slice(-4)),4]); } return uniqC(out); }
-function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,3]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]);
-  if(D.length>=3&&D.length<=8) out.push(...subs(D,3,E=>+(E.slice(0,-2)+'.'+E.slice(-2)))); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
+const uniqC3=a=>{ const m=new Map(); for(const [v,sc,dec] of a){ const key=v+'/'+dec; if(v>0&&isFinite(v)&&(!m.has(key)||m.get(key)[1]>sc)) m.set(key,[v,sc,dec]); } return [...m.values()]; };
+// цена: в инвойсах EMAS бывает 4 знака (1,1360) и 3 знака (0,823) после запятой
+function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{3,4})$/); if(m) out.push([+(m[1]+'.'+m[2]),0,m[2].length]); const D=s.replace(/\D/g,'');
+  for(const dec of [4,3]){ const cut=E=>+(E.slice(0,-dec)+'.'+E.slice(-dec)); if(D.length>dec) out.push([cut(D),1,dec]); if(D.length===dec) out.push([+('0.'+D),1,dec]);
+    if(D.length>dec&&D.length<=dec+3) for(const [v,sc] of subs(D,3,cut)) out.push([v,sc,dec]);
+    if(D.length>=dec+2) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([cut(E),4,dec]); } }
+  return uniqC3(out); }
+// сумма: «4.584,45», «12.155,72», «115», «60,3»
+function candsTotal(s){ const out=[]; s=s.replace(/^(\d{1,3})(?:\.(\d{3}))+(,\d{1,2})?$/,(a)=>a.replace(/\./g,'')); const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,3]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
+  if(D.length>=3&&D.length<=8) out.push(...subs(D,3,E=>+(E.slice(0,-2)+'.'+E.slice(-2))));
   if(D.length>=4) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-2)+'.'+E.slice(-2)),4]); out.push([+E,4]); } return uniqC(out); }
+// кол-во: «700», «1.000», «2.744»
 function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push([+D,0]); for(let k=0;k<10;k++) out.push([+(D+k),3]); // потерянная последняя цифра
   if(D.length<=5) out.push(...subs(D,2,E=>+E)); if(D.length>=2) for(let i=0;i<D.length;i++) out.push([+(D.slice(0,i)+D.slice(i+1)),4]); return uniqC(out); }
-// допуск: цена в инвойсе печатается с 4 знаками, а сумма считается от точной цены — расхождение растёт с количеством
-const tol=q=>0.011+Math.min(q,3000)*0.00006;
+// допуск: сумма в инвойсе посчитана от точной цены, а напечатана цена с 3–4 знаками — расхождение растёт с количеством
+const tol=(q,dec)=>0.011+Math.min(q,3000)*(dec===3?0.00055:0.00006);
 function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
-  for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st+st*0.1; if(!best||sc<best.sc) best={qty:q,price:p,value:t,score:Math.round(sc),sc}; } // сумма — как напечатано в инвойсе (считана от точной цены)
+  for(const [q,sq] of Q) for(const [p,sp,dec] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q,dec)){ const sc=sq+sp+st+st*0.1+(dec===3?0.05:0); if(!best||sc<best.sc) best={qty:q,price:p,value:t,score:Math.round(sc),sc}; } // сумма — как напечатано в инвойсе
   if(best) return best;
   // кол-во не прочиталось: выводим из суммы и цены, но только если оно согласуется с прочитанными цифрами
   const rq=raw.qty.replace(/\D/g,'');
-  for(const [p,sp] of P) for(const [t,st] of T){ const q=Math.round(t/p); if(q>0&&q<100000&&Math.abs(q*p-t)<=tol(q)&&(!rq||String(q).startsWith(rq)||String(q).endsWith(rq))&&(rq.length>=3||q<10000)) return {qty:q,price:p,value:Math.round(q*p*100)/100,score:99,derived:true}; }
+  for(const [p,sp,dec] of P) for(const [t,st] of T){ const q=Math.round(t/p); if(q>0&&q<100000&&Math.abs(q*p-t)<=tol(q,dec)&&(!rq||String(q).startsWith(rq)||String(q).endsWith(rq))&&(rq.length>=3||q<10000)) return {qty:q,price:p,value:t,score:99,derived:true}; }
   return null; }
 const looksCode=c=>/^[A-Z0-9][A-Z0-9\-\/.]{1,24}$/.test(c)&&(/\d/.test(c)||c.length<=6);
 // вертикальные линии колонок закрашиваем белым, иначе OCR читает их как «1»
@@ -149,3 +155,27 @@ function fixCodes(){
   let n=0; for(const row of S.sup.rows){ const k=norm(row.code); if(refs.has(k)) continue; const cand=byCanon[canon(k)]; if(cand&&cand.length===1){ row.orig=row.orig||row.code; row.code=cand[0]; row.fixed=true; n++; } }
   if(n) log(`Артикулы уточнены по упаковочному листу / факту / 1С: ${n}`); return n;
 }
+
+// ===================== упаковочный лист-скан (EMAS, по коробкам) =====================
+// Итоги (коробки, паллеты, объём, вес) и шапка (инвойсы, контейнер) читаются с двух страниц — быстро.
+// Количества по артикулам — отдельно, по запросу: колонка артикула и колонка количества каждой полосы таблицы.
+async function ocrPacking(file, progress, withItems, base){
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; const w=await ocrWorker();
+  const p=base||{pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0,items:null,container:'',invoices:[],kind:'emas',ocr:true};
+  if(!base){ progress('упаковочный лист: читаю шапку и итоги…'); await w.setParameters(PARAMS_TEXT);
+    const first=deskew(await renderPage(await pdf.getPage(1),1653)); const head=(await w.recognize(cropCanvas(first,{left:0,top:0,width:first.width,height:Math.round(first.height*.3)}))).data.text;
+    const last=deskew(await renderPage(await pdf.getPage(pdf.numPages),1653)); const foot=(await w.recognize(last)).data.text; const t=head+'\n'+foot;
+    let m=t.match(/TOTAL\s+(\d+)\s+BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM/i); if(m){p.boxes=+m[1];p.pallets=+m[2];p.volume=num(m[3]);}
+    m=t.match(/GROSS WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.gross=num(m[1]); m=t.match(/NET WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.net=num(m[1]);
+    m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=[...new Set(t.match(/[A-Z]{2,4}\d{10,}/g)||[])]; }
+  if(!withItems) return p;
+  const items={};
+  for(let pg=1;pg<=pdf.numPages;pg++){ const c=deskew(await renderPage(await pdf.getPage(pg),3300)); const G=tableGeom(c); if(!G) continue; const K=c.width/1653, cols=G.cols; const xc0=cols[cols.length-3], xc1=cols[cols.length-2], xq1=cols[cols.length-1];
+    for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h<15*K) continue; const y=G.rows[i]+3*K, hh=h-6*K; progress(`упаковочный лист: страница ${pg} из ${pdf.numPages}, строка ${i+1} из ${G.rows.length-1}`);
+      const rc=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'}); const codes=linesOf((await w.recognize(c,{rectangle:rc(xc0,xc1)},{text:true,blocks:true})).data); if(!codes.some(l=>looksCode(l.text))) continue;
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789'}); const qtys=linesOf((await w.recognize(c,{rectangle:rc(xc1,xq1)},{text:true,blocks:true})).data);
+      for(const cl of codes){ if(!looksCode(cl.text)) continue; let bq=null; for(const ql of qtys) if(/^\d+$/.test(ql.text)&&(bq===null||Math.abs(ql.y-cl.y)<Math.abs(bq.y-cl.y))) bq=ql; if(bq&&Math.abs(bq.y-cl.y)<14*K) items[cl.text]=(items[cl.text]||0)+ +bq.text; } } }
+  p.items=items; p.pieces=Object.values(items).reduce((a,b)=>a+b,0); return p;
+}
+function linesOf(d){ const out=[]; for(const b of d.blocks||[]) for(const par of b.paragraphs||[]) for(const l of par.lines||[]){ const text=(l.words||[]).map(w=>w.text).join('').replace(/\s+/g,'').trim(); if(text) out.push({text,y:(l.bbox.y0+l.bbox.y1)/2}); } return out; }
