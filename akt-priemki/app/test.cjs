@@ -10,8 +10,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright/index.js')
   const up=async(id,files)=>{ await p.setInputFiles(`#${id} input[type=file]`, files); await p.waitForTimeout(400); };
   const st=async(i)=>{ await p.evaluate(i=>go(i),i); await p.waitForTimeout(150); };
   await st(0); await up('sup',[C+'a0e0f688-____________________1___26_1.pdf']); await p.waitForFunction(()=>S.sup); console.log('sup:',await p.evaluate(()=>({n:S.sup.number,t:S.sup.total,rows:S.sup.rows.length,sum:+S.sup.rows.reduce((a,r)=>a+r.value,0).toFixed(2)})));
-  await st(1); await up('kvt',['0c277976-_________________1044____28______2026_.__________.pdf','208c9d72-___________________-1164____18.08.2026.pdf','50e3d248-___________________-1241____03.09.2026.pdf','956ab42b-_________________1244____7__________2026_.__________.pdf','kvt_1043.pdf','kvt_1165.pdf'].map(f=>C+f)); await p.waitForFunction(()=>S.kvt.length>=6,{timeout:20000});
-  await p.evaluate(()=>{ S.kvt.push({number:'1276',date:new Date(2026,8,10),currency:'RUB',total:58163.16,vat:10488.44,category:'rf_broker',desc:'СВХ',manual:true}); render(); });
+  await st(1); await up('kvt',['0c277976-_________________1044____28______2026_.__________.pdf','208c9d72-___________________-1164____18.08.2026.pdf','50e3d248-___________________-1241____03.09.2026.pdf','956ab42b-_________________1244____7__________2026_.__________.pdf','kvt_1043.pdf','kvt_1165.pdf','kvt_1144.pdf','kvt_1222.pdf','kvt_1276.pdf'].map(f=>C+f)); await p.waitForFunction(()=>S.kvt.length>=9,{timeout:30000});
   console.log('kvt:',await p.evaluate(()=>S.kvt.map(k=>[k.number,k.currency,k.total,k.category])));
   await st(2); await up('gtd',[C+'GTD_10131010_240826_5298969.pdf']); await p.waitForFunction(()=>S.gtd,{timeout:60000}); console.log('gtd:',await p.evaluate(()=>S.gtd));
   await st(3); await up('pack',[C+'Inseda_Packing_List.pdf']); await p.waitForFunction(()=>S.pack); console.log('pack:',await p.evaluate(()=>S.pack));
