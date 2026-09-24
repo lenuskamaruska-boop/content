@@ -69,8 +69,8 @@ function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push(
   if(D.length<=5) out.push(...subs(D,2,E=>+E)); if(D.length>=2) for(let i=0;i<D.length;i++) out.push([+(D.slice(0,i)+D.slice(i+1)),4]); return uniqC(out); }
 // допуск: сумма в инвойсе посчитана от точной цены, а напечатана цена с 3–4 знаками — расхождение растёт с количеством
 const tol=(q,dec)=>0.011+Math.min(q,3000)*(dec===3?0.00055:0.00006);
-function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
-  for(const [q,sq] of Q) for(const [p,sp,dec] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q,dec)){ const sc=sq+sp+st+st*0.1+(dec===3?0.05:0); if(!best||sc<best.sc) best={qty:q,price:p,value:t,score:Math.round(sc),sc}; } // сумма — как напечатано в инвойсе
+function resolveRow(raw,docDec){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
+  for(const [q,sq] of Q) for(const [p,sp,dec] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q,dec)){ const sc=sq+sp+st+st*0.1+(dec===3?0.05:0)+(docDec&&dec!==docDec?2:0); /* цены в одном инвойсе печатаются с одинаковым числом знаков */ if(!best||sc<best.sc) best={qty:q,price:p,value:t,score:Math.round(sc),sc}; } // сумма — как напечатано в инвойсе
   if(best) return best;
   // кол-во не прочиталось: выводим из суммы и цены, но только если оно согласуется с прочитанными цифрами
   const rq=raw.qty.replace(/\D/g,'');
@@ -87,7 +87,7 @@ function splitByCols(data,bounds,left){ const words=wordsOf(data); if(!words.len
 
 async function ocrInvoice(file, progress){
   const pdf = await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; const w = await ocrWorker();
-  const rows=[], flagged=[]; let header='', footer='', dropped=0;
+  const rows=[], flagged=[], decCount={}; let header='', footer='', dropped=0;
   for(let p=1;p<=pdf.numPages;p++){
     progress(`страница ${p} из ${pdf.numPages}: подготовка изображения…`);
     const page=await pdf.getPage(p); let c=await renderPage(page,3300); c=deskew(c); const G=tableGeom(c);
@@ -96,6 +96,7 @@ async function ocrInvoice(file, progress){
     if(!G) continue;
     const [x0,x1,x2,x3,x4,x5]=G.cols, K=c.width/1653; // K — масштаб относительно скана 200 dpi
     const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h>=15*K&&h<=55*K) eraseRules(clean,G.cols,G.rows[i]+2,h-4,K); }
+    const pending=[];
     for(let i=0;i<G.rows.length-1;i++){
       const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>55*K) continue;
       const y=G.rows[i]+3*K, hh=h-6*K, rect=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
@@ -106,11 +107,17 @@ async function ocrInvoice(file, progress){
       await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn},{text:true,blocks:true})).data;
       const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
       const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
-      if(digits===0&&p===1&&!rows.length){ continue; } // заголовки таблицы до первой строки с цифрами
+      if(digits===0&&p===1&&!rows.length&&!pending.length){ continue; } // заголовки таблицы до первой строки с цифрами
       if(digits===0&&((!code&&inkFrac(c,band)<0.02)||(code.length<=2&&!/\d/.test(code)))){ dropped++; continue; } // пустая полоса или обрывок шапки/печати без цифр — шум
-      if(!code) code='?'; // шум (печать, подпись), не строка таблицы
-      const res=resolveRow(raw);
-      const gq=parseInt(q.replace(/\D/g,''))||0, gp=(candsPrice(pr)[0]||[0])[0];
+      if(!code) code='?';
+      const dm=pr.match(/^\d+[,.](\d{3,4})$/); if(dm) decCount[dm[1].length]=(decCount[dm[1].length]||0)+1;
+      pending.push({i,code,raw,band});
+    }
+    // число знаков в цене — по большинству явно прочитанных цен документа
+    const docDec=(decCount[3]||0)>(decCount[4]||0)?3:((decCount[4]||0)>(decCount[3]||0)?4:0);
+    for(const {i,code,raw,band} of pending){
+      const res=resolveRow(raw,docDec);
+      const gq=parseInt(raw.qty.replace(/\D/g,''))||0, gp=(candsPrice(raw.price)[0]||[0])[0];
       const row={pg:p, i, code, desc:'', score:res?res.score:null, qty:res?res.qty:gq, price:res?res.price:gp, value:res?res.value:Math.round(gq*gp*100)/100, ocr:true, ok:!!res, raw};
       if(!res){ row.img=cropData(c,band,1000); flagged.push(row); }
       rows.push(row);
