@@ -116,7 +116,7 @@ async function ocrInvoice(file, progress){
       rows.push(row);
     }
   }
-  const numbers=[...new Set(header.match(/[A-Z]{2,4}\d{10,}/g)||[])]; const dm=header.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  const numbers=normNums(header.match(/[A-Z]{2,4}\d{10,}/g)||[]); const dm=header.match(/(\d{2})\.(\d{2})\.(\d{4})/);
   const sumRows=rows.reduce((a,r)=>a+r.value,0), sumQty=rows.reduce((a,r)=>a+r.qty,0);
   const gt=(footer.match(/\d[\d.]*,\d{2}\s*EUR/g)||[]).map(s=>num(s.replace(/\s*EUR/,''))).filter(v=>v>0);
   // итог инвойса — сумма в EUR на последней странице, ближайшая к сумме строк (в пределах ±25%); иначе итог не распознан
@@ -125,6 +125,8 @@ async function ocrInvoice(file, progress){
   if(dropped) log(`OCR: пропущено ${dropped} строк-шумов (печати/подписи)`);
   return {number:numbers.join(', ')||'?', date:dm?new Date(+dm[3],+dm[2]-1,+dm[1]):null, total:grand||Math.round(sumRows*100)/100, supplier, rows, ocr:true, flagged, pcs, grand};
 }
+// номера инвойсов: OCR иногда добавляет букву к префиксу (EMAZ2025…) — приводим к самому частому префиксу
+function normNums(list){ const nums=[...new Set(list)]; if(nums.length<2) return nums; const pre={}; for(const n of nums){ const k=n.match(/^[A-Z]+/)[0]; pre[k]=(pre[k]||0)+1; } const main=Object.entries(pre).sort((a,b)=>b[1]-a[1])[0][0]; return [...new Set(nums.map(n=>{ const k=n.match(/^[A-Z]+/)[0]; return k!==main&&k.startsWith(main)?main+n.slice(k.length):n; }))]; }
 // есть ли в PDF текстовый слой
 async function pdfHasText(file){ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; let n=0; for(let p=1;p<=Math.min(2,pdf.numPages);p++){ const tc=await (await pdf.getPage(p)).getTextContent(); n+=tc.items.reduce((a,i)=>a+i.str.trim().length,0); } return n>80; }
 
@@ -166,8 +168,8 @@ async function ocrPacking(file, progress, withItems, base){
     const first=deskew(await renderPage(await pdf.getPage(1),1653)); const head=(await w.recognize(cropCanvas(first,{left:0,top:0,width:first.width,height:Math.round(first.height*.3)}))).data.text;
     const last=deskew(await renderPage(await pdf.getPage(pdf.numPages),1653)); const foot=(await w.recognize(last)).data.text; const t=head+'\n'+foot;
     let m=t.match(/TOTAL\s+(\d+)\s+BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM/i); if(m){p.boxes=+m[1];p.pallets=+m[2];p.volume=num(m[3]);}
-    m=t.match(/GROSS WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.gross=num(m[1]); m=t.match(/NET WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.net=num(m[1]);
-    m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=[...new Set(t.match(/[A-Z]{2,4}\d{10,}/g)||[])]; }
+    m=t.match(/GROSS\s*WEIGHT\s*:?\s*(\d[\d .,]*?)\s*KG/i); if(m)p.gross=num(m[1].replace(/ /g,'')); m=t.match(/NET\s*WEIGHT\s*:?\s*(\d[\d .,]*?)\s*KG/i); if(m)p.net=num(m[1].replace(/ /g,''));
+    m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=normNums(t.match(/[A-Z]{2,4}\d{10,}/g)||[]); }
   if(!withItems) return p;
   const items={};
   for(let pg=1;pg<=pdf.numPages;pg++){ const c=deskew(await renderPage(await pdf.getPage(pg),3300)); const G=tableGeom(c); if(!G) continue; const K=c.width/1653, cols=G.cols; const xc0=cols[cols.length-3], xc1=cols[cols.length-2], xq1=cols[cols.length-1];
