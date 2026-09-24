@@ -60,10 +60,11 @@ function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=
   return null; }
 const looksCode=c=>/^[A-Z0-9][A-Z0-9\-\/.]{1,24}$/.test(c)&&(/\d/.test(c)||c.length<=6);
 // вертикальные линии колонок закрашиваем белым, иначе OCR читает их как «1»
-function whitenRules(c,cols,K){ const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; for(const x of cols) ctx.fillRect(Math.round(x-3*K),0,Math.round(6*K),c.height); }
+function whitenRules(c,cols,K){ const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; for(const x of cols) ctx.fillRect(Math.round(x-6*K),0,Math.round(12*K),c.height); }
 function cropCanvas(c,r){ const c2=document.createElement('canvas'); c2.width=r.width; c2.height=r.height; c2.getContext('2d').drawImage(c,r.left,r.top,r.width,r.height,0,0,r.width,r.height); return c2; }
 // слова числового блока раскладываем по колонкам по их положению
-function splitByCols(data,bounds,left){ const abs=data.words.some(w=>w.bbox.x1>bounds[bounds.length-1]-left+8); const cols=['','','']; for(const w of data.words){ const cx=(w.bbox.x0+w.bbox.x1)/2+(abs?0:left); let k=0; while(k<bounds.length&&cx>bounds[k]) k++; cols[Math.min(k,2)]+=w.text.replace(/\s/g,''); } return cols; }
+function wordsOf(d){ if(d.words) return d.words; const out=[]; for(const b of d.blocks||[]) for(const p of b.paragraphs||[]) for(const l of p.lines||[]) for(const w of l.words||[]) out.push(w); return out; }
+function splitByCols(data,bounds,left){ const words=wordsOf(data); if(!words.length){ const t=(data.text||'').trim().split(/\s+/).filter(Boolean); return [t[0]||'',t[1]||'',t.slice(2).join('')]; } const abs=words.some(w=>w.bbox.x1>bounds[bounds.length-1]-left+8); const cols=['','','']; for(const w of words){ const cx=(w.bbox.x0+w.bbox.x1)/2+(abs?0:left); let k=0; while(k<bounds.length&&cx>bounds[k]) k++; cols[Math.min(k,2)]+=w.text.replace(/\s/g,''); } return cols; }
 
 async function ocrInvoice(file, progress){
   const pdf = await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; const w = await ocrWorker();
@@ -82,7 +83,7 @@ async function ocrInvoice(file, progress){
       progress(`страница ${p} из ${pdf.numPages}: строка ${i+1} из ${G.rows.length-1}`);
       await w.setParameters(PARAMS_CODE); const code=(await w.recognize(clean,{rectangle:rect(x0,x1)})).data.text.trim().replace(/\s+/g,'');
       if(!code||/^PARTCODE/.test(code)) continue;
-      await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn})).data;
+      await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn},{text:true,blocks:true})).data;
       const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
       const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
       if(!looksCode(code)&&digits<2){ dropped++; continue; } // шум (печать, подпись), не строка таблицы
