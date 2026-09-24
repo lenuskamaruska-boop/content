@@ -13,7 +13,7 @@ async function ocrWorker(){
   return _ocr;
 }
 const PARAMS_CODE = {tessedit_pageseg_mode:'7', tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'};
-const PARAMS_NUM  = {tessedit_pageseg_mode:'7', tessedit_char_whitelist:'0123456789,.'};
+const PARAMS_NUM  = {tessedit_pageseg_mode:'7', tessedit_char_whitelist:'0123456789,. ', preserve_interword_spaces:'1'};
 const PARAMS_TEXT = {tessedit_pageseg_mode:'3', tessedit_char_whitelist:''};
 
 async function renderPage(page, targetW){
@@ -43,40 +43,52 @@ function tableGeom(c){ const W=c.width,H=c.height,g=grayOf(c);
   const x0=cols[0], x1=cols[5], ridx=[]; for(let y=1;y<H-1;y++){ let n=0; const o=y*W; for(let x=x0;x<x1;x++) if(g[o+x]<215||g[o-W+x]<215||g[o+W+x]<215) n++; if(n/(x1-x0)>.5) ridx.push(y); }
   const rows=groupIdx(ridx,3); return {rows,cols}; }
 function cropData(c,r,w){ const k=w/r.width; const c2=document.createElement('canvas'); c2.width=w; c2.height=Math.round(r.height*k); c2.getContext('2d').drawImage(c,r.left,r.top,r.width,r.height,0,0,c2.width,c2.height); return c2.toDataURL('image/jpeg',.8); }
-// варианты прочтения чисел: OCR часто теряет запятую или добавляет лишнюю цифру
-const uniq=a=>[...new Set(a)].filter(v=>v>0&&isFinite(v));
-function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{4})$/); if(m) out.push(+(m[1]+'.'+m[2])); const D=s.replace(/\D/g,''); if(D.length>=5) out.push(+(D.slice(0,-4)+'.'+D.slice(-4))); if(D.length===4) out.push(+('0.'+D));
-  if(D.length>=6) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push(+(E.slice(0,-4)+'.'+E.slice(-4))); } return uniq(out); }
-function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push(+(m[1]+'.'+m[2])); const D=s.replace(/\D/g,''); if(!D) return out; out.push(+D); if(D.length>=3) out.push(+(D.slice(0,-2)+'.'+D.slice(-2))); if(D.length>=2) out.push(+(D.slice(0,-1)+'.'+D.slice(-1)));
-  if(D.length>=4) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push(+(E.slice(0,-2)+'.'+E.slice(-2))); out.push(+E); } return uniq(out); }
-function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push(+D); const sw={'0':'8','8':'0','9':'0','6':'0','5':'6','1':'7','7':'1','2':'7','3':'8'};
-  for(let i=0;i<D.length;i++) if(sw[D[i]]) out.push(+(D.slice(0,i)+sw[D[i]]+D.slice(i+1))); if(D.length>=2) for(let i=0;i<D.length;i++) out.push(+(D.slice(0,i)+D.slice(i+1))); return uniq(out); }
-function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); const eq=(a,b)=>Math.abs(a-b)<0.011; let best=null;
-  for(let qi=0;qi<Q.length;qi++) for(let pi=0;pi<P.length;pi++) for(let ti=0;ti<T.length;ti++) if(eq(Math.round(Q[qi]*P[pi]*100)/100,T[ti])){ const sc=qi+pi+ti; if(!best||sc<best.score) best={qty:Q[qi],price:P[pi],value:T[ti],score:sc}; }
+// варианты прочтения чисел с «ценой» правки: OCR часто теряет запятую или добавляет лишнюю цифру
+const uniqC=a=>{ const m=new Map(); for(const [v,sc] of a) if(v>0&&isFinite(v)&&(!m.has(v)||m.get(v)>sc)) m.set(v,sc); return [...m.entries()]; };
+function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{4})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(D.length>=5) out.push([+(D.slice(0,-4)+'.'+D.slice(-4)),1]); if(D.length===4) out.push([+('0.'+D),1]);
+  if(D.length>=6) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-4)+'.'+E.slice(-4)),4]); } return uniqC(out); }
+function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,1]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
+  if(D.length>=4) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-2)+'.'+E.slice(-2)),4]); out.push([+E,4]); } return uniqC(out); }
+function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push([+D,0]); const sw={'0':'8','8':'0','9':'0','6':'0','5':'6','1':'7','7':'1','2':'7','3':'8'};
+  for(let i=0;i<D.length;i++) if(sw[D[i]]) out.push([+(D.slice(0,i)+sw[D[i]]+D.slice(i+1)),2]); if(D.length>=2) for(let i=0;i<D.length;i++) out.push([+(D.slice(0,i)+D.slice(i+1)),4]); return uniqC(out); }
+// допуск: цена в инвойсе печатается с 4 знаками, а сумма считается от точной цены — расхождение растёт с количеством
+const tol=q=>0.011+q*0.00006;
+function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
+  for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st; if(!best||sc<best.score) best={qty:q,price:p,value:Math.round(q*p*100)/100,score:sc}; }
   if(best) return best;
-  for(const p of P) for(const t of T){ const q=Math.round(t/p); if(q>0&&eq(Math.round(q*p*100)/100,t)) return {qty:q,price:p,value:t,score:99,derived:true}; }
+  for(const [p,sp] of P) for(const [t,st] of T){ const q=Math.round(t/p); if(q>0&&q<100000&&Math.abs(q*p-t)<=tol(q)) return {qty:q,price:p,value:Math.round(q*p*100)/100,score:99,derived:true}; }
   return null; }
+const looksCode=c=>/^[A-Z0-9][A-Z0-9\-\/.]{1,24}$/.test(c)&&(/\d/.test(c)||c.length<=6);
+// вертикальные линии колонок закрашиваем белым, иначе OCR читает их как «1»
+function whitenRules(c,cols,K){ const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; for(const x of cols) ctx.fillRect(Math.round(x-3*K),0,Math.round(6*K),c.height); }
+function cropCanvas(c,r){ const c2=document.createElement('canvas'); c2.width=r.width; c2.height=r.height; c2.getContext('2d').drawImage(c,r.left,r.top,r.width,r.height,0,0,r.width,r.height); return c2; }
+// слова числового блока раскладываем по колонкам по их положению
+function splitByCols(data,bounds,left){ const abs=data.words.some(w=>w.bbox.x1>bounds[bounds.length-1]-left+8); const cols=['','','']; for(const w of data.words){ const cx=(w.bbox.x0+w.bbox.x1)/2+(abs?0:left); let k=0; while(k<bounds.length&&cx>bounds[k]) k++; cols[Math.min(k,2)]+=w.text.replace(/\s/g,''); } return cols; }
 
 async function ocrInvoice(file, progress){
   const pdf = await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; const w = await ocrWorker();
-  const rows=[], flagged=[]; let header='', footer='';
+  const rows=[], flagged=[]; let header='', footer='', dropped=0;
   for(let p=1;p<=pdf.numPages;p++){
     progress(`страница ${p} из ${pdf.numPages}: подготовка изображения…`);
     const page=await pdf.getPage(p); let c=await renderPage(page,3300); c=deskew(c); const G=tableGeom(c);
-    if(p===1){ await w.setParameters(PARAMS_TEXT); header=(await w.recognize(c,{rectangle:{left:0,top:0,width:c.width,height:Math.round(c.height*.22)}})).data.text; }
-    if(p===pdf.numPages){ await w.setParameters(PARAMS_TEXT); footer=(await w.recognize(c,{rectangle:{left:Math.round(c.width*.5),top:0,width:Math.round(c.width*.5),height:c.height}})).data.text; }
+    if(p===1){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); header=(await w.recognize(cropCanvas(small,{left:0,top:0,width:small.width,height:Math.round(small.height*.25)}))).data.text; }
+    if(p===pdf.numPages){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); footer=(await w.recognize(cropCanvas(small,{left:Math.round(small.width*.5),top:0,width:Math.round(small.width*.5),height:small.height}))).data.text; }
     if(!G) continue;
     const [x0,x1,x2,x3,x4,x5]=G.cols, K=c.width/1653; // K — масштаб относительно скана 200 dpi
+    const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); whitenRules(clean,G.cols,K);
     for(let i=0;i<G.rows.length-1;i++){
       const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>40*K) continue;
       const y=G.rows[i]+3*K, hh=h-6*K, rect=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
       progress(`страница ${p} из ${pdf.numPages}: строка ${i+1} из ${G.rows.length-1}`);
-      await w.setParameters(PARAMS_CODE); const code=(await w.recognize(c,{rectangle:rect(x0,x1)})).data.text.trim().replace(/\s+/g,'');
+      await w.setParameters(PARAMS_CODE); const code=(await w.recognize(clean,{rectangle:rect(x0,x1)})).data.text.trim().replace(/\s+/g,'');
       if(!code||/^PARTCODE/.test(code)) continue;
-      await w.setParameters(PARAMS_NUM);
-      const raw={qty:(await w.recognize(c,{rectangle:rect(x2,x3)})).data.text.trim(), price:(await w.recognize(c,{rectangle:rect(x3,x4)})).data.text.trim(), total:(await w.recognize(c,{rectangle:rect(x4,x5)})).data.text.trim()};
+      await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn})).data;
+      const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
+      const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
+      if(!looksCode(code)&&digits<2){ dropped++; continue; } // шум (печать, подпись), не строка таблицы
       const res=resolveRow(raw);
-      const row={code, desc:'', qty:res?res.qty:(parseInt(raw.qty.replace(/\D/g,''))||0), price:res?res.price:(candsPrice(raw.price)[0]||0), value:res?res.value:(candsTotal(raw.total)[0]||0), ocr:true, ok:!!res, raw};
+      const gq=parseInt(q.replace(/\D/g,''))||0, gp=(candsPrice(pr)[0]||[0])[0];
+      const row={code, desc:'', qty:res?res.qty:gq, price:res?res.price:gp, value:res?res.value:Math.round(gq*gp*100)/100, ocr:true, ok:!!res, raw};
       if(!res){ row.img=cropData(c,{left:x0,top:G.rows[i],width:x5-x0,height:h},1000); flagged.push(row); }
       rows.push(row);
     }
@@ -84,6 +96,7 @@ async function ocrInvoice(file, progress){
   const numbers=[...new Set(header.match(/[A-Z]{2,4}\d{10,}/g)||[])]; const dm=header.match(/(\d{2})\.(\d{2})\.(\d{4})/);
   const gt=(footer.match(/[\d.]+,\d{2}\s*EUR/g)||[]).map(s=>num(s.replace(/\s*EUR/,''))); const grand=gt.length?Math.max(...gt):0;
   const pm=footer.match(/([\d.]+)\s*PCS/); const supplier=/EMAS|emas/.test(header+file.name)||/эмас/i.test(file.name)?'EMAS':(/CETINKAYA|ÇETİNKAYA/i.test(header)?'Cetinkaya Pano':'');
+  if(dropped) log(`OCR: пропущено ${dropped} строк-шумов (печати/подписи)`);
   return {number:numbers.join(', ')||'?', date:dm?new Date(+dm[3],+dm[2]-1,+dm[1]):null, total:grand||rows.reduce((a,r)=>a+r.value,0), supplier, rows, ocr:true, flagged, pcs:pm?parseInt(pm[1].replace(/\./g,'')):0, grand};
 }
 // есть ли в PDF текстовый слой
@@ -96,7 +109,7 @@ function parsePackingEmas(lines){
   let m=t.match(/TOTAL\s+(\d+)\s+BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM/i); if(m){p.boxes=+m[1];p.pallets=+m[2];p.volume=num(m[3]);}
   m=t.match(/GROSS WEIGHT:\s*([\d.,]+)\s*KG/i); if(m)p.gross=num(m[1]); m=t.match(/NET WEIGHT:\s*([\d.,]+)\s*KG/i); if(m)p.net=num(m[1]);
   m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=[...new Set(t.match(/[A-Z]{2,4}\d{10,}/g)||[])];
-  let cur=null, expect=false; const isCode=x=>/^[A-Z][A-Z0-9\-\/.]{1,}$/.test(x);
+  let cur=null, expect=false; const isCode=x=>/^[A-Z0-9][A-Z0-9\-\/.]{1,}$/.test(x)&&/[A-Z]/.test(x);
   for(const l of lines){ const f=l.split('\t').map(s=>s.trim()).filter(Boolean); if(!f.length||/^(TOTAL|GROSS|F-ST)/.test(f[0])) continue;
     let i=0; if(/^Coli No/i.test(f[0])){ i=1; while(i<f.length&&(/cm$/i.test(f[i])||/KG$/i.test(f[i]))) i++; expect=true; cur=null; }
     if(expect&&i<f.length&&isCode(f[i])){ cur=f[i]; expect=false; const last=f[f.length-1]; if(f.length>i+1&&/^\d+$/.test(last)){ p.items[cur]=(p.items[cur]||0)+ +last; cur=null; expect=true; } continue; }

@@ -185,7 +185,7 @@ def parse_packing_pdf(path: str) -> Optional[Packing]:
             j = idx[k+1] if k+1 < len(idx) else len(lines); cur = None; expect_code = True
             for b in lines[i+1:j]:
                 if re.fullmatch(r'[\d.,x ]+cm', b) or re.fullmatch(r'[\d ,.]+KG', b) or b.startswith(('F-ST', 'TOTAL', 'GROSS')): continue
-                if expect_code and re.fullmatch(r'[A-Z][A-Z0-9\-/.]{1,}', b): cur = b; expect_code = False
+                if expect_code and re.fullmatch(r'[A-Z0-9][A-Z0-9\-/.]{1,}', b) and re.search(r'[A-Z]', b): cur = b; expect_code = False
                 elif cur and re.fullmatch(r'\d+', b): p.items[cur] = p.items.get(cur, 0) + int(b); cur = None; expect_code = True
         p.pieces = sum(p.items.values())
         return p
