@@ -78,6 +78,7 @@ class SupplierInvoice:
 class Packing:
     boxes: int = 0; pallets: int = 0; volume: float = 0.0
     gross: float = 0.0; net: float = 0.0; pieces: int = 0; file: str = ''
+    items: dict = field(default_factory=dict)  # {артикул: кол-во} — только для формата EMAS (по коробкам)
 
 # ---------- классификация счетов КВТ ----------
 CATEGORY_RULES = [
@@ -169,8 +170,25 @@ def parse_supplier_invoice(path: str) -> Optional[SupplierInvoice]:
 # ---------- упаковочный лист (PDF) ----------
 def parse_packing_pdf(path: str) -> Optional[Packing]:
     t = pdf_text(path)
-    if 'PACKING LIST' not in t.upper(): return None
+    if 'PACKING LIST' not in t.upper() and 'COLI NO' not in t.upper(): return None
     p = Packing(file=os.path.basename(path)); flat = re.sub(r'\s+', ' ', t)
+    # формат EMAS: по коробкам («Coli No:N»), итог «TOTAL 500 BOXES ON 20 PALLETS 51,6 CBM. GROSS WEIGHT: … NET WEIGHT: …»
+    m = re.search(r'TOTAL\s+(\d+)\s+BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM', flat, re.I)
+    if m:
+        p.boxes, p.pallets, p.volume = int(m.group(1)), int(m.group(2)), num(m.group(3))
+        g = re.search(r'GROSS WEIGHT:\s*([\d.,]+)\s*KG', flat, re.I); n = re.search(r'NET WEIGHT:\s*([\d.,]+)\s*KG', flat, re.I)
+        if g: p.gross = num(g.group(1))
+        if n: p.net = num(n.group(1))
+        lines = [l.strip() for l in t.split('\n') if l.strip()]
+        idx = [i for i, l in enumerate(lines) if l.startswith('Coli No:')]
+        for k, i in enumerate(idx):
+            j = idx[k+1] if k+1 < len(idx) else len(lines); cur = None; expect_code = True
+            for b in lines[i+1:j]:
+                if re.fullmatch(r'[\d.,x ]+cm', b) or re.fullmatch(r'[\d ,.]+KG', b) or b.startswith(('F-ST', 'TOTAL', 'GROSS')): continue
+                if expect_code and re.fullmatch(r'[A-Z][A-Z0-9\-/.]{1,}', b): cur = b; expect_code = False
+                elif cur and re.fullmatch(r'\d+', b): p.items[cur] = p.items.get(cur, 0) + int(b); cur = None; expect_code = True
+        p.pieces = sum(p.items.values())
+        return p
     def grab(rx):
         mm = re.search(rx, flat, re.I); return mm.group(1) if mm else None
     v = grab(r'Total Quantity of Package\s*:\s*([\d.,]+)')

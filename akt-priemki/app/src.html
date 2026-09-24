@@ -7,6 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="vendor/fflate.js"></script>
+<script src="vendor/tesseract.min.js"></script>
 <style>
 :root{--b:#005eb8;--b2:#004a94;--ink:#0f1a2e;--dim:#4b5b75;--mute:#7a879c;--line:#e3e8f0;--bg:#f4f6fa;--ok:#15803d;--warn:#b45309;--err:#b91c1c}
 *{box-sizing:border-box}body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
@@ -49,10 +50,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 </main>
 <div id="print"></div>
 
+<script src="src_ocr.js"></script>
 <script>
 // ===================== состояние =====================
 const S = { sup:null, kvt:[], gtd:null, pack:null, fact:null, receipt:null,
-  params:{act_no:'1', label:'', act_date:'', pickup_date:'', depart_date:'', to_date:'', arrival_date:'', usd_rate:'', eur_rate:'', responsible:'Макеева И.В.', boxes:''}, step:0, log:[] };
+  ocr:null, params:{act_no:'1', label:'', act_date:'', pickup_date:'', depart_date:'', to_date:'', arrival_date:'', usd_rate:'', eur_rate:'', responsible:'Макеева И.В.', boxes:''}, step:0, log:[] };
 const STEPS = ['Инвойс поставщика','Счета КВТ Сервис','ГТД (декларация)','Упаковочный лист','Факт приёмки (XLSX)','Приобретение 1С (XLSX)','Реквизиты акта','Итог и файлы'];
 const TEMPLATE_B64 = '__TEMPLATE_B64__';
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -177,8 +179,9 @@ function compute(){
   let priceDiffs=[], uom=[]; if(S.receipt){ for(const [k,e] of Object.entries(S.receipt.items)){ const i=inv[k]; if(!i) continue; const li=Math.round(i.qty*i.price*100)/100, l1=Math.round(e.qty*e.price*100)/100;
       if(Math.abs(l1-li)>0.01) priceDiffs.push({code:disp[k]||k,p_inv:i.price,p_1c:e.price,l_inv:li,l_1c:l1}); else if(Math.abs(e.price-i.price)>0.005) uom.push({code:disp[k]||k,k:Math.round(e.price/i.price*100)/100}); } }
   const fee=S.gtd?.fee||0, duty=S.gtd?.duty||0, vat=S.gtd?.vat||0; const totalRub=cat.border+cat.rf_broker+cat.prr+fee+duty+vat;
+  const pack1=[]; if(S.pack&&S.pack.items){ const pk={}; for(const [k,q] of Object.entries(S.pack.items)) pk[norm(k)]=(pk[norm(k)]||0)+q; for(const k in inv) if((pk[k]||0)!==inv[k].qty) pack1.push({code:disp[k],qi:inv[k].qty,qp:pk[k]||0}); for(const k in pk) if(!(k in inv)) pack1.push({code:k,qi:0,qp:pk[k]}); }
   const stage2=diffs.reduce((a,d)=>a+d.sum,0);
-  return {inv,disp,eur,usd,cat,conv,diffs,priceDiffs,uom,fee,duty,vat,totalRub,pct:eur&&sup.total?totalRub/(sup.total*eur)*100:0,stage2};
+  return {inv,disp,eur,usd,cat,conv,diffs,priceDiffs,uom,fee,duty,vat,totalRub,pack1,pct:eur&&sup.total?totalRub/(sup.total*eur)*100:0,stage2};
 }
 
 // ===================== заполнение шаблона =====================
@@ -197,6 +200,7 @@ async function buildXlsx(){
   set('D19',`${sup.supplier} инвойс`); set('F19',Math.round(sup.total*100)/100); set('C73',sup.supplier||'EMAS'); if(P.responsible) set('T27',P.responsible);
   // этап 2
   let r=28; for(const d of C.diffs.slice(0,12)){ set(`E${r}`,d.code); set(`G${r}`,d.qi); set(`H${r}`,d.qf); ws.getCell(`I${r}`).value={formula:`H${r}-G${r}`}; set(`J${r}`,d.price); ws.getCell(`K${r}`).value={formula:`J${r}*I${r}`}; set(`P${r}`,d.qf>d.qi?'Излишек':'+30% от стоимости затраты НДС, пошлины'); r++; }
+  if(C.pack1.length) set('E27',`Есть: ${C.pack1.length} поз. — `+C.pack1.slice(0,8).map(d=>`${d.code}: инвойс ${d.qi}, упак. ${d.qp}`).join('; ')+(C.pack1.length>8?'; …':''));
   if(!C.diffs.length&&S.fact) set('E28','Нет');
   for(let rr=28;rr<40;rr++) ws.getRow(rr).hidden = rr>=Math.max(29,28+C.diffs.slice(0,12).length);
   for(let rr=42;rr<65;rr++) ws.getRow(rr).hidden = rr>=43;
@@ -239,7 +243,7 @@ function printForm(){
   <table style="table-layout:fixed"><colgroup><col style="width:5%"><col style="width:10%"><col style="width:12%"><col style="width:5%"><col style="width:5%"><col style="width:4%"><col style="width:6%"><col style="width:7%"><col style="width:9%"><col style="width:26%"><col style="width:11%"></colgroup>
   <tr><th rowspan=2 class=c>№<br>п/п</th><th rowspan=2 class=c>Этапы сверки</th><th rowspan=2 class=c>Номенклатура</th><th colspan=3 class=c>Кол-во, шт</th><th rowspan=2 class=c>Цена за ед., евро (EXW)</th><th rowspan=2 class=c>Итого, евро (EXW)</th><th rowspan=2 class=c>Заказ поставщику</th><th rowspan=2 class=c>Примечание</th><th rowspan=2 class=c>Ответственный</th></tr>
   <tr><th class=c>в инвойсе</th><th class=c>факт</th><th class=c>∆</th></tr>
-  <tr><td class=c>1</td><td>Расхождения между упаковочным листом и инвойсом</td><td colspan=8 class=c>Нет</td><td class=b>${P.responsible}</td></tr>
+  <tr><td class=c>1</td><td>Расхождения между упаковочным листом и инвойсом</td><td colspan=8 class=c>${C.pack1.length?`Есть: ${C.pack1.length} поз. — `+C.pack1.slice(0,8).map(d=>`${d.code}: инвойс ${d.qi}, упак. ${d.qp}`).join('; '):'Нет'}</td><td class=b>${P.responsible}</td></tr>
   ${(()=>{ const rows=d2.length?d2:[`<td colspan=8 class=c>Нет</td>`]; const n=rows.length+(d2.length?1:0); const head=`<td class=c rowspan=${n}>2</td><td rowspan=${n}>Расхождения между упаковочным листом и пришедшим товаром</td>`, resp=`<td class=b rowspan=${n}>${P.responsible}<br>Никулин А.И.</td>`;
      return rows.map((r,k)=>`<tr>${k===0?head:''}${r}${k===0?resp:''}</tr>`).join('')+(d2.length?`<tr><td class="r b" colspan=5>Итого:</td><td class="c b">${m(C.stage2)}</td><td colspan=2></td></tr>`:''); })()}
   <tr><td class=c>3</td><td>Расхождения по ценам инвойса и входным в программе 1С</td><td colspan=6 class=c>${note3}</td><td colspan=2 style="font-size:7.5pt">${note3p}</td><td class=b>${P.responsible}</td></tr>
@@ -269,9 +273,15 @@ function dropzone(id,accept,multiple,text){ return `<label class="drop" id="${id
   <input type="file" accept="${accept}" ${multiple?'multiple':''} onchange="handleFiles('${id}',this.files)"><b>Выберите файл${multiple?'ы':''}</b> или перетащите сюда<br><span class=mute>${text}</span></label>`; }
 const nav=(prevOk=true,nextOk=true)=>`<div class="btns">${S.step>0?`<button class="sec" onclick="go(${S.step-1})">← Назад</button>`:''}${S.step<7?`<button class="pri" onclick="go(${S.step+1})" ${nextOk?'':'disabled'}>Далее →</button>`:''}</div>`;
 function render(){ renderSteps(); const st=S.step; let h='';
-  if(st===0){ h=`<div class=card><h2>1. Инвойс поставщика</h2><p class=hint>PDF-инвойс Cetinkaya Pano / EMAS. Из него берутся номер, дата, все строки и сумма в евро.</p>${dropzone('sup','.pdf',false,'PDF, один файл')}
-    ${S.sup?`<div class=sum><div><small>Номер</small><b>${S.sup.number}</b></div><div><small>Дата</small><b>${dRU(S.sup.date)}</b></div><div><small>Поставщик</small><b>${S.sup.supplier}</b></div><div><small>Сумма</small><b>${fmt(S.sup.total)} €</b></div><div><small>Строк / Σ строк</small><b>${S.sup.rows.length} / ${fmt(S.sup.rows.reduce((a,r)=>a+r.value,0))} €</b></div></div>
-    ${Math.abs(S.sup.rows.reduce((a,r)=>a+r.value,0)-S.sup.total)>0.05?'<div class=note>Сумма строк не совпадает с итогом инвойса — часть строк не распознана. Проверьте PDF.</div>':'<p class=ok>✓ Сумма строк совпадает с итогом инвойса</p>'}`:''}${nav(true,!!S.sup)}</div>`; }
+  if(st===0){ const sup=S.sup; const sumRows=sup?sup.rows.reduce((a,r)=>a+r.value,0):0; const bad=sup?sup.rows.map((r,i)=>[r,i]).filter(([r])=>r.ocr&&!r.ok):[];
+    h=`<div class=card><h2>1. Инвойс поставщика</h2><p class=hint>PDF-инвойс Cetinkaya Pano / EMAS. Текстовый PDF читается сразу; скан (как у EMAS) распознаётся прямо в браузере — это занимает несколько минут. Если инвойсов несколько, загрузите все.</p>${dropzone('sup','.pdf',true,'PDF, можно несколько файлов')}
+    ${S.ocr?`<div class=note>⏳ Распознаю скан: <span id=ocrmsg>${S.ocr.msg}</span></div>`:''}
+    ${sup?`<div class=sum><div><small>Номер</small><b>${sup.number}</b></div><div><small>Дата</small><b>${dRU(sup.date)||'—'}</b></div><div><small>Поставщик</small><b>${sup.supplier||'—'}</b></div><div><small>Сумма</small><b>${fmt(sup.total)} €</b></div><div><small>Строк / Σ строк</small><b>${sup.rows.length} / ${fmt(sumRows)} €</b></div>${sup.ocr?`<div><small>Распознано со скана</small><b class=${bad.length?'warn':'ok'}>${sup.rows.length-bad.length} из ${sup.rows.length} строк${sup.pcs?` · ${fmt(sup.rows.reduce((a,r)=>a+r.qty,0),0)} / ${fmt(sup.pcs,0)} шт`:''}</b></div>`:''}</div>
+    ${Math.abs(sumRows-sup.total)>0.05?`<div class=note>Сумма строк (${fmt(sumRows)} €) не совпадает с итогом инвойса (${fmt(sup.total)} €)${sup.ocr?' — проверьте строки ниже и исправьте, что распозналось неверно.':' — часть строк не распознана. Проверьте PDF.'}</div>`:'<p class=ok>✓ Сумма строк совпадает с итогом инвойса</p>'}
+    ${bad.length?`<h3 style="margin:16px 0 4px">Проверьте ${bad.length} строк: не сошлось «кол-во × цена = сумма»</h3><p class=hint>Сверьте с картинкой и впишите верные значения. Сумма пересчитается сама.</p>
+    <table><tr><th>Скан строки</th><th>Артикул</th><th class=num>Кол-во</th><th class=num>Цена €</th><th class=num>Сумма €</th><th></th></tr>${bad.map(([r,i])=>`<tr><td style="width:46%"><img src="${r.img}" style="width:100%;border:1px solid var(--line);border-radius:6px"><div class=mute style="font-size:12px">прочитано: ${r.raw.qty||'—'} · ${r.raw.price||'—'} · ${r.raw.total||'—'}</div></td><td><input type=text value="${r.code}" onchange="updRow(${i},'code',this.value)"></td><td><input type=text class=short value="${r.qty||''}" onchange="updRow(${i},'qty',this.value)"></td><td><input type=text class=short value="${r.price||''}" onchange="updRow(${i},'price',this.value)"></td><td class=num>${fmt(r.value)}</td><td><button class=sec title="удалить строку" onclick="delRow(${i})">✕</button></td></tr>`).join('')}</table>`:''}
+    ${sup.rows.some(r=>r.fixed)?`<p class=mute style="font-size:13px">Артикулы, уточнённые по упаковочному листу / факту: ${sup.rows.filter(r=>r.fixed).map(r=>`${r.orig}→${r.code}`).join(', ')}</p>`:''}
+    <div class=btns><button class=sec onclick="if(confirm('Убрать загруженный инвойс?')){S.sup=null;render();}">Сбросить инвойс</button></div>`:''}${nav(true,!!sup&&!S.ocr)}</div>`; }
   if(st===1){ h=`<div class=card><h2>2. Счета КВТ Сервис</h2><p class=hint>Все счета по этой поставке (фрахт, ПРР, хранение, брокер, перевозка по РФ). Категорию можно поправить. Счёт без PDF — добавьте вручную.</p>${dropzone('kvt','.pdf',true,'PDF, можно сразу несколько')}
     <table><tr><th>№</th><th>Дата</th><th>Услуга</th><th class=num>Сумма</th><th>Валюта</th><th>Категория в акте</th><th></th></tr>${S.kvt.map((k,i)=>`<tr><td>${k.manual?`<input type=text class=short value="${k.number}" onchange="S.kvt[${i}].number=this.value">`:k.number}</td><td>${dRU(k.date)}</td><td class=mute style="font-size:12.5px">${k.desc||(k.manual?'вручную':'')}</td><td class=num>${k.manual?`<input type=number step=0.01 class=short value="${k.total}" onchange="S.kvt[${i}].total=+this.value;render()">`:fmt(k.total)}</td><td>${k.manual?`<select onchange="S.kvt[${i}].currency=this.value"><option ${k.currency==='RUB'?'selected':''}>RUB</option><option ${k.currency==='USD'?'selected':''}>USD</option><option ${k.currency==='EUR'?'selected':''}>EUR</option></select>`:k.currency}</td>
       <td><select class=cat onchange="S.kvt[${i}].category=this.value">${Object.entries(CATS).map(([v,t])=>`<option value="${v}" ${k.category===v?'selected':''}>${t}</option>`).join('')}</select></td><td><button class=sec onclick="S.kvt.splice(${i},1);render()">✕</button></td></tr>`).join('')}</table>
@@ -283,7 +293,9 @@ function render(){ renderSteps(); const st=S.step; let h='';
     ${S.sup&&g.invoice_sum&&Math.abs(g.invoice_sum-S.sup.total)>0.05?`<div class=note>Сумма по ДТ (${fmt(g.invoice_sum)} ${g.currency}) не равна сумме инвойса (${fmt(S.sup.total)} €). Проверьте, что ДТ относится к этой поставке.</div>`:(g.invoice_sum?'<p class=ok>✓ Сумма в ДТ совпадает с инвойсом</p>':'')}`:''}
     <div class=btns><button class=sec onclick="S.gtd=S.gtd||{number:'',date:null,currency:'EUR',invoice_sum:0,rate:0,fee:0,duty:0,vat:0};render()">Ввести платежи вручную (без PDF)</button></div>${nav()}</div>`; }
   if(st===3){ const p=S.pack; h=`<div class=card><h2>4. Упаковочный лист</h2><p class=hint>PDF Packing List поставщика: паллеты, объём, вес брутто/нетто. Коробки — при необходимости вручную.</p>${dropzone('pack','.pdf',false,'PDF, один файл')}
-    ${p?`<div class=row style="margin-top:14px"><label class=f>Паллет<input type=number value="${p.pallets}" onchange="S.pack.pallets=+this.value"></label><label class=f>Коробок<input type=number value="${S.params.boxes||p.boxes||''}" placeholder="если есть" onchange="S.params.boxes=this.value"></label><label class=f>Объём, м³<input type=number step=0.01 value="${p.volume}" onchange="S.pack.volume=+this.value"></label><label class=f>Брутто, кг<input type=number step=0.01 value="${p.gross}" onchange="S.pack.gross=+this.value"></label><label class=f>Нетто, кг<input type=number step=0.01 value="${p.net}" onchange="S.pack.net=+this.value"></label><label class=f>Всего шт<input type=number value="${p.pieces}" onchange="S.pack.pieces=+this.value"></label></div>`:''}
+    ${p?`<div class=row style="margin-top:14px"><label class=f>Паллет<input type=number value="${p.pallets}" onchange="S.pack.pallets=+this.value"></label><label class=f>Коробок<input type=number value="${S.params.boxes||p.boxes||''}" placeholder="если есть" onchange="S.params.boxes=this.value"></label><label class=f>Объём, м³<input type=number step=0.01 value="${p.volume}" onchange="S.pack.volume=+this.value"></label><label class=f>Брутто, кг<input type=number step=0.01 value="${p.gross}" onchange="S.pack.gross=+this.value"></label><label class=f>Нетто, кг<input type=number step=0.01 value="${p.net}" onchange="S.pack.net=+this.value"></label><label class=f>Всего шт<input type=number value="${p.pieces}" onchange="S.pack.pieces=+this.value"></label></div>
+    ${p.kind==='emas'?`<p class=ok>✓ Упаковочный лист EMAS: ${p.boxes} коробок, ${Object.keys(p.items).length} артикулов${p.container?`, контейнер ${p.container}`:''}${p.invoices.length?`, инвойсы ${p.invoices.join(', ')}`:''}</p>`:''}
+    ${(()=>{ const C=S.sup&&p.items?compute():null; if(!C) return ''; return C.pack1.length?`<div class=note><b>Упаковочный лист ≠ инвойс: ${C.pack1.length} поз.</b> (попадёт в этап 1 акта)<br>${C.pack1.slice(0,15).map(d=>`${d.code}: инвойс ${d.qi}, упаковочный ${d.qp}`).join('<br>')}${C.pack1.length>15?'<br>…':''}</div>`:'<p class=ok>✓ Количества в упаковочном листе совпадают с инвойсом</p>'; })()}`:''}
     <div class=btns><button class=sec onclick="S.pack=S.pack||{pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0};render()">Ввести вручную</button></div>${nav()}</div>`; }
   if(st===4){ const C=S.sup&&S.fact?compute():null; h=`<div class=card><h2>5. Факт приёмки на складе</h2><p class=hint>XLSX с колонками «Артикул» (или «Модель») и «Факт». Артикулы, которых нет в файле, считаются непришедшими.</p>${dropzone('fact','.xlsx',false,'XLSX')}
     ${S.fact?`<p class=ok>✓ ${Object.keys(S.fact).length} артикулов</p>`:''}${C?`<table><tr><th>Артикул</th><th class=num>Инвойс</th><th class=num>Факт</th><th class=num>∆</th><th class=num>Цена €</th><th class=num>Итого €</th><th>Тип</th></tr>${C.diffs.map(d=>`<tr><td>${d.code}</td><td class=num>${d.qi}</td><td class=num>${d.qf}</td><td class=num>${d.delta}</td><td class=num>${fmt(d.price)}</td><td class=num>${fmt(d.sum)}</td><td>${d.delta>0?'излишек':'недостача'}</td></tr>`).join('')}<tr><td class=b colspan=5><b>Итого</b></td><td class=num><b>${fmt(C.stage2)}</b></td><td></td></tr></table>${C.diffs.length>12?'<div class=note>В акт помещается 12 строк расхождений — остальные надо добавить вручную в Excel.</div>':''}`:''}${nav()}</div>`; }
@@ -309,14 +321,19 @@ function render(){ renderSteps(); const st=S.step; let h='';
 }
 window.doXlsx=async()=>{ try{ const {buf,name}=await buildXlsx(); download(buf,name); }catch(e){ alert('Ошибка сборки: '+e.message); console.error(e);} };
 window.saveJson=()=>{ const C=compute(); download(new TextEncoder().encode(JSON.stringify({params:S.params,supplier:S.sup&&{number:S.sup.number,total:S.sup.total,rows:S.sup.rows.length},kvt:S.kvt,gtd:S.gtd,pack:S.pack,result:C},null,1)),'summary.json','application/json'); };
+function mergeSup(s){ if(!S.sup){ S.sup=s; return; } const a=S.sup; const nums=[...new Set([...a.number.split(/,\s*/),...s.number.split(/,\s*/)].filter(x=>x&&x!=='?'))]; a.number=nums.join(', '); a.rows=a.rows.concat(s.rows); a.total=Math.round((a.total+s.total)*100)/100; a.grand=(a.grand||0)+(s.grand||0); a.pcs=(a.pcs||0)+(s.pcs||0); a.flagged=(a.flagged||[]).concat(s.flagged||[]); a.ocr=a.ocr||s.ocr; a.date=a.date||s.date; a.supplier=a.supplier||s.supplier; }
+window.updRow=(i,k,v)=>{ const r=S.sup.rows[i]; if(k==='code') r.code=v.trim().toUpperCase(); else r[k]=+String(v).replace(',','.')||0; r.value=Math.round(r.qty*r.price*100)/100; r.ok=r.qty>0&&r.price>0; r.edited=true; render(); };
+window.delRow=i=>{ S.sup.rows.splice(i,1); render(); };
 window.handleFiles=async(id,files)=>{ const list=[...files]; try{
   for(const f of list){ const low=f.name.toLowerCase();
-    if(id==='sup'){ const s=parseSupplier(await pdfLines(f,'\t')); if(!s) throw new Error('Это не инвойс поставщика: '+f.name); S.sup=s; }
+    if(id==='sup'){ let s=null; if(await pdfHasText(f)){ s=parseSupplier(await pdfLines(f,'\t')); }
+      if(!s||!s.rows.length){ S.ocr={msg:'запуск распознавания скана…'}; render(); try{ s=await ocrInvoice(f,m=>{ S.ocr={msg:m}; const el=document.getElementById('ocrmsg'); if(el) el.textContent=m; }); } finally { S.ocr=null; } }
+      if(!s||!s.rows.length) throw new Error('Не удалось прочитать инвойс (нет строк таблицы): '+f.name); mergeSup(s); fixCodes(); }
     if(id==='kvt'){ const k=parseKvt(await pdfLines(f)); if(!k) throw new Error('Это не счёт КВТ Сервис: '+f.name); if(!S.kvt.some(x=>x.number===k.number&&!x.manual)) S.kvt.push(k); }
     if(id==='gtd'){ const g=parseGtd(await pdfLines(f),f.name); if(!g) throw new Error('Это не декларация на товары: '+f.name); S.gtd=g; }
-    if(id==='pack'){ const p=parsePacking(await pdfLines(f)); if(!p) throw new Error('Это не Packing List: '+f.name); S.pack=p; }
-    if(id==='fact'){ const x=parseFact(await xlsxRows(f)); if(!x) throw new Error('Не нашёл колонки «Артикул» и «Факт»: '+f.name); S.fact=x; }
-    if(id==='receipt'){ const x=parseReceipt(await xlsxRows(f)); if(!x) throw new Error('Не нашёл таблицу артикул/количество/цена: '+f.name); S.receipt=x; } }
+    if(id==='pack'){ const L=await pdfLines(f,'\t'); const p=parsePackingEmas(L)||parsePacking(L.map(l=>l.replace(/\t/g,' '))); if(!p) throw new Error('Это не Packing List: '+f.name); S.pack=p; fixCodes(); }
+    if(id==='fact'){ const x=parseFact(await xlsxRows(f)); if(!x) throw new Error('Не нашёл колонки «Артикул» и «Факт»: '+f.name); S.fact=x; fixCodes(); }
+    if(id==='receipt'){ const x=parseReceipt(await xlsxRows(f)); if(!x) throw new Error('Не нашёл таблицу артикул/количество/цена: '+f.name); S.receipt=x; fixCodes(); } }
   }catch(e){ alert(e.message); } render(); };
 render();
 </script>
