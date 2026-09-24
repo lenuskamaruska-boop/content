@@ -117,7 +117,7 @@ table {{ border-collapse:collapse; table-layout:fixed; }}
 td {{ padding:0 3px; overflow:hidden; line-height:1.15 }}
 </style></head><body><table>{cols_html}{''.join(rows)}</table></body></html>'''
 os.makedirs(out_dir, exist_ok=True)
-base = os.path.join(out_dir, re.sub(r'\.xlsx$', '', os.path.basename(src)))
+base = os.path.abspath(os.path.join(out_dir, re.sub(r'\.xlsx$', '', os.path.basename(src))))
 open(base + '.html', 'w', encoding='utf-8').write(doc)
 js = f'''
 const {{ chromium }} = require('/opt/node22/lib/node_modules/playwright/index.js');
@@ -135,6 +135,9 @@ const {{ chromium }} = require('/opt/node22/lib/node_modules/playwright/index.js
 }})();
 '''
 open(base + '.render.cjs', 'w').write(js)
-print(subprocess.run(['node', base + '.render.cjs'], capture_output=True, text=True).stdout.strip())
+r = subprocess.run(['node', base + '.render.cjs'], capture_output=True, text=True)
 os.remove(base + '.render.cjs')
+if r.returncode != 0 or not os.path.exists(base + '.pdf'):
+    sys.exit('Chromium render failed:\n' + (r.stderr or r.stdout))
+print(r.stdout.strip())
 print('written:', base + '.pdf', '|', base + '.png')
