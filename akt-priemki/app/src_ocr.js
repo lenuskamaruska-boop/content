@@ -86,7 +86,7 @@ async function ocrInvoice(file, progress){
     progress(`страница ${p} из ${pdf.numPages}: подготовка изображения…`);
     const page=await pdf.getPage(p); let c=await renderPage(page,3300); c=deskew(c); const G=tableGeom(c);
     if(p===1){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); header=(await w.recognize(cropCanvas(small,{left:0,top:0,width:small.width,height:Math.round(small.height*.25)}))).data.text; }
-    if(p===pdf.numPages){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); footer=(await w.recognize(cropCanvas(small,{left:Math.round(small.width*.5),top:0,width:Math.round(small.width*.5),height:small.height}))).data.text; }
+    if(p===pdf.numPages){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); footer=(await w.recognize(small)).data.text; }
     if(!G) continue;
     const [x0,x1,x2,x3,x4,x5]=G.cols, K=c.width/1653; // K — масштаб относительно скана 200 dpi
     const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h>=15*K&&h<=40*K) eraseRules(clean,G.cols,G.rows[i]+2,h-4,K); }
@@ -96,11 +96,12 @@ async function ocrInvoice(file, progress){
       progress(`страница ${p} из ${pdf.numPages}: строка ${i+1} из ${G.rows.length-1}`);
       const band={left:x0,top:G.rows[i],width:x5-x0,height:h}; if(inkFrac(c,band)<0.004) continue; // пустая строка
       await w.setParameters(PARAMS_CODE); let code=(await w.recognize(clean,{rectangle:rect(x0,x1)})).data.text.trim().replace(/\s+/g,'');
-      if(/^PARTCODE/.test(code)||(p===1&&i===0&&!looksCode(code))) continue; // шапка таблицы
+      if(/^PARTCODE/.test(code)) continue; // шапка таблицы
       await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn},{text:true,blocks:true})).data;
       const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
       const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
-      if(!code&&digits===0&&inkFrac(c,band)<0.02){ dropped++; continue; } // почти пустая строка без цифр — шум; всё остальное — на проверку с картинкой
+      if(digits===0&&p===1&&!rows.length){ continue; } // заголовки таблицы до первой строки с цифрами
+      if(digits===0&&((!code&&inkFrac(c,band)<0.02)||(code.length<=2&&!/\d/.test(code)))){ dropped++; continue; } // пустая полоса или обрывок шапки/печати без цифр — шум
       if(!code) code='?'; // шум (печать, подпись), не строка таблицы
       const res=resolveRow(raw);
       const gq=parseInt(q.replace(/\D/g,''))||0, gp=(candsPrice(pr)[0]||[0])[0];
@@ -110,10 +111,13 @@ async function ocrInvoice(file, progress){
     }
   }
   const numbers=[...new Set(header.match(/[A-Z]{2,4}\d{10,}/g)||[])]; const dm=header.match(/(\d{2})\.(\d{2})\.(\d{4})/);
-  const gt=(footer.match(/[\d.]+,\d{2}\s*EUR/g)||[]).map(s=>num(s.replace(/\s*EUR/,''))); const grand=gt.length?Math.max(...gt):0;
-  const pm=footer.match(/([\d.]+)\s*PCS/); const supplier=/EMAS|emas/.test(header+file.name)||/эмас/i.test(file.name)?'EMAS':(/CETINKAYA|ÇETİNKAYA/i.test(header)?'Cetinkaya Pano':'');
+  const sumRows=rows.reduce((a,r)=>a+r.value,0), sumQty=rows.reduce((a,r)=>a+r.qty,0);
+  const gt=(footer.match(/\d[\d.]*,\d{2}\s*EUR/g)||[]).map(s=>num(s.replace(/\s*EUR/,''))).filter(v=>v>0);
+  // итог инвойса — сумма в EUR на последней странице, ближайшая к сумме строк (в пределах ±25%); иначе итог не распознан
+  let grand=0; for(const v of gt){ if(Math.abs(v-sumRows)<=sumRows*.25&&(!grand||Math.abs(v-sumRows)<Math.abs(grand-sumRows))) grand=v; }
+  let pcs=0; for(const m of footer.matchAll(/(\d[\d.]*)\s*PCS/g)){ const v=parseInt(m[1].replace(/\./g,'')); if(v>0&&Math.abs(v-sumQty)<=sumQty*.25&&(!pcs||Math.abs(v-sumQty)<Math.abs(pcs-sumQty))) pcs=v; } const supplier=/EMAS|emas/.test(header+file.name)||/эмас/i.test(file.name)?'EMAS':(/CETINKAYA|ÇETİNKAYA/i.test(header)?'Cetinkaya Pano':'');
   if(dropped) log(`OCR: пропущено ${dropped} строк-шумов (печати/подписи)`);
-  return {number:numbers.join(', ')||'?', date:dm?new Date(+dm[3],+dm[2]-1,+dm[1]):null, total:grand||rows.reduce((a,r)=>a+r.value,0), supplier, rows, ocr:true, flagged, pcs:pm?parseInt(pm[1].replace(/\./g,'')):0, grand};
+  return {number:numbers.join(', ')||'?', date:dm?new Date(+dm[3],+dm[2]-1,+dm[1]):null, total:grand||Math.round(sumRows*100)/100, supplier, rows, ocr:true, flagged, pcs, grand};
 }
 // есть ли в PDF текстовый слой
 async function pdfHasText(file){ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; let n=0; for(let p=1;p<=Math.min(2,pdf.numPages);p++){ const tc=await (await pdf.getPage(p)).getTextContent(); n+=tc.items.reduce((a,i)=>a+i.str.trim().length,0); } return n>80; }
