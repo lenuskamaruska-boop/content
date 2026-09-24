@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Акт приёмки — мастер</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="vendor/fflate.js"></script>
+<style>
+:root{--b:#005eb8;--b2:#004a94;--ink:#0f1a2e;--dim:#4b5b75;--mute:#7a879c;--line:#e3e8f0;--bg:#f4f6fa;--ok:#15803d;--warn:#b45309;--err:#b91c1c}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+header{background:#fff;border-bottom:1px solid var(--line);padding:14px 20px;display:flex;gap:16px;align-items:center}
+header b{font-size:18px;color:var(--b)}header span{color:var(--mute);font-size:13px}
+main{max-width:1060px;margin:22px auto;padding:0 16px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.steps div{padding:6px 12px;border-radius:100px;border:1px solid var(--line);background:#fff;font-size:13px;color:var(--mute);cursor:pointer}
+.steps div.act{border-color:var(--b);color:var(--b);font-weight:700}.steps div.done{background:#e8f4ea;border-color:#bfe3c6;color:var(--ok)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px}
+h2{margin:0 0 6px;font-size:20px}p.hint{margin:0 0 16px;color:var(--dim)}
+.drop{border:2px dashed #c7d2e3;border-radius:12px;padding:26px;text-align:center;color:var(--dim);background:#fafbfe;cursor:pointer}
+.drop.over{border-color:var(--b);background:#eef4fb}.drop input{display:none}
+.drop b{color:var(--b)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:14px}th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}td.num,th.num{text-align:right;white-space:nowrap}
+input[type=text],input[type=number],input[type=date],select{font:inherit;padding:7px 9px;border:1px solid #c7d2e3;border-radius:8px;width:100%;background:#fff}
+input.short{width:130px}select.cat{min-width:210px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label.f{display:block;font-size:13px;color:var(--dim)}label.f input,label.f select{margin-top:4px}
+.btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+button{font:inherit;font-weight:700;padding:11px 18px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+.pri{background:var(--b);color:#fff}.pri:hover{background:var(--b2)}.sec{background:#fff;border-color:#c7d2e3;color:var(--ink)}.sec:hover{border-color:var(--b)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.err{color:var(--err)}.mute{color:var(--mute)}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:12px;background:#eef4fb;color:var(--b);font-weight:700}
+.note{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:10px;padding:10px 14px;font-size:14px;margin-top:12px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}
+.sum div{background:var(--bg);border-radius:10px;padding:10px 12px}.sum small{display:block;color:var(--mute);font-size:12px}.sum b{font-size:17px}
+.log{font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);white-space:pre-wrap;max-height:160px;overflow:auto;background:#fafbfe;border-radius:8px;padding:8px 10px;margin-top:10px}
+#print{display:none}
+@media print{body>*{display:none!important}#print{display:block!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<header><b>Акт приёмки ТМЦ</b><span>мастер сборки · РИТЕТ · все расчёты выполняются в вашем браузере, файлы никуда не отправляются</span></header>
+<main>
+<div class="steps" id="steps"></div>
+<div id="view"></div>
+</main>
+<div id="print"></div>
+
+<script>
+// ===================== состояние =====================
+const S = { sup:null, kvt:[], gtd:null, pack:null, fact:null, receipt:null,
+  params:{act_no:'1', label:'', act_date:'', pickup_date:'', depart_date:'', to_date:'', arrival_date:'', usd_rate:'', eur_rate:'', responsible:'Макеева И.В.', boxes:''}, step:0, log:[] };
+const STEPS = ['Инвойс поставщика','Счета КВТ Сервис','ГТД (декларация)','Упаковочный лист','Факт приёмки (XLSX)','Приобретение 1С (XLSX)','Реквизиты акта','Итог и файлы'];
+const TEMPLATE_B64 = '__TEMPLATE_B64__';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ===================== утилиты =====================
+const num = s => { s=String(s).replace(/ |\s/g,''); if(s.includes(',')&&s.includes('.')) s=s.replace(/\./g,'').replace(',','.'); else s=s.replace(',','.'); return parseFloat(s); };
+const norm = c => String(c).replace(/\s+/g,'').toUpperCase();
+const fmt = (x,d=2) => (x==null||isNaN(x))?'—':x.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d}).replace(/\u00a0/g,' ');
+const MONTHS = {января:1,февраля:2,марта:3,апреля:4,мая:5,июня:6,июля:7,августа:8,сентября:9,октября:10,ноября:11,декабря:12};
+const MONTHS_GEN = ['','января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function ruDate(s){ if(!s) return null; let m=String(s).match(/(\d{1,2})\s+([а-я]+)\s+(\d{4})/i); if(m&&MONTHS[m[2].toLowerCase()]) return new Date(+m[3],MONTHS[m[2].toLowerCase()]-1,+m[1]);
+  m=String(s).match(/(\d{2})[./](\d{2})[./](\d{2,4})/); if(m){let y=+m[3]; if(y<100)y+=2000; return new Date(y,+m[2]-1,+m[1]);} m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m) return new Date(+m[1],+m[2]-1,+m[3]); return null; }
+const dISO = d => d? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '';
+const dRU = d => d? `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}` : '';
+function log(m){ S.log.push(m); }
+
+// PDF -> строки текста (группировка по координате Y, как в печатном виде)
+async function pdfLines(file,sep=' '){
+  const buf = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument({data:buf}).promise; const lines=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p); const tc=await page.getTextContent(); const rows=new Map();
+    for(const it of tc.items){ if(!it.str.trim()) continue; const y=Math.round(it.transform[5]/2)*2; if(!rows.has(y)) rows.set(y,[]); rows.get(y).push({x:it.transform[4],s:it.str}); }
+    [...rows.keys()].sort((a,b)=>b-a).forEach(y=>{ const items=rows.get(y).sort((a,b)=>a.x-b.x); lines.push(items.map(i=>i.s.replace(/ /g,' ').replace(/\s+/g,' ').trim()).filter(Boolean).join(sep)); });
+    lines.push('\f');
+  }
+  return lines;
+}
+// XLSX -> массив листов [{name, rows:[[...]]}] — собственный разбор через zip (устойчив к выгрузкам 1С)
+async function xlsxRows(file){
+  const u8=new Uint8Array(await file.arrayBuffer()); const z=fflate.unzipSync(u8); const txt=n=>z[n]?fflate.strFromU8(z[n]):'';
+  const xml=s=>new DOMParser().parseFromString(s,'application/xml');
+  const sst=[]; const sx=txt('xl/sharedStrings.xml'); if(sx){ for(const si of xml(sx).getElementsByTagName('si')) sst.push([...si.getElementsByTagName('t')].map(t=>t.textContent).join('')); }
+  const wbx=xml(txt('xl/workbook.xml')); const rels=xml(txt('xl/_rels/workbook.xml.rels')); const relMap={}; for(const r of rels.getElementsByTagName('Relationship')) relMap[r.getAttribute('Id')]=r.getAttribute('Target');
+  const out=[]; const colIdx=ref=>{ let n=0; for(const ch of ref.replace(/\d+/g,'')) n=n*26+(ch.charCodeAt(0)-64); return n-1; };
+  for(const sh of wbx.getElementsByTagName('sheet')){ const rid=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'); let target=relMap[rid]||''; target=target.replace(/^\/?xl\//,''); const sxml=txt('xl/'+target); if(!sxml) continue;
+    const doc=xml(sxml); const rows=[];
+    for(const row of doc.getElementsByTagName('row')){ const ri=+row.getAttribute('r')-1; const vals=[];
+      for(const c of row.getElementsByTagName('c')){ const ref=c.getAttribute('r'); const t=c.getAttribute('t'); const vEl=c.getElementsByTagName('v')[0]; let v=null;
+        if(t==='s'&&vEl) v=sst[+vEl.textContent]; else if(t==='inlineStr'){ v=[...c.getElementsByTagName('t')].map(x=>x.textContent).join(''); } else if(t==='str'&&vEl) v=vEl.textContent; else if(t==='b'&&vEl) v=vEl.textContent==='1'; else if(vEl){ const n=parseFloat(vEl.textContent); v=isNaN(n)?vEl.textContent:n; }
+        if(v!==null&&v!=='') vals[colIdx(ref)]=v; }
+      rows[ri]=vals; }
+    out.push({name:sh.getAttribute('name'),rows}); }
+  return out;
+}
+
+// ===================== парсеры =====================
+function parseSupplier(lines){
+  const t=lines.map(l=>l.replace(/\t/g,' ')).join('\n'); if(!/INVOICE/i.test(t)) return null;
+  const inv={number:'',date:null,total:0,rows:[],supplier:''};
+  const m=t.match(/\b([A-Z]{2,4}\d{10,})\b[\s\S]{0,40}?(\d{2}\.\d{2}\.\d{4})/); if(m){inv.number=m[1]; inv.date=ruDate(m[2]);}
+  inv.supplier=/CETINKAYA|ÇETİNKAYA/i.test(t)?'Cetinkaya Pano':(/EMAS/.test(t)?'EMAS':'');
+  const mt=t.match(/€\s*([\d.]+,\d{2})/); if(mt) inv.total=num(mt[1]);
+  for(const l of lines){ const f=l.split('\t'); if(f.length<5) continue; const v=f.pop(), pr=f.pop(), q=f.pop(); const code=f.shift();
+    if(/^[A-Z][A-Z0-9][A-Z0-9\-\. \/]{1,}$/.test(code)&&/^\d{1,3}(?:\.\d{3})*$/.test(q)&&/^[\d.]*\d,\d{2}$/.test(pr)&&/^[\d.]*\d,\d{2}$/.test(v)) inv.rows.push({code:code.trim(),desc:f.join(' '),qty:parseInt(q.replace(/\./g,'')),price:num(pr),value:num(v)}); }
+  return inv;
+}
+const CATS={border:'Доставка до границы',rf_broker:'Доставка РФ + Брокер (хранение, СВХ, сборы)',prr:'Погрузо-разгрузочные работы (ПРР)'};
+function classify(body,cur){
+  if(/ПРР|погрузо-?разгрузочн/i.test(body)) return 'prr';
+  if(/(ISTANBUL|СТАМБУЛ|TURKIYE|ТУРЦИЯ)[\s\S]{0,200}(порт Новороссийск|РФ)|международной перевозки груза по маршруту:[\s\S]{0,120}(TURK|ТУРЦ|ISTANBUL)/i.test(body)) return 'border';
+  if(/таможенн|брокер|ДТ \d{8}\/|хранени|СВХ|терминальн|линейный сбор|сверхнормативн|по маршруту: Росси|Славянск|Новороссийск порт/i.test(body)) return 'rf_broker';
+  return cur==='USD'?'border':'rf_broker';
+}
+function parseKvt(lines){
+  const t=lines.join('\n'); if(!/КВТ СЕРВИС/i.test(t)||!/Счет на оплату/.test(t)) return null;
+  const m=t.match(/Счет на оплату №\s*(\d+)\s+от\s+([^\n]+)/); const cur=/\((Usd|USD)\d?\)/.test(t)?'USD':(/\((Eur|EUR)\d?\)/.test(t)?'EUR':'RUB');
+  const mt=t.match(/Всего к оплате:\s*([\d\s.,]+)/); const mv=t.match(/(?:Сумма НДС|В том числе НДС):\s*([\d\s.,]+)/);
+  const body=t.split(/Сумма\n/)[1]?.split('Итого:')[0]||t;
+  const desc=(body.match(/\d+\s+(.+?)\s+1\s+шт/s)||[])[1]||'';
+  return {number:m?m[1]:'?',date:m?ruDate(m[2]):null,currency:cur,total:mt?num(mt[1]):0,vat:mv?num(mv[1]):0,category:classify(body,cur),desc:desc.slice(0,120),manual:false};
+}
+function parseGtd(lines,fname){
+  const t=lines.join(' '); if(!/ДЕКЛАРАЦИЯ НА ТОВАРЫ|ИМ 40 ЭД/.test(t)) return null;
+  const g={number:'',date:null,currency:'',invoice_sum:0,rate:0,fee:0,duty:0,vat:0};
+  const nums=t.match(/\d{8}\/\d{6}\/\d{7}/g)||[]; const fn=(fname||'').match(/(\d{8})[_\/](\d{6})[_\/](\d{7})/);
+  let pick=fn?`${fn[1]}/${fn[2]}/${fn[3]}`:''; if(!pick&&nums.length){ const c={}; nums.forEach(n=>c[n]=(c[n]||0)+1); pick=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]; }
+  if(pick){ g.number=pick; const d=pick.split('/')[1]; g.date=new Date(2000+ +d.slice(4,6),+d.slice(2,4)-1,+d.slice(0,2)); }
+  const m=t.match(/\b(EUR|USD)\b\s+(\d+\.\d{2})\s+(\d{2,3}\.\d{4})/); if(m){g.currency=m[1];g.invoice_sum=+m[2];g.rate=+m[3];}
+  for(const mm of t.matchAll(/\b(1010|2010|5010)-(\d+\.\d{2})-643-/g)){ const v=+mm[2]; if(mm[1]==='1010')g.fee+=v; else if(mm[1]==='2010')g.duty+=v; else g.vat+=v; }
+  return g;
+}
+function parsePacking(lines){
+  const t=lines.join(' '); if(!/PACKING LIST/i.test(t)) return null; const p={pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0};
+  const g=rx=>{const m=t.match(rx);return m?m[1]:null;};
+  let v=g(/Total Quantity of Package\s*:\s*([\d.,]+)/i); if(v)p.pallets=parseInt(v.replace(/[.,]/g,''));
+  v=g(/Total Volume\s*:\s*([\d.,]+)/i); if(v)p.volume=num(v);
+  v=g(/Total Net K\.?g\.?\s*:\s*([\d.,]+)/i); if(v)p.net=num(v);
+  v=g(/Total Gross K\.?g\.?\s*:\s*([\d.,]+)/i); if(v)p.gross=num(v);
+  v=g(/Total Quantity of Products\s*:\s*([\d.,]+)/i); if(v)p.pieces=parseInt(v.replace(/[.,]/g,''));
+  return p;
+}
+function findHeader(rows,need){ for(let i=0;i<Math.min(rows.length,25);i++){ const r=rows[i]||[]; const low=Array.from(r,v=>String(v??'').toLowerCase()); if(need.every(n=>low.some(v=>v.includes(n)))) return {i,low}; } return null; }
+function parseFact(sheets){ // {код: факт}
+  for(const sh of sheets){ const h=findHeader(sh.rows,['артикул','факт'])||findHeader(sh.rows,['модель','факт']); if(!h) continue;
+    const ci=h.low.findIndex(v=>v.includes('артикул')||v.includes('модель')); const qi=h.low.findIndex((v,j)=>j!==ci&&v.includes('факт')); const out={};
+    for(const r of sh.rows.slice(h.i+1)){ if(!r) continue; const c=r[ci], q=r[qi]; if(c&&typeof q==='number') out[norm(c)]=(out[norm(c)]||0)+q; }
+    if(Object.keys(out).length) return out; }
+  return null;
+}
+function parseReceipt(sheets){ // приобретение 1С
+  for(const sh of sheets){ const h=findHeader(sh.rows,['артикул','количество'])||findHeader(sh.rows,['артикул','кол-во']); if(!h) continue;
+    let doc=''; for(let i=0;i<h.i;i++){ const s=(sh.rows[i]||[]).filter(Boolean).join(' '); if(/приобретение товаров/i.test(s)) doc=s; }
+    const ci=h.low.findIndex(v=>v.includes('артикул')), qi=h.low.findIndex(v=>v.includes('количество')||v.includes('кол-во')), pi=h.low.findIndex(v=>v.includes('цена')), si=h.low.findIndex(v=>v.includes('сумма'));
+    const out={}, anomalies=[];
+    for(const r of sh.rows.slice(h.i+1)){ if(!r) continue; const c=r[ci], q=r[qi]; if(!c||typeof q!=='number') continue; const pr=+(r[pi]||0), sm=r[si]; const k=norm(c);
+      out[k]=out[k]||{qty:0,price:pr,sum:0}; out[k].qty+=q; out[k].sum+=+(sm||0);
+      if(typeof sm==='number'){ const calc=Math.round(q*pr*100)/100; if(Math.abs(sm-calc)>0.01) anomalies.push({code:String(c).trim(),qty:q,price:pr,sum_1c:sm,sum_calc:calc,diff:Math.round((sm-calc)*100)/100}); } }
+    if(Object.keys(out).length) return {doc,items:out,anomalies}; }
+  return null;
+}
+
+// ===================== расчёт =====================
+function compute(){
+  const sup=S.sup, P=S.params; if(!sup) return null;
+  const inv={}, disp={}; for(const r of sup.rows){ const k=norm(r.code); disp[k]=r.code; inv[k]=inv[k]?{qty:inv[k].qty+r.qty,price:r.price}:{qty:r.qty,price:r.price}; }
+  const eur=+P.eur_rate||S.gtd?.rate||0, usd=+P.usd_rate||0;
+  const cat={border:0,rf_broker:0,prr:0}, conv=[];
+  for(const k of S.kvt){ let amt=+k.total||0; if(k.currency==='USD'){ if(usd){amt=Math.round(amt*usd*100)/100; conv.push(`счёт ${k.number}: ${fmt(k.total)} USD × ${usd} = ${fmt(amt)} ₽`);} else {conv.push(`счёт ${k.number}: ${fmt(k.total)} USD — курс USD не задан!`); amt=0;} }
+    else if(k.currency==='EUR'&&eur) amt=Math.round(amt*eur*100)/100; cat[k.category]+=amt; }
+  const diffs=[]; if(S.fact){ for(const [k,qf] of Object.entries(S.fact).sort()){ const i=inv[k]; const qi=i?i.qty:0, pr=i?i.price:0; if(qf!==qi) diffs.push({code:disp[k]||k,qi,qf,price:pr,delta:qf-qi,sum:Math.round((qf-qi)*pr*100)/100}); }
+    for(const k in inv) if(!(k in S.fact)) diffs.push({code:disp[k],qi:inv[k].qty,qf:0,price:inv[k].price,delta:-inv[k].qty,sum:-inv[k].qty*inv[k].price}); }
+  let priceDiffs=[], uom=[]; if(S.receipt){ for(const [k,e] of Object.entries(S.receipt.items)){ const i=inv[k]; if(!i) continue; const li=Math.round(i.qty*i.price*100)/100, l1=Math.round(e.qty*e.price*100)/100;
+      if(Math.abs(l1-li)>0.01) priceDiffs.push({code:disp[k]||k,p_inv:i.price,p_1c:e.price,l_inv:li,l_1c:l1}); else if(Math.abs(e.price-i.price)>0.005) uom.push({code:disp[k]||k,k:Math.round(e.price/i.price*100)/100}); } }
+  const fee=S.gtd?.fee||0, duty=S.gtd?.duty||0, vat=S.gtd?.vat||0; const totalRub=cat.border+cat.rf_broker+cat.prr+fee+duty+vat;
+  const stage2=diffs.reduce((a,d)=>a+d.sum,0);
+  return {inv,disp,eur,usd,cat,conv,diffs,priceDiffs,uom,fee,duty,vat,totalRub,pct:eur&&sup.total?totalRub/(sup.total*eur)*100:0,stage2};
+}
+
+// ===================== заполнение шаблона =====================
+async function buildXlsx(){
+  const C=compute(), sup=S.sup, P=S.params; const wb=new ExcelJS.Workbook();
+  const bin=Uint8Array.from(atob(TEMPLATE_B64),c=>c.charCodeAt(0)); await wb.xlsx.load(bin.buffer);
+  const ws=wb.worksheets[0], ws2=wb.worksheets[1]; const old=ws.name; const label=P.label||`Отгрузка ${sup.supplier} 1 в ${new Date().getFullYear()}`; ws.name=label.slice(0,31);
+  ws2.eachRow(r=>r.eachCell(c=>{ if(c.value&&typeof c.value==='object'&&c.value.formula&&c.value.formula.includes(old)) c.value={formula:c.value.formula.split(old).join(ws.name)}; }));
+  const set=(a,v)=>{ ws.getCell(a).value=v; }; const setDate=(a,d)=>{ if(d){ ws.getCell(a).value=d; ws.getCell(a).numFmt='dd.mm.yyyy'; } };
+  const ad=ruDate(P.act_date);
+  set('B7',`Акт № ${P.act_no||'1'}`); set('B9', ad?`от ${dRU(ad)} г.`:'от ');
+  set('B11', sup.date?`Инвойс ${sup.number} от ${dRU(sup.date)}`:`Инвойс ${sup.number}`);
+  if(S.pack){ const ru=x=>Number.isInteger(x)?fmt(x,0):fmt(x,2).replace(/,?0+$/,''); const boxes=+P.boxes||S.pack.boxes; const places=(boxes?`${boxes} коробок, `:'')+`${S.pack.pallets} паллет`;
+    set('B12',`Упаковочный лист (количество мест,  вес, объем) ${places}, ${ru(S.pack.volume)} м³, вес брутто - ${ru(S.pack.gross)} кг, вес нетто - ${ru(S.pack.net)} кг.`); }
+  setDate('F14',ruDate(P.pickup_date)); setDate('G15',ruDate(P.depart_date)); setDate('F16',ruDate(P.to_date)||S.gtd?.date); setDate('G17',ruDate(P.arrival_date));
+  set('D19',`${sup.supplier} инвойс`); set('F19',Math.round(sup.total*100)/100); set('C73',sup.supplier||'EMAS'); if(P.responsible) set('T27',P.responsible);
+  // этап 2
+  let r=28; for(const d of C.diffs.slice(0,12)){ set(`E${r}`,d.code); set(`G${r}`,d.qi); set(`H${r}`,d.qf); ws.getCell(`I${r}`).value={formula:`H${r}-G${r}`}; set(`J${r}`,d.price); ws.getCell(`K${r}`).value={formula:`J${r}*I${r}`}; set(`P${r}`,d.qf>d.qi?'Излишек':'+30% от стоимости затраты НДС, пошлины'); r++; }
+  if(!C.diffs.length&&S.fact) set('E28','Нет');
+  for(let rr=28;rr<40;rr++) ws.getRow(rr).hidden = rr>=Math.max(29,28+C.diffs.slice(0,12).length);
+  for(let rr=42;rr<65;rr++) ws.getRow(rr).hidden = rr>=43;
+  // этап 3
+  if(S.receipt){ set('E41', C.priceDiffs.length?`Есть: ${C.priceDiffs.length} позиций — `+C.priceDiffs.slice(0,6).map(d=>`${d.code}: инвойс ${d.p_inv.toFixed(2)}, 1С ${d.p_1c.toFixed(2)}`).join('; '):'Нет');
+    let note=S.receipt.doc?`Сверено с документом 1С «${S.receipt.doc}»`:''; const an=S.receipt.anomalies;
+    if(an.length){ const tot=an.reduce((a,x)=>a+x.diff,0); note+=`. ВНИМАНИЕ: в 1С колонка «Сумма» ≠ кол-во×цена по ${an.length} поз. (${an.slice(0,5).map(a=>a.code).join(', ')}) — итого ${tot>0?'+':''}${fmt(tot)} EUR; итог документа завышен`; }
+    if(C.uom.length){ const ks=[...new Set(C.uom.map(u=>u.k))].sort(), pref=[...new Set(C.uom.map(u=>u.code.split(' ')[0]))].sort(); note+=`. Разная ед. изм. без расхождения по сумме: ${C.uom.length} поз. (${pref.join(', ')}) — цена в 1С ×${ks.join('/')}, кол-во соответственно меньше`; }
+    set('P41',note||null); }
+  // раздел 6
+  set('G72',Math.round(C.cat.border*100)/100); set('I72',Math.round(C.cat.rf_broker*100)/100); set('K72',Math.round(C.cat.prr*100)/100);
+  if(S.gtd){ set('M72',C.fee); set('O72',C.duty); set('Q72',C.vat); }
+  if(C.usd) set('U78',C.usd); if(C.eur) set('U79',C.eur); ws.getCell('U80').numFmt='0.0000';
+  if(ad){ const sig=`"${String(ad.getDate()).padStart(2,'0')}" ${MONTHS_GEN[ad.getMonth()+1]} ${ad.getFullYear()}г.`; ['F76','F79','F82'].forEach(a=>set(a,sig)); }
+  ws.pageSetup={...ws.pageSetup,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:1};
+  const buf=await wb.xlsx.writeBuffer(); return {buf,name:`Акт приёмки №${P.act_no||'1'} (${label}).xlsx`};
+}
+function download(buf,name,type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([buf],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+
+// ===================== печатная форма =====================
+function printForm(){
+  const C=compute(), sup=S.sup, P=S.params, ad=ruDate(P.act_date); const m=(x,d=2)=>fmt(x,d);
+  const boxes=+P.boxes||S.pack?.boxes||0; const places=S.pack?((boxes?`${boxes} коробок, `:'')+`${S.pack.pallets} паллет, ${m(S.pack.volume)} м³, вес брутто - ${m(S.pack.gross,0)} кг, вес нетто - ${m(S.pack.net,0)} кг`):'';
+  const sig=ad?`"${String(ad.getDate()).padStart(2,'0')}" ${MONTHS_GEN[ad.getMonth()+1]} ${ad.getFullYear()}г.`:'"  "                 20__г.';
+  const d2=C.diffs.slice(0,12).map(d=>`<td>${d.code}</td><td class=c>${d.qi}</td><td class=c>${d.qf}</td><td class=c>${d.delta}</td><td class=c>${m(d.price)}</td><td class=c>${m(d.sum)}</td><td></td><td>${d.qf>d.qi?'Излишек':'+30% от стоимости затраты НДС, пошлины'}</td>`);
+  const pct=(v)=>C.eur&&sup.total?m(v/(sup.total*C.eur)*100):'';
+  const note3=S.receipt?(C.priceDiffs.length?`Есть: ${C.priceDiffs.length} позиций`:'Нет'):'Нет';
+  const note3p=S.receipt?((S.receipt.doc?`Сверено с документом 1С «${S.receipt.doc}»`:'')+(S.receipt.anomalies.length?`. ВНИМАНИЕ: в 1С «Сумма» ≠ кол-во×цена по ${S.receipt.anomalies.length} поз. (${S.receipt.anomalies.map(a=>a.code).join(', ')}) — итого +${m(S.receipt.anomalies.reduce((a,x)=>a+x.diff,0))} EUR`:'')+(C.uom.length?`. Разная ед. изм. без расхождения по сумме: ${C.uom.length} поз.`:'')):'';
+  document.getElementById('print').innerHTML=`<style>
+  #print{font-family:"Times New Roman",serif;font-size:9pt;line-height:1.15;color:#000;width:277mm;margin:0 auto}#print table{border-collapse:collapse;width:100%}#print td,#print th{border:1px solid #000;padding:1px 3px;overflow-wrap:anywhere;font-weight:normal;vertical-align:middle}
+  #print .c{text-align:center}#print .r{text-align:right}#print .b{font-weight:bold}#print .nb td{border:none;padding:1px 4px}#print .u{border-bottom:1px solid #000;display:inline-block;min-width:80px;text-align:center}
+  @page{size:A4 landscape;margin:8mm}</style>
+  <table class=nb><tr><td style="width:75%"></td><td class=c>УТВЕРЖДАЮ:<br>Руководитель предприятия<br>Алтухова Е.А. __________________<br><br>"____" _________________ ${ad?ad.getFullYear():'20__'} г.</td></tr></table>
+  <div class=c style="font-size:11pt;margin:6px 0"><b>Акт № ${P.act_no||'1'}</b><br>о приёмке товарно-материальных ценностей<br>от ${ad?dRU(ad)+' г.':'__________'}</div>
+  <div>Инвойс ${sup.number} от ${dRU(sup.date)}<br>Упаковочный лист (количество мест, вес, объем) ${places}.<br>Состояние упаковки (вскрытая, потертая, помятая, рваная и т.д.) – удовлетворительное.<br>
+  Дата забора груза от отправителя: <span class=u>${dRU(ruDate(P.pickup_date))}</span> г.<br>Дата выезда продукции (товара) из г. Стамбул: <span class=u>${dRU(ruDate(P.depart_date))}</span> г.<br>
+  Дата ТО (таможенного оформления): <span class=u>${dRU(ruDate(P.to_date)||S.gtd?.date)}</span> г.<br>Дата поступления продукции (товара) на склад: <span class=u>${dRU(ruDate(P.arrival_date))}</span> г.<br><br>
+  Поступление: <span class=u style="min-width:120px">${sup.supplier} инвойс</span> <b>${m(sup.total)} EUR</b></div>
+  <div class=c style="margin:8px 0">Мы, нижеподписавшиеся, составили настоящий акт о приёмке товарно-материальных ценностей:<br><br>Этапы сверки</div>
+  <table style="table-layout:fixed"><colgroup><col style="width:5%"><col style="width:10%"><col style="width:12%"><col style="width:5%"><col style="width:5%"><col style="width:4%"><col style="width:6%"><col style="width:7%"><col style="width:9%"><col style="width:26%"><col style="width:11%"></colgroup>
+  <tr><th rowspan=2 class=c>№<br>п/п</th><th rowspan=2 class=c>Этапы сверки</th><th rowspan=2 class=c>Номенклатура</th><th colspan=3 class=c>Кол-во, шт</th><th rowspan=2 class=c>Цена за ед., евро (EXW)</th><th rowspan=2 class=c>Итого, евро (EXW)</th><th rowspan=2 class=c>Заказ поставщику</th><th rowspan=2 class=c>Примечание</th><th rowspan=2 class=c>Ответственный</th></tr>
+  <tr><th class=c>в инвойсе</th><th class=c>факт</th><th class=c>∆</th></tr>
+  <tr><td class=c>1</td><td>Расхождения между упаковочным листом и инвойсом</td><td colspan=8 class=c>Нет</td><td class=b>${P.responsible}</td></tr>
+  ${(()=>{ const rows=d2.length?d2:[`<td colspan=8 class=c>Нет</td>`]; const n=rows.length+(d2.length?1:0); const head=`<td class=c rowspan=${n}>2</td><td rowspan=${n}>Расхождения между упаковочным листом и пришедшим товаром</td>`, resp=`<td class=b rowspan=${n}>${P.responsible}<br>Никулин А.И.</td>`;
+     return rows.map((r,k)=>`<tr>${k===0?head:''}${r}${k===0?resp:''}</tr>`).join('')+(d2.length?`<tr><td class="r b" colspan=5>Итого:</td><td class="c b">${m(C.stage2)}</td><td colspan=2></td></tr>`:''); })()}
+  <tr><td class=c>3</td><td>Расхождения по ценам инвойса и входным в программе 1С</td><td colspan=6 class=c>${note3}</td><td colspan=2 style="font-size:7.5pt">${note3p}</td><td class=b>${P.responsible}</td></tr>
+  <tr><td class=c>4</td><td>Расхождения между инвойсом и заказом поставщику (справочно)</td><td colspan=8 class=c>Нет</td><td class=b>${P.responsible}</td></tr>
+  <tr><td class=c rowspan=3>5</td><td rowspan=3>Расхождение по сумме поступлений и инвойса</td><td colspan=5 style="font-size:8pt">1. Стоимость товара согласно таможенным документам (сумма в инвойсе) составила:</td><td class="c b">${m(sup.total)}</td><td colspan=2 class=b>EUR</td><td class=b rowspan=3>${P.responsible}</td></tr>
+  <tr><td colspan=5 style="font-size:8pt">2. Стоимость фактического поступившего товара с оприходованием и недостачей составила:</td><td class="c b">${m(sup.total+C.stage2)}</td><td colspan=2 class=b>EUR</td></tr>
+  <tr><td colspan=5 style="font-size:8pt">3. Разница в стоимости между фактическим поступлением и инвойсом составляет:</td><td class="c b">${m(C.stage2)}</td><td colspan=2 class=b>${C.stage2<0?'евро в пользу Ритет':'евро в пользу '+sup.supplier}</td></tr>
+  <tr><td class=c rowspan=4>6</td><td colspan=10 class=c>Затраты на доставку и ТО</td></tr>
+  <tr><td class=c>Инвойс</td><td class=c colspan=2>Стоимость доставки до границы ("КВТ Сервис")</td><td class=c colspan=2>Стоимость доставки РФ + Брокер ("КВТ Сервис")</td><td class=c>Погрузо-разгрузочные работы ("КВТ Сервис")</td><td class=c>Таможенный сбор</td><td class=c>Пошлина</td><td class=c>НДС</td><td class=c>Оплатили по факту и % от инвойса</td></tr>
+  <tr><td class=c>поставщик / евро</td><td class=c colspan=2>рубли ${m(C.cat.border)}</td><td class=c colspan=2>рубли ${m(C.cat.rf_broker)}</td><td class=c>рубли ${m(C.cat.prr)}</td><td class=c>рубли ${m(C.fee)}</td><td class=c>рубли ${m(C.duty)}</td><td class=c>рубли ${m(C.vat)}</td><td class="c b">рубли ${m(C.totalRub)}</td></tr>
+  <tr><td class="c b">${sup.supplier} — ${m(sup.total)} €</td><td class=c colspan=2>% ${pct(C.cat.border)}</td><td class=c colspan=2>% ${pct(C.cat.rf_broker)}</td><td class=c>% ${pct(C.cat.prr)}</td><td class=c>% ${pct(C.fee)}</td><td class=c>% ${pct(C.duty)}</td><td class=c>% ${pct(C.vat)}</td><td class="c b">% ${m(C.pct)}</td></tr></table>
+  <table class=nb style="margin-top:10px"><tr><td style="width:70%">
+    <br>Начальник склада: &nbsp;&nbsp; ${sig} &nbsp;&nbsp;&nbsp;&nbsp; _____________________ /А.И. Никулин<br><br>
+    Продакт-менеджер: &nbsp;&nbsp; ${sig} &nbsp;&nbsp;&nbsp;&nbsp; _____________________ / И.В. Макеева<br><br>
+    Главный бухгалтер: &nbsp;&nbsp; ${sig} &nbsp;&nbsp;&nbsp;&nbsp; _____________________ / А.С. Мосеенков</td>
+    <td><table><tr><td colspan=2 class=c>Курс валют на: ${dRU(ruDate(P.to_date)||S.gtd?.date)} г.</td></tr><tr><td class=c>валюта</td><td class=c>₽ рубль</td></tr><tr><td class=c>1$ доллар</td><td class=c>${C.usd?C.usd.toFixed(4):''}</td></tr><tr><td class=c>1евро</td><td class=c>${C.eur?C.eur.toFixed(4):''}</td></tr><tr><td class=c>К =1€ / 1$</td><td class=c>${C.usd&&C.eur?(C.eur/C.usd).toFixed(4):''}</td></tr></table></td></tr></table>`;
+  const pr=document.getElementById('print'); pr.style.zoom=1; pr.style.width='277mm'; pr.style.display='block'; const availH=(210-16)/25.4*96; const z=Math.min(1,availH/pr.scrollHeight); pr.style.zoom=z; pr.style.width=(277/z)+'mm'; pr.style.display='';
+  window.print();
+}
+
+// ===================== UI =====================
+const $=s=>document.querySelector(s); const view=$('#view');
+function renderSteps(){ $('#steps').innerHTML=STEPS.map((s,i)=>`<div class="${i===S.step?'act':''} ${done(i)?'done':''}" onclick="go(${i})">${i+1}. ${s}</div>`).join(''); }
+function done(i){ return [!!S.sup,S.kvt.length>0,!!S.gtd,!!S.pack,!!S.fact,!!S.receipt,!!S.params.act_date,false][i]; }
+window.go=i=>{ S.step=i; render(); };
+function dropzone(id,accept,multiple,text){ return `<label class="drop" id="${id}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');handleFiles('${id}',event.dataTransfer.files)">
+  <input type="file" accept="${accept}" ${multiple?'multiple':''} onchange="handleFiles('${id}',this.files)"><b>Выберите файл${multiple?'ы':''}</b> или перетащите сюда<br><span class=mute>${text}</span></label>`; }
+const nav=(prevOk=true,nextOk=true)=>`<div class="btns">${S.step>0?`<button class="sec" onclick="go(${S.step-1})">← Назад</button>`:''}${S.step<7?`<button class="pri" onclick="go(${S.step+1})" ${nextOk?'':'disabled'}>Далее →</button>`:''}</div>`;
+function render(){ renderSteps(); const st=S.step; let h='';
+  if(st===0){ h=`<div class=card><h2>1. Инвойс поставщика</h2><p class=hint>PDF-инвойс Cetinkaya Pano / EMAS. Из него берутся номер, дата, все строки и сумма в евро.</p>${dropzone('sup','.pdf',false,'PDF, один файл')}
+    ${S.sup?`<div class=sum><div><small>Номер</small><b>${S.sup.number}</b></div><div><small>Дата</small><b>${dRU(S.sup.date)}</b></div><div><small>Поставщик</small><b>${S.sup.supplier}</b></div><div><small>Сумма</small><b>${fmt(S.sup.total)} €</b></div><div><small>Строк / Σ строк</small><b>${S.sup.rows.length} / ${fmt(S.sup.rows.reduce((a,r)=>a+r.value,0))} €</b></div></div>
+    ${Math.abs(S.sup.rows.reduce((a,r)=>a+r.value,0)-S.sup.total)>0.05?'<div class=note>Сумма строк не совпадает с итогом инвойса — часть строк не распознана. Проверьте PDF.</div>':'<p class=ok>✓ Сумма строк совпадает с итогом инвойса</p>'}`:''}${nav(true,!!S.sup)}</div>`; }
+  if(st===1){ h=`<div class=card><h2>2. Счета КВТ Сервис</h2><p class=hint>Все счета по этой поставке (фрахт, ПРР, хранение, брокер, перевозка по РФ). Категорию можно поправить. Счёт без PDF — добавьте вручную.</p>${dropzone('kvt','.pdf',true,'PDF, можно сразу несколько')}
+    <table><tr><th>№</th><th>Дата</th><th>Услуга</th><th class=num>Сумма</th><th>Валюта</th><th>Категория в акте</th><th></th></tr>${S.kvt.map((k,i)=>`<tr><td>${k.manual?`<input type=text class=short value="${k.number}" onchange="S.kvt[${i}].number=this.value">`:k.number}</td><td>${dRU(k.date)}</td><td class=mute style="font-size:12.5px">${k.desc||(k.manual?'вручную':'')}</td><td class=num>${k.manual?`<input type=number step=0.01 class=short value="${k.total}" onchange="S.kvt[${i}].total=+this.value;render()">`:fmt(k.total)}</td><td>${k.manual?`<select onchange="S.kvt[${i}].currency=this.value"><option ${k.currency==='RUB'?'selected':''}>RUB</option><option ${k.currency==='USD'?'selected':''}>USD</option><option ${k.currency==='EUR'?'selected':''}>EUR</option></select>`:k.currency}</td>
+      <td><select class=cat onchange="S.kvt[${i}].category=this.value">${Object.entries(CATS).map(([v,t])=>`<option value="${v}" ${k.category===v?'selected':''}>${t}</option>`).join('')}</select></td><td><button class=sec onclick="S.kvt.splice(${i},1);render()">✕</button></td></tr>`).join('')}</table>
+    <div class=btns><button class=sec onclick="S.kvt.push({number:'',date:null,currency:'RUB',total:0,vat:0,category:'rf_broker',desc:'',manual:true});render()">+ Добавить счёт вручную</button></div>
+    ${S.kvt.length?`<p class=ok>✓ ${S.kvt.length} счетов · до границы ${fmt(S.kvt.filter(k=>k.category==='border').reduce((a,k)=>a+ +k.total,0))} · РФ+брокер ${fmt(S.kvt.filter(k=>k.category==='rf_broker').reduce((a,k)=>a+ +k.total,0))} ₽ · ПРР ${fmt(S.kvt.filter(k=>k.category==='prr').reduce((a,k)=>a+ +k.total,0))} ₽ ${S.kvt.some(k=>k.currency==='USD')?'<span class=warn>(суммы в USD — укажите курс на шаге 7)</span>':''}</p>`:''}${nav()}</div>`; }
+  if(st===2){ const g=S.gtd; h=`<div class=card><h2>3. ГТД / декларация на товары</h2><p class=hint>PDF ДТ. Берутся номер, дата ТО, курс EUR (графа 23) и платежи: сбор 1010, пошлина 2010, НДС 5010 (раздел B). Значения можно поправить.</p>${dropzone('gtd','.pdf',false,'PDF, один файл (можно многостраничный)')}
+    ${g?`<div class=row style="margin-top:14px"><label class=f>Номер ДТ<input type=text value="${g.number}" onchange="S.gtd.number=this.value"></label><label class=f>Дата ТО<input type=date value="${dISO(g.date)}" onchange="S.gtd.date=ruDate(this.value)"></label><label class=f>Курс EUR (гр. 23)<input type=number step=0.0001 value="${g.rate}" onchange="S.gtd.rate=+this.value"></label>
+    <label class=f>Таможенный сбор, ₽<input type=number step=0.01 value="${g.fee}" onchange="S.gtd.fee=+this.value"></label><label class=f>Пошлина, ₽<input type=number step=0.01 value="${g.duty}" onchange="S.gtd.duty=+this.value"></label><label class=f>НДС, ₽<input type=number step=0.01 value="${g.vat}" onchange="S.gtd.vat=+this.value"></label></div>
+    ${S.sup&&g.invoice_sum&&Math.abs(g.invoice_sum-S.sup.total)>0.05?`<div class=note>Сумма по ДТ (${fmt(g.invoice_sum)} ${g.currency}) не равна сумме инвойса (${fmt(S.sup.total)} €). Проверьте, что ДТ относится к этой поставке.</div>`:(g.invoice_sum?'<p class=ok>✓ Сумма в ДТ совпадает с инвойсом</p>':'')}`:''}
+    <div class=btns><button class=sec onclick="S.gtd=S.gtd||{number:'',date:null,currency:'EUR',invoice_sum:0,rate:0,fee:0,duty:0,vat:0};render()">Ввести платежи вручную (без PDF)</button></div>${nav()}</div>`; }
+  if(st===3){ const p=S.pack; h=`<div class=card><h2>4. Упаковочный лист</h2><p class=hint>PDF Packing List поставщика: паллеты, объём, вес брутто/нетто. Коробки — при необходимости вручную.</p>${dropzone('pack','.pdf',false,'PDF, один файл')}
+    ${p?`<div class=row style="margin-top:14px"><label class=f>Паллет<input type=number value="${p.pallets}" onchange="S.pack.pallets=+this.value"></label><label class=f>Коробок<input type=number value="${S.params.boxes||p.boxes||''}" placeholder="если есть" onchange="S.params.boxes=this.value"></label><label class=f>Объём, м³<input type=number step=0.01 value="${p.volume}" onchange="S.pack.volume=+this.value"></label><label class=f>Брутто, кг<input type=number step=0.01 value="${p.gross}" onchange="S.pack.gross=+this.value"></label><label class=f>Нетто, кг<input type=number step=0.01 value="${p.net}" onchange="S.pack.net=+this.value"></label><label class=f>Всего шт<input type=number value="${p.pieces}" onchange="S.pack.pieces=+this.value"></label></div>`:''}
+    <div class=btns><button class=sec onclick="S.pack=S.pack||{pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0};render()">Ввести вручную</button></div>${nav()}</div>`; }
+  if(st===4){ const C=S.sup&&S.fact?compute():null; h=`<div class=card><h2>5. Факт приёмки на складе</h2><p class=hint>XLSX с колонками «Артикул» (или «Модель») и «Факт». Артикулы, которых нет в файле, считаются непришедшими.</p>${dropzone('fact','.xlsx',false,'XLSX')}
+    ${S.fact?`<p class=ok>✓ ${Object.keys(S.fact).length} артикулов</p>`:''}${C?`<table><tr><th>Артикул</th><th class=num>Инвойс</th><th class=num>Факт</th><th class=num>∆</th><th class=num>Цена €</th><th class=num>Итого €</th><th>Тип</th></tr>${C.diffs.map(d=>`<tr><td>${d.code}</td><td class=num>${d.qi}</td><td class=num>${d.qf}</td><td class=num>${d.delta}</td><td class=num>${fmt(d.price)}</td><td class=num>${fmt(d.sum)}</td><td>${d.delta>0?'излишек':'недостача'}</td></tr>`).join('')}<tr><td class=b colspan=5><b>Итого</b></td><td class=num><b>${fmt(C.stage2)}</b></td><td></td></tr></table>${C.diffs.length>12?'<div class=note>В акт помещается 12 строк расхождений — остальные надо добавить вручную в Excel.</div>':''}`:''}${nav()}</div>`; }
+  if(st===5){ const R=S.receipt, C=S.sup&&R?compute():null; h=`<div class=card><h2>6. Приобретение товаров из 1С <span class=badge>необязательно</span></h2><p class=hint>Выгрузка документа «Приобретение товаров» (артикул, количество, цена, сумма). Сверяются цены и суммы строк.</p>${dropzone('receipt','.xlsx',false,'XLSX из 1С')}
+    ${R?`<p class=ok>✓ ${R.doc||'документ 1С'} · ${Object.keys(R.items).length} артикулов</p>${C.priceDiffs.length?`<div class=note><b>Расхождения по суммам строк: ${C.priceDiffs.length}</b><br>${C.priceDiffs.slice(0,8).map(d=>`${d.code}: инвойс ${fmt(d.l_inv)} €, 1С ${fmt(d.l_1c)} €`).join('<br>')}</div>`:'<p class=ok>✓ Цены и суммы строк совпадают с инвойсом</p>'}
+    ${R.anomalies.length?`<div class=note><b>⚠ В 1С колонка «Сумма» ≠ кол-во × цена (${R.anomalies.length} поз., итого ${fmt(R.anomalies.reduce((a,x)=>a+x.diff,0))} EUR):</b><br>${R.anomalies.map(a=>`${a.code}: ${a.qty} × ${fmt(a.price)} = ${fmt(a.sum_calc)}, а в 1С ${fmt(a.sum_1c)} (+${fmt(a.diff)})`).join('<br>')}<br>Передайте бухгалтерии — итог документа завышен.</div>`:''}
+    ${C.uom.length?`<p class=mute>Разная единица измерения без расхождения по сумме: ${C.uom.length} поз. (${[...new Set(C.uom.map(u=>u.code.split(' ')[0]))].join(', ')}) — цена в 1С ×${[...new Set(C.uom.map(u=>u.k))].join('/')}, количество меньше.</p>`:''}`:''}${nav()}</div>`; }
+  if(st===6){ const P=S.params; if(!P.to_date&&S.gtd?.date) P.to_date=dISO(S.gtd.date); if(!P.eur_rate&&S.gtd?.rate) P.eur_rate=S.gtd.rate; if(!P.label&&S.sup) P.label=`${S.sup.supplier==='Cetinkaya Pano'?'СР':S.sup.supplier} отгрузка 1 в ${String(new Date().getFullYear()).slice(2)}`;
+    const f=(k,l,t='text',extra='')=>`<label class=f>${l}<input type=${t} ${extra} value="${P[k]??''}" onchange="S.params['${k}']=this.value"></label>`;
+    h=`<div class=card><h2>7. Реквизиты акта</h2><p class=hint>Даты и курсы. Дата ТО и курс EUR подставлены из ГТД. Курс USD — по ЦБ РФ на дату ТО (cbr.ru).</p>
+    <div class=row>${f('act_no','Номер акта')}${f('label','Название отгрузки (имя листа и файла)')}${f('act_date','Дата акта','date')}${f('responsible','Ответственный (продакт-менеджер)')}</div><br>
+    <div class=row>${f('pickup_date','Дата забора груза от отправителя','date')}${f('depart_date','Дата выезда из г. Стамбул','date')}${f('to_date','Дата ТО','date')}${f('arrival_date','Дата поступления на склад','date')}</div><br>
+    <div class=row>${f('eur_rate','Курс EUR на дату ТО','number','step=0.0001')}${f('usd_rate','Курс USD на дату ТО','number','step=0.0001')}</div>
+    ${S.kvt.some(k=>k.currency==='USD')&&!+P.usd_rate?'<div class=note>Есть счета в USD — без курса USD доставка до границы не будет посчитана.</div>':''}${nav()}</div>`; }
+  if(st===7){ const C=S.sup?compute():null; if(!C){ h=`<div class=card><h2>8. Итог</h2><p class=err>Сначала загрузите инвойс поставщика (шаг 1).</p>${nav()}</div>`; }
+    else { const P=S.params; h=`<div class=card><h2>8. Итог и файлы</h2>
+    <div class=sum><div><small>Инвойс</small><b>${fmt(S.sup.total)} €</b></div><div><small>Доставка до границы</small><b>${fmt(C.cat.border)} ₽</b></div><div><small>Доставка РФ + брокер</small><b>${fmt(C.cat.rf_broker)} ₽</b></div><div><small>ПРР</small><b>${fmt(C.cat.prr)} ₽</b></div><div><small>Тамож. сбор</small><b>${fmt(C.fee)} ₽</b></div><div><small>Пошлина</small><b>${fmt(C.duty)} ₽</b></div><div><small>НДС</small><b>${fmt(C.vat)} ₽</b></div><div><small>Итого затрат</small><b>${fmt(C.totalRub)} ₽</b></div><div><small>% от инвойса</small><b>${fmt(C.pct)} %</b></div><div><small>Этап 2 (расхождения)</small><b>${C.diffs.length} поз. · ${fmt(C.stage2)} €</b></div></div>
+    ${C.conv.length?`<p class=mute>${C.conv.join('<br>')}</p>`:''}
+    ${[!S.gtd&&'нет ГТД — сбор/пошлина/НДС = 0',!S.pack&&'нет упаковочного листа — строка о местах/весе не заполнена',!S.fact&&'нет факта приёмки — этап 2 пустой',!P.act_date&&'не указана дата акта',S.kvt.some(k=>k.currency==='USD')&&!C.usd&&'нет курса USD'].filter(Boolean).map(w=>`<div class=note>⚠ ${w}</div>`).join('')}
+    <div class=btns><button class=pri onclick="doXlsx()">⬇ Скачать акт (.xlsx)</button><button class=sec onclick="printForm()">🖨 Печатная форма (PDF / печать)</button><button class=sec onclick="saveJson()">Сохранить сводку (.json)</button></div>
+    <p class=mute style="margin-top:14px">Excel-файл сделан по фирменному шаблону: формулы (∆, итоги, %, кросс-курс) живые, лишние строки скрыты, печать настроена на один лист A4 альбомный.</p>${nav()}</div>`; } }
+  view.innerHTML=h;
+}
+window.doXlsx=async()=>{ try{ const {buf,name}=await buildXlsx(); download(buf,name); }catch(e){ alert('Ошибка сборки: '+e.message); console.error(e);} };
+window.saveJson=()=>{ const C=compute(); download(new TextEncoder().encode(JSON.stringify({params:S.params,supplier:S.sup&&{number:S.sup.number,total:S.sup.total,rows:S.sup.rows.length},kvt:S.kvt,gtd:S.gtd,pack:S.pack,result:C},null,1)),'summary.json','application/json'); };
+window.handleFiles=async(id,files)=>{ const list=[...files]; try{
+  for(const f of list){ const low=f.name.toLowerCase();
+    if(id==='sup'){ const s=parseSupplier(await pdfLines(f,'\t')); if(!s) throw new Error('Это не инвойс поставщика: '+f.name); S.sup=s; }
+    if(id==='kvt'){ const k=parseKvt(await pdfLines(f)); if(!k) throw new Error('Это не счёт КВТ Сервис: '+f.name); if(!S.kvt.some(x=>x.number===k.number&&!x.manual)) S.kvt.push(k); }
+    if(id==='gtd'){ const g=parseGtd(await pdfLines(f),f.name); if(!g) throw new Error('Это не декларация на товары: '+f.name); S.gtd=g; }
+    if(id==='pack'){ const p=parsePacking(await pdfLines(f)); if(!p) throw new Error('Это не Packing List: '+f.name); S.pack=p; }
+    if(id==='fact'){ const x=parseFact(await xlsxRows(f)); if(!x) throw new Error('Не нашёл колонки «Артикул» и «Факт»: '+f.name); S.fact=x; }
+    if(id==='receipt'){ const x=parseReceipt(await xlsxRows(f)); if(!x) throw new Error('Не нашёл таблицу артикул/количество/цена: '+f.name); S.receipt=x; } }
+  }catch(e){ alert(e.message); } render(); };
+render();
+</script>
+</body>
+</html>
