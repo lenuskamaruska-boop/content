@@ -1,11 +1,23 @@
-{"act_no": "1", "shipment": "1", "label": "СР отгрузка 1 в 26",
+{
+ "act_no": "1",
+ "shipment": "1",
+ "label": "СР отгрузка 1 в 26",
  "act_date": "14.09.2026",
- "pickup_date": "17.07.2026", "depart_date": "28.07.2026", "to_date": "24.08.2026", "arrival_date": "07.09.2026",
+ "pickup_date": "17.07.2026",
+ "depart_date": "28.07.2026",
+ "to_date": "24.08.2026",
+ "arrival_date": "07.09.2026",
  "usd_rate": 82.9211,
  "responsible": "Макеева И.В.",
  "extra_costs": [
-   {"number": "1043", "currency": "USD", "total": 2050, "category": "border", "note": "Фрахт Стамбул–Новороссийск (со скриншота; заменить PDF счёта)"},
-   {"number": "1165", "date": "18.08.2026", "currency": "RUB", "total": 15252.69, "category": "rf_broker", "note": "Линейный сбор (со скриншота)"},
-   {"number": "1276", "date": "10.09.2026", "currency": "RUB", "total": 58163.16, "category": "rf_broker", "note": "СВХ хранение, терминальная обработка (со скриншота)"}
+  {
+   "number": "1276",
+   "date": "10.09.2026",
+   "currency": "RUB",
+   "total": 58163.16,
+   "vat": 10488.44,
+   "category": "rf_broker",
+   "note": "СВХ хранение, терминальная обработка, ДТ 10131010/240826/5298969 — подтверждено скриншотом счёта (PDF не приложен)"
+  }
  ]
 }

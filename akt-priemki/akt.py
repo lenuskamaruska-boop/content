@@ -26,6 +26,10 @@ RU_MONTHS_GEN = {1:'января',2:'февраля',3:'марта',4:'апре�
 RU_MONTHS = {'января':1,'февраля':2,'марта':3,'апреля':4,'мая':5,'июня':6,'июля':7,
              'августа':8,'сентября':9,'октября':10,'ноября':11,'декабря':12}
 
+def norm(code) -> str:
+    """Нормализация артикула для сопоставления: без пробелов, верхний регистр."""
+    return re.sub(r'\s+', '', str(code)).upper()
+
 def num(s: str) -> float:
     """'1 606 036,83' / '169988.26' / '2 050,00' -> float"""
     s = s.replace('\xa0',' ').replace(' ','').replace(' ','')
@@ -209,15 +213,38 @@ def xlsx_kind(path: str) -> str:
     """'fact' если есть колонка «Факт», 'order' если «Заказ»/«приобретение», иначе ''."""
     from openpyxl import load_workbook
     low = os.path.basename(path).lower()
-    if 'приобрет' in low or 'заказ' in low or 'order' in low: return 'order'
+    if 'приобрет' in low: return 'receipt'
+    if 'заказ' in low or 'order' in low: return 'order'
     if 'пакинг' in low or 'packing' in low or 'факт' in low: return 'fact'
     wb = load_workbook(path, read_only=True, data_only=True)
     for ws in wb.worksheets:
-        for r in ws.iter_rows(min_row=1, max_row=10, values_only=True):
+        for r in ws.iter_rows(min_row=1, max_row=20, values_only=True):
             vals = ' '.join(str(v).lower() for v in r if v is not None)
+            if 'приобретение товаров' in vals: return 'receipt'
             if 'факт' in vals: return 'fact'
             if 'заказ' in vals: return 'order'
     return ''
+
+def read_1c_receipt(path: str) -> dict:
+    """«Приобретение товаров» из 1С → {артикул: {'qty', 'price', 'doc'}} (строки одного артикула суммируются)."""
+    from openpyxl import load_workbook
+    wb = load_workbook(path, data_only=True); ws = wb.worksheets[0]; out = {}; doc = ''
+    hdr = None
+    for r in ws.iter_rows(min_row=1, max_row=25):
+        vals = {c.column: str(c.value).strip().lower() for c in r if c.value is not None}
+        joined = ' '.join(vals.values())
+        if 'приобретение товаров' in joined: doc = ' '.join(str(c.value) for c in r if c.value)
+        if 'артикул' in joined and ('количество' in joined or 'кол-во' in joined):
+            hdr = {k: v for k, v in vals.items()}; hrow = r[0].row; break
+    if not hdr: return {}
+    col = lambda name: next((c for c, v in hdr.items() if name in v), None)
+    ci, qi, pi = col('артикул'), (col('количество') or col('кол')), col('цена')
+    for r in ws.iter_rows(min_row=hrow+1, values_only=True):
+        code = r[ci-1] if ci else None; q = r[qi-1] if qi else None; pr = r[pi-1] if pi else None
+        if code and isinstance(q, (int, float)):
+            k = norm(code); e = out.setdefault(k, {'qty': 0.0, 'price': float(pr or 0), 'doc': doc})
+            e['qty'] += float(q)
+    return out
 
 # ---------- курсы ЦБ ----------
 def cbr_rates(date: dt.date) -> dict:
@@ -237,7 +264,7 @@ def cbr_rates(date: dt.date) -> dict:
 
 # ---------- заполнение шаблона ----------
 def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd: Optional[Gtd],
-                  pack: Optional[Packing], fact: dict, order: dict, params: dict, rates: dict) -> dict:
+                  pack: Optional[Packing], fact: dict, order: dict, params: dict, rates: dict, receipt: dict = None) -> dict:
     from openpyxl import load_workbook
     from copy import copy
     wb = load_workbook(template); ws = wb.worksheets[0]; ws2 = wb.worksheets[1]
@@ -268,13 +295,39 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
     ws['C73'] = sup.supplier or 'EMAS'
     if params.get('responsible'): ws['T27'] = params['responsible']
     # этап 2 — расхождения факт/инвойс
-    r = 28; inv_map = {c: (q, p) for c, _, q, p, _ in sup.rows}
+    r = 28; inv_map = {}; disp = {}
+    for c, _, q, p, _ in sup.rows:
+        k = norm(c); disp[k] = c
+        if k in inv_map: inv_map[k] = (inv_map[k][0] + q, p)
+        else: inv_map[k] = (q, p)
+    fact = {norm(k): v for k, v in fact.items()}; order = {norm(k): v for k, v in order.items()}
     diffs = []
     for code, q_fact in sorted(fact.items()):
         q_inv, price = inv_map.get(code, (0, 0.0))
-        if q_fact != q_inv: diffs.append((code, q_inv, q_fact, price))
+        if q_fact != q_inv: diffs.append((disp.get(code, code), q_inv, q_fact, price))
     for code in inv_map:
-        if fact and code not in fact: diffs.append((code, inv_map[code][0], 0, inv_map[code][1]))
+        if fact and code not in fact: diffs.append((disp[code], inv_map[code][0], 0, inv_map[code][1]))
+    # этап 3 — входные цены 1С vs инвойс
+    price_diffs = []; uom_notes = []
+    if receipt:
+        for code, e in receipt.items():
+            if code not in inv_map: continue
+            q_inv, p_inv = inv_map[code]; line_inv = round(q_inv * p_inv, 2); line_1c = round(e['qty'] * e['price'], 2)
+            if abs(line_1c - line_inv) > 0.01:
+                price_diffs.append((disp.get(code, code), p_inv, e['price'], line_inv, line_1c))
+            elif abs(e['price'] - p_inv) > 0.005:
+                k = round(e['price'] / p_inv, 2) if p_inv else 0
+                uom_notes.append((disp.get(code, code), k))
+        doc = next(iter(receipt.values()))['doc']
+        if price_diffs:
+            ws['E41'] = f'Есть: {len(price_diffs)} позиций — ' + '; '.join(f'{c}: инвойс {a:.2f}, 1С {b:.2f}' for c, a, b, *_ in price_diffs[:6])
+        else:
+            ws['E41'] = 'Нет'
+        note = f'Сверено с документом 1С «{doc}»' if doc else ''
+        if uom_notes:
+            ks = sorted({k for _, k in uom_notes}); pref = sorted({c.split()[0] for c, _ in uom_notes})
+            note += f'. Разная ед. изм. без расхождения по сумме: {len(uom_notes)} поз. ({", ".join(pref)}) — цена в 1С ×{"/".join(str(k) for k in ks)}, кол-во соответственно меньше'
+        ws['P41'] = note or None
     for code, qi, qf, price in diffs[:12]:
         ws[f'E{r}'] = code; ws[f'G{r}'] = qi; ws[f'H{r}'] = qf; ws[f'I{r}'] = f'=H{r}-G{r}'
         ws[f'J{r}'] = price; ws[f'K{r}'] = f'=J{r}*I{r}'
@@ -285,8 +338,10 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
     r = 42; od = []
     for code, q_ord in sorted(order.items()):
         q_inv = inv_map.get(code, (0, 0))[0]
-        if q_ord != q_inv: od.append((code, q_inv, q_ord, inv_map.get(code,(0,0.0))[1]))
+        if q_ord != q_inv: od.append((disp.get(code, code), q_inv, q_ord, inv_map.get(code,(0,0.0))[1]))
     if od:
+        for rng in [str(m) for m in ws.merged_cells.ranges if 42 <= m.min_row <= 64 and m.min_col >= 5 and m.max_col <= 11]:
+            ws.unmerge_cells(rng)
         ws['E42'] = None
         for code, qi, qo, price in od[:23]:
             ws[f'E{r}'] = code; ws[f'G{r}'] = qi; ws[f'H{r}'] = qo; ws[f'I{r}'] = f'=H{r}-G{r}'
@@ -314,7 +369,8 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
             'rates': {'USD': usd, 'EUR': eur}, 'conversions': conv_notes,
             'section6_rub': {'border': cat_sum['border'], 'rf_broker': cat_sum['rf_broker'], 'prr': cat_sum['prr'],
                              'fee': gtd.fee if gtd else None, 'duty': gtd.duty if gtd else None, 'vat': gtd.vat if gtd else None},
-            'stage2_diffs': diffs, 'stage4_diffs': od}
+            'stage2_diffs': diffs, 'stage4_diffs': od, 'stage3_price_diffs': price_diffs, 'stage3_uom_notes': uom_notes,
+            'receipt_rows': len(receipt) if receipt else 0}
 
 # ---------- главный сценарий ----------
 def main():
@@ -325,7 +381,7 @@ def main():
     params = {}
     pj = os.path.join(a.folder, 'params.json')
     if os.path.exists(pj): params = json.load(open(pj, encoding='utf-8'))
-    sup = None; kvt = []; gtd = None; pack = None; fact = {}; order = {}
+    sup = None; kvt = []; gtd = None; pack = None; fact = {}; order = {}; receipt = {}
     import hashlib; seen = set()
     for f in sorted(glob.glob(os.path.join(a.folder, '*'))):
         low = os.path.basename(f).lower()
@@ -345,6 +401,7 @@ def main():
             kind = xlsx_kind(f)
             if kind == 'fact': fact = read_xlsx_pairs(f)
             elif kind == 'order': order = read_xlsx_pairs(f, qty_hdr=('кол','qty','заказ'))
+            elif kind == 'receipt': receipt = read_1c_receipt(f)
     if not sup: sys.exit('Не найден инвойс поставщика (PDF со словом INVOICE).')
     # --- ручные добавки из params.json (для документов, которых нет в папке) ---
     for e in params.get('extra_costs', []):   # {"number":"1043","currency":"USD","total":2050,"category":"border","note":"..."}
@@ -367,7 +424,7 @@ def main():
     label = params.get('label') or f"Отгрузка {'СР' if (sup.supplier or '').startswith('Cet') else sup.supplier} {params.get('shipment','1')} в {dt.date.today().year}"
     params.setdefault('label', label)
     out = a.out or os.path.join(a.folder, f"Акт приёмки №{params.get('act_no','1')} ({label}).xlsx")
-    summary = fill_template(template, out, sup, kvt, gtd, pack, fact, order, params, rates)
+    summary = fill_template(template, out, sup, kvt, gtd, pack, fact, order, params, rates, receipt)
     summary['output'] = out
     json.dump(summary, open(os.path.join(a.folder, 'summary.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1, default=str)
     print(json.dumps(summary, ensure_ascii=False, indent=1, default=str))
