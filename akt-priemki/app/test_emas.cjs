@@ -13,5 +13,5 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright/index.js')
   console.log('fixed codes:',await p.evaluate(()=>S.sup.rows.filter(r=>r.fixed).map(r=>r.orig+'>'+r.code)));
   console.log('pack1 diffs:',await p.evaluate(()=>{ const C=compute(); return {n:C.pack1.length,sample:C.pack1.slice(0,12)}; }));
   await p.screenshot({path:SP+'akt/emas_step1.png',fullPage:true});
-  fs.writeFileSync(SP+'akt/emas_sup.json',JSON.stringify(await p.evaluate(()=>S.sup.rows.map(r=>({code:r.code,qty:r.qty,price:r.price,value:r.value,ok:r.ok,raw:r.raw}))),null,1));
+  fs.writeFileSync(SP+'akt/emas_sup.json',JSON.stringify(await p.evaluate(()=>S.sup.rows.map(r=>({pg:r.pg,i:r.i,code:r.code,qty:r.qty,price:r.price,value:r.value,ok:r.ok,score:r.score,raw:r.raw}))),null,1));
   await b.close(); })().catch(e=>{console.error('FAIL',e);process.exit(1);});

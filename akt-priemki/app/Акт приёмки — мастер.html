@@ -204,7 +204,7 @@ function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push(
 // допуск: цена в инвойсе печатается с 4 знаками, а сумма считается от точной цены — расхождение растёт с количеством
 const tol=q=>0.011+Math.min(q,3000)*0.00006;
 function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
-  for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st; if(!best||sc<best.score) best={qty:q,price:p,value:Math.round(q*p*100)/100,score:sc}; }
+  for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st+st*0.1; if(!best||sc<best.score) best={qty:q,price:p,value:t,score:Math.round(sc)}; } // сумма — как напечатано в инвойсе (считана от точной цены)
   if(best) return best;
   // кол-во не прочиталось: выводим из суммы и цены, но только если оно согласуется с прочитанными цифрами
   const rq=raw.qty.replace(/\D/g,'');
@@ -239,7 +239,7 @@ async function ocrInvoice(file, progress){
       await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn},{text:true,blocks:true})).data;
       const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
       const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
-      if((!looksCode(code)&&digits<2)||(code.length<=2&&!/\d/.test(code)&&digits<2)){ dropped++; continue; } // шум (печать, подпись), не строка таблицы
+      if(digits===0&&(!looksCode(code)||code.length<=2)){ dropped++; continue; } // совсем пустая строка-шум; всё остальное — на проверку с картинкой // шум (печать, подпись), не строка таблицы
       const res=resolveRow(raw);
       const gq=parseInt(q.replace(/\D/g,''))||0, gp=(candsPrice(pr)[0]||[0])[0];
       const row={pg:p, i, code, desc:'', score:res?res.score:null, qty:res?res.qty:gq, price:res?res.price:gp, value:res?res.value:Math.round(gq*gp*100)/100, ocr:true, ok:!!res, raw};
