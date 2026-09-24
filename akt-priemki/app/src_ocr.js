@@ -30,8 +30,10 @@ function skewDy(c,g){ const W=c.width,H=c.height; const L=hLines(g,W,H,Math.roun
   for(const y of L){ let best=null; for(const r of R) if(best===null||Math.abs(r-y)<Math.abs(best-y)) best=r; if(best!==null&&Math.abs(best-y)<H*.012) ds.push(best-y); }
   if(ds.length<2) return 0; ds.sort((a,b)=>a-b); return ds[ds.length>>1]; }
 function rotated(c,ang){ const W=c.width,H=c.height; const c2=document.createElement('canvas'); c2.width=W; c2.height=H; const ctx=c2.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.translate(W/2,H/2); ctx.rotate(ang); ctx.drawImage(c,-W/2,-H/2); return c2; }
+// сколько строк изображения — сплошные горизонтальные линии (чем ровнее скан, тем их больше)
+function lineScore(c,g){ const W=c.width,H=c.height; let n=0; for(let y=0;y<H;y++){ let k=0; const o=y*W; for(let x=0;x<W;x++) if(g[o+x]<215) k++; if(k/W>.45) n++; } return n; }
 function deskew(c){ const dy=skewDy(c,grayOf(c)); if(Math.abs(dy)<1.5) return c; const ang=Math.atan2(dy, c.width*(0.835-0.17));
-  const a=rotated(c,-ang), b=rotated(c,ang); const da=Math.abs(skewDy(a,grayOf(a))), db=Math.abs(skewDy(b,grayOf(b))); return da<=db?a:b; }
+  const a=rotated(c,-ang), b=rotated(c,ang); return lineScore(a,grayOf(a))>=lineScore(b,grayOf(b))?a:b; }
 // геометрия таблицы: горизонтальные линии строк и вертикальные линии колонок
 function tableGeom(c){ const W=c.width,H=c.height,g=grayOf(c);
   const idx=[]; for(let y=1;y<H-1;y++){ let n=0; const o=y*W; for(let x=0;x<W;x++) if(g[o+x]<215||g[o-W+x]<215||g[o+W+x]<215) n++; if(n/W>.45) idx.push(y); }
