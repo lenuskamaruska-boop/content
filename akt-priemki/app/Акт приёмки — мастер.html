@@ -316,7 +316,7 @@ async function ocrPacking(file, progress, withItems, base){
     const first=deskew(await renderPage(await pdf.getPage(1),1653)); const head=(await w.recognize(cropCanvas(first,{left:0,top:0,width:first.width,height:Math.round(first.height*.3)}))).data.text;
     const last=deskew(await renderPage(await pdf.getPage(pdf.numPages),1653)); const foot=(await w.recognize(last)).data.text; const t=head+'\n'+foot;
     let m=t.match(/TOTAL\s+(\d+)\s+BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM/i); if(m){p.boxes=+m[1];p.pallets=+m[2];p.volume=num(m[3]);}
-    m=t.match(/GROSS\s*WEIGHT\s*:?\s*(\d[\d .,]*?)\s*KG/i); if(m)p.gross=num(m[1].replace(/ /g,'')); m=t.match(/NET\s*WEIGHT\s*:?\s*(\d[\d .,]*?)\s*KG/i); if(m)p.net=num(m[1].replace(/ /g,''));
+    m=t.match(/GROSS\s*WEIGHT\s*:?\s*(\d[\d.,]*)/i); if(m)p.gross=num(m[1]); m=t.match(/NET\s*WEIGHT\s*:?\s*(\d[\d.,]*)/i); if(m)p.net=num(m[1]); // «KG» после числа OCR читает по-разному
     m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=normNums(t.match(/[A-Z]{2,4}\d{10,}/g)||[]); }
   if(!withItems) return p;
   const items={};
