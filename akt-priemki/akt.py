@@ -238,12 +238,21 @@ def read_1c_receipt(path: str) -> dict:
             hdr = {k: v for k, v in vals.items()}; hrow = r[0].row; break
     if not hdr: return {}
     col = lambda name: next((c for c, v in hdr.items() if name in v), None)
-    ci, qi, pi = col('артикул'), (col('количество') or col('кол')), col('цена')
+    ci, qi, pi, si = col('артикул'), (col('количество') or col('кол')), col('цена'), col('сумма')
+    anomalies = []
     for r in ws.iter_rows(min_row=hrow+1, values_only=True):
         code = r[ci-1] if ci else None; q = r[qi-1] if qi else None; pr = r[pi-1] if pi else None
+        sm = r[si-1] if si else None
         if code and isinstance(q, (int, float)):
-            k = norm(code); e = out.setdefault(k, {'qty': 0.0, 'price': float(pr or 0), 'doc': doc})
-            e['qty'] += float(q)
+            k = norm(code); e = out.setdefault(k, {'qty': 0.0, 'price': float(pr or 0), 'doc': doc, 'sum': 0.0})
+            e['qty'] += float(q); e['sum'] += float(sm or 0)
+            if isinstance(sm, (int, float)) and pr is not None:
+                calc = round(float(q) * float(pr), 2)
+                if abs(float(sm) - calc) > 0.01:
+                    anomalies.append({'code': str(code).strip(), 'qty': float(q), 'price': float(pr),
+                                      'sum_1c': round(float(sm), 2), 'sum_calc': calc, 'diff': round(float(sm) - calc, 2)})
+    if out:
+        next(iter(out.values()))['_anomalies'] = anomalies
     return out
 
 # ---------- курсы ЦБ ----------
@@ -324,6 +333,11 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
         else:
             ws['E41'] = 'Нет'
         note = f'Сверено с документом 1С «{doc}»' if doc else ''
+        anomalies = next(iter(receipt.values())).get('_anomalies', [])
+        if anomalies:
+            tot = round(sum(a['diff'] for a in anomalies), 2)
+            note += (f'. ВНИМАНИЕ: в 1С колонка «Сумма» ≠ кол-во×цена по {len(anomalies)} поз. '
+                     f'({", ".join(a["code"] for a in anomalies[:5])}) — итого {tot:+,.2f} EUR; итог документа завышен')
         if uom_notes:
             ks = sorted({k for _, k in uom_notes}); pref = sorted({c.split()[0] for c, _ in uom_notes})
             note += f'. Разная ед. изм. без расхождения по сумме: {len(uom_notes)} поз. ({", ".join(pref)}) — цена в 1С ×{"/".join(str(k) for k in ks)}, кол-во соответственно меньше'
@@ -370,6 +384,7 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
             'section6_rub': {'border': cat_sum['border'], 'rf_broker': cat_sum['rf_broker'], 'prr': cat_sum['prr'],
                              'fee': gtd.fee if gtd else None, 'duty': gtd.duty if gtd else None, 'vat': gtd.vat if gtd else None},
             'stage2_diffs': diffs, 'stage4_diffs': od, 'stage3_price_diffs': price_diffs, 'stage3_uom_notes': uom_notes,
+            'receipt_sum_anomalies': (next(iter(receipt.values())).get('_anomalies', []) if receipt else []),
             'receipt_rows': len(receipt) if receipt else 0}
 
 # ---------- главный сценарий ----------
@@ -426,6 +441,8 @@ def main():
     out = a.out or os.path.join(a.folder, f"Акт приёмки №{params.get('act_no','1')} ({label}).xlsx")
     summary = fill_template(template, out, sup, kvt, gtd, pack, fact, order, params, rates, receipt)
     summary['output'] = out
+    for a_ in summary.get('receipt_sum_anomalies', []):
+        print(f"⚠ 1С: {a_['code']} — Сумма {a_['sum_1c']:.2f} ≠ {a_['qty']:g}×{a_['price']:.2f}={a_['sum_calc']:.2f} (разница {a_['diff']:+.2f} EUR)", file=sys.stderr)
     json.dump(summary, open(os.path.join(a.folder, 'summary.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1, default=str)
     print(json.dumps(summary, ensure_ascii=False, indent=1, default=str))
 

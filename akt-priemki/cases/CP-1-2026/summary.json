@@ -255,6 +255,32 @@
    2.0
   ]
  ],
+ "receipt_sum_anomalies": [
+  {
+   "code": "CWD2560G",
+   "qty": 270.0,
+   "price": 1.56,
+   "sum_1c": 842.4,
+   "sum_calc": 421.2,
+   "diff": 421.2
+  },
+  {
+   "code": "CWD4040G",
+   "qty": 910.0,
+   "price": 1.48,
+   "sum_1c": 2693.6,
+   "sum_calc": 1346.8,
+   "diff": 1346.8
+  },
+  {
+   "code": "CWD4060G",
+   "qty": 216.0,
+   "price": 1.94,
+   "sum_1c": 838.08,
+   "sum_calc": 419.04,
+   "diff": 419.04
+  }
+ ],
  "receipt_rows": 130,
  "output": "cases/CP-1-2026/Акт приёмки №1 (СР отгрузка 1 в 26).xlsx"
 }
