@@ -121,7 +121,7 @@ async function ocrInvoice(file, progress){
   const gt=(footer.match(/\d[\d.]*,\d{2}\s*EUR/g)||[]).map(s=>num(s.replace(/\s*EUR/,''))).filter(v=>v>0);
   // итог инвойса — сумма в EUR на последней странице, ближайшая к сумме строк (в пределах ±25%); иначе итог не распознан
   let grand=0; for(const v of gt){ if(Math.abs(v-sumRows)<=sumRows*.25&&(!grand||Math.abs(v-sumRows)<Math.abs(grand-sumRows))) grand=v; }
-  let pcs=0; for(const m of footer.matchAll(/(\d[\d.]*)\s*PCS/g)){ const v=parseInt(m[1].replace(/\./g,'')); if(v>0&&Math.abs(v-sumQty)<=sumQty*.25&&(!pcs||Math.abs(v-sumQty)<Math.abs(pcs-sumQty))) pcs=v; } const supplier=/EMAS|emas/.test(header+file.name)||/эмас/i.test(file.name)?'EMAS':(/CETINKAYA|ÇETİNKAYA/i.test(header)?'Cetinkaya Pano':'');
+  let pcs=0; for(const m of footer.matchAll(/(\d[\d.]*)\s*PCS/g)){ const v=parseInt(m[1].replace(/\./g,'')); if(v>0&&Math.abs(v-sumQty)<=sumQty*.25&&(!pcs||Math.abs(v-sumQty)<Math.abs(pcs-sumQty))) pcs=v; } const supplier=/EMAS|emas/.test(header+file.name)||/эмас/i.test(file.name)||numbers.some(n=>/^EMA/.test(n))?'EMAS':(/CETINKAYA|ÇETİNKAYA/i.test(header)||numbers.some(n=>/^CTI/.test(n))?'Cetinkaya Pano':'');
   if(dropped) log(`OCR: пропущено ${dropped} строк-шумов (печати/подписи)`);
   return {number:numbers.join(', ')||'?', date:dm?new Date(+dm[3],+dm[2]-1,+dm[1]):null, total:grand||Math.round(sumRows*100)/100, supplier, rows, ocr:true, flagged, pcs, grand};
 }
