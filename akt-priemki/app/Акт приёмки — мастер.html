@@ -236,9 +236,9 @@ async function ocrInvoice(file, progress){
     if(p===pdf.numPages){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); footer=(await w.recognize(small)).data.text; }
     if(!G) continue;
     const [x0,x1,x2,x3,x4,x5]=G.cols, K=c.width/1653; // K — масштаб относительно скана 200 dpi
-    const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h>=15*K&&h<=40*K) eraseRules(clean,G.cols,G.rows[i]+2,h-4,K); }
+    const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h>=15*K&&h<=55*K) eraseRules(clean,G.cols,G.rows[i]+2,h-4,K); }
     for(let i=0;i<G.rows.length-1;i++){
-      const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>40*K) continue;
+      const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>55*K) continue;
       const y=G.rows[i]+3*K, hh=h-6*K, rect=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
       progress(`страница ${p} из ${pdf.numPages}: строка ${i+1} из ${G.rows.length-1}`);
       const band={left:x0,top:G.rows[i],width:x5-x0,height:h}; if(inkFrac(c,band)<0.004) continue; // пустая строка
@@ -257,15 +257,17 @@ async function ocrInvoice(file, progress){
       rows.push(row);
     }
   }
-  const numbers=[...new Set(header.match(/[A-Z]{2,4}\d{10,}/g)||[])]; const dm=header.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  const numbers=normNums(header.match(/[A-Z]{2,4}\d{10,}/g)||[]); const dm=header.match(/(\d{2})\.(\d{2})\.(\d{4})/);
   const sumRows=rows.reduce((a,r)=>a+r.value,0), sumQty=rows.reduce((a,r)=>a+r.qty,0);
   const gt=(footer.match(/\d[\d.]*,\d{2}\s*EUR/g)||[]).map(s=>num(s.replace(/\s*EUR/,''))).filter(v=>v>0);
   // итог инвойса — сумма в EUR на последней странице, ближайшая к сумме строк (в пределах ±25%); иначе итог не распознан
   let grand=0; for(const v of gt){ if(Math.abs(v-sumRows)<=sumRows*.25&&(!grand||Math.abs(v-sumRows)<Math.abs(grand-sumRows))) grand=v; }
-  let pcs=0; for(const m of footer.matchAll(/(\d[\d.]*)\s*PCS/g)){ const v=parseInt(m[1].replace(/\./g,'')); if(v>0&&Math.abs(v-sumQty)<=sumQty*.25&&(!pcs||Math.abs(v-sumQty)<Math.abs(pcs-sumQty))) pcs=v; } const supplier=/EMAS|emas/.test(header+file.name)||/эмас/i.test(file.name)?'EMAS':(/CETINKAYA|ÇETİNKAYA/i.test(header)?'Cetinkaya Pano':'');
+  let pcs=0; for(const m of footer.matchAll(/(\d[\d.]*)\s*PCS/g)){ const v=parseInt(m[1].replace(/\./g,'')); if(v>0&&Math.abs(v-sumQty)<=sumQty*.25&&(!pcs||Math.abs(v-sumQty)<Math.abs(pcs-sumQty))) pcs=v; } const supplier=/EMAS|emas/.test(header+file.name)||/эмас/i.test(file.name)||numbers.some(n=>/^EMA/.test(n))?'EMAS':(/CETINKAYA|ÇETİNKAYA/i.test(header)||numbers.some(n=>/^CTI/.test(n))?'Cetinkaya Pano':'');
   if(dropped) log(`OCR: пропущено ${dropped} строк-шумов (печати/подписи)`);
   return {number:numbers.join(', ')||'?', date:dm?new Date(+dm[3],+dm[2]-1,+dm[1]):null, total:grand||Math.round(sumRows*100)/100, supplier, rows, ocr:true, flagged, pcs, grand};
 }
+// номера инвойсов: OCR иногда добавляет букву к префиксу (EMAZ2025…) — приводим к самому частому префиксу
+function normNums(list){ const nums=[...new Set(list)]; if(nums.length<2) return nums; const pre={}; for(const n of nums){ const k=n.match(/^[A-Z]+/)[0]; pre[k]=(pre[k]||0)+1; } const main=Object.entries(pre).sort((a,b)=>b[1]-a[1])[0][0]; return [...new Set(nums.map(n=>{ const k=n.match(/^[A-Z]+/)[0]; return k!==main&&k.startsWith(main)?main+n.slice(k.length):n; }))]; }
 // есть ли в PDF текстовый слой
 async function pdfHasText(file){ const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise; let n=0; for(let p=1;p<=Math.min(2,pdf.numPages);p++){ const tc=await (await pdf.getPage(p)).getTextContent(); n+=tc.items.reduce((a,i)=>a+i.str.trim().length,0); } return n>80; }
 
@@ -307,18 +309,19 @@ async function ocrPacking(file, progress, withItems, base){
     const first=deskew(await renderPage(await pdf.getPage(1),1653)); const head=(await w.recognize(cropCanvas(first,{left:0,top:0,width:first.width,height:Math.round(first.height*.3)}))).data.text;
     const last=deskew(await renderPage(await pdf.getPage(pdf.numPages),1653)); const foot=(await w.recognize(last)).data.text; const t=head+'\n'+foot;
     let m=t.match(/TOTAL\s+(\d+)\s+BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM/i); if(m){p.boxes=+m[1];p.pallets=+m[2];p.volume=num(m[3]);}
-    m=t.match(/GROSS WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.gross=num(m[1]); m=t.match(/NET WEIGHT:?\s*([\d.,]+)\s*KG/i); if(m)p.net=num(m[1]);
-    m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=[...new Set(t.match(/[A-Z]{2,4}\d{10,}/g)||[])]; }
+    m=t.match(/GROSS\s*WEIGHT\s*:?\s*(\d[\d .,]*?)\s*KG/i); if(m)p.gross=num(m[1].replace(/ /g,'')); m=t.match(/NET\s*WEIGHT\s*:?\s*(\d[\d .,]*?)\s*KG/i); if(m)p.net=num(m[1].replace(/ /g,''));
+    m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1]; p.invoices=normNums(t.match(/[A-Z]{2,4}\d{10,}/g)||[]); }
   if(!withItems) return p;
   const items={};
   for(let pg=1;pg<=pdf.numPages;pg++){ const c=deskew(await renderPage(await pdf.getPage(pg),3300)); const G=tableGeom(c); if(!G) continue; const K=c.width/1653, cols=G.cols; const xc0=cols[cols.length-3], xc1=cols[cols.length-2], xq1=cols[cols.length-1];
     for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h<15*K) continue; const y=G.rows[i]+3*K, hh=h-6*K; progress(`упаковочный лист: страница ${pg} из ${pdf.numPages}, строка ${i+1} из ${G.rows.length-1}`);
       const rc=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
-      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'}); const codes=linesOf((await w.recognize(c,{rectangle:rc(xc0,xc1)},{text:true,blocks:true})).data); if(!codes.some(l=>looksCode(l.text))) continue;
-      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789'}); const qtys=linesOf((await w.recognize(c,{rectangle:rc(xc1,xq1)},{text:true,blocks:true})).data);
-      for(const cl of codes){ if(!looksCode(cl.text)) continue; let bq=null; for(const ql of qtys) if(/^\d+$/.test(ql.text)&&(bq===null||Math.abs(ql.y-cl.y)<Math.abs(bq.y-cl.y))) bq=ql; if(bq&&Math.abs(bq.y-cl.y)<14*K) items[cl.text]=(items[cl.text]||0)+ +bq.text; } } }
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'}); const codes=tokensOf((await w.recognize(c,{rectangle:rc(xc0,xc1)},{text:true,blocks:true})).data).filter(t=>looksCode(t.text)); if(!codes.length) continue;
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789'}); const qtys=tokensOf((await w.recognize(c,{rectangle:rc(xc1,xq1)},{text:true,blocks:true})).data).filter(t=>/^\d{1,6}$/.test(t.text));
+      for(const cl of codes){ let bq=null; for(const ql of qtys) if(!ql.used&&(bq===null||Math.abs(ql.y-cl.y)<Math.abs(bq.y-cl.y))) bq=ql; if(bq&&Math.abs(bq.y-cl.y)<14*K){ bq.used=true; items[cl.text]=(items[cl.text]||0)+ +bq.text; } } } }
   p.items=items; p.pieces=Object.values(items).reduce((a,b)=>a+b,0); return p;
 }
+function tokensOf(d){ return wordsOf(d).map(w=>({text:w.text.replace(/\s+/g,''),y:(w.bbox.y0+w.bbox.y1)/2})).filter(t=>t.text); }
 function linesOf(d){ const out=[]; for(const b of d.blocks||[]) for(const par of b.paragraphs||[]) for(const l of par.lines||[]){ const text=(l.words||[]).map(w=>w.text).join('').replace(/\s+/g,'').trim(); if(text) out.push({text,y:(l.bbox.y0+l.bbox.y1)/2}); } return out; }
 </script>
 <script>
@@ -449,7 +452,7 @@ function compute(){
   let priceDiffs=[], uom=[]; if(S.receipt){ for(const [k,e] of Object.entries(S.receipt.items)){ const i=inv[k]; if(!i) continue; const li=Math.round(i.qty*i.price*100)/100, l1=Math.round(e.qty*e.price*100)/100;
       if(Math.abs(l1-li)>0.01) priceDiffs.push({code:disp[k]||k,p_inv:i.price,p_1c:e.price,l_inv:li,l_1c:l1}); else if(Math.abs(e.price-i.price)>0.005) uom.push({code:disp[k]||k,k:Math.round(e.price/i.price*100)/100}); } }
   const fee=S.gtd?.fee||0, duty=S.gtd?.duty||0, vat=S.gtd?.vat||0; const totalRub=cat.border+cat.rf_broker+cat.prr+fee+duty+vat;
-  const pack1=[]; if(S.pack&&S.pack.items){ const pk={}; for(const [k,q] of Object.entries(S.pack.items)) pk[norm(k)]=(pk[norm(k)]||0)+q; for(const k in inv) if((pk[k]||0)!==inv[k].qty) pack1.push({code:disp[k],qi:inv[k].qty,qp:pk[k]||0}); for(const k in pk) if(!(k in inv)) pack1.push({code:k,qi:0,qp:pk[k]}); }
+  const pack1=[]; if(S.pack&&S.pack.items){ const pk={}; const byC={}; for(const k in inv) byC[canon(k)]=k; for(const [k0,q] of Object.entries(S.pack.items)){ let k=norm(k0); if(!(k in inv)&&byC[canon(k)]) k=byC[canon(k)]; pk[k]=(pk[k]||0)+q; } // артикулы упаковочного (в т.ч. после OCR) сводим к артикулам инвойса for(const k in inv) if((pk[k]||0)!==inv[k].qty) pack1.push({code:disp[k],qi:inv[k].qty,qp:pk[k]||0}); for(const k in pk) if(!(k in inv)) pack1.push({code:k,qi:0,qp:pk[k]}); }
   const stage2=diffs.reduce((a,d)=>a+d.sum,0);
   return {inv,disp,eur,usd,cat,conv,diffs,priceDiffs,uom,fee,duty,vat,totalRub,pack1,pct:eur&&sup.total?totalRub/(sup.total*eur)*100:0,stage2};
 }

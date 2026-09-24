@@ -95,9 +95,9 @@ async function ocrInvoice(file, progress){
     if(p===pdf.numPages){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); footer=(await w.recognize(small)).data.text; }
     if(!G) continue;
     const [x0,x1,x2,x3,x4,x5]=G.cols, K=c.width/1653; // K — масштаб относительно скана 200 dpi
-    const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h>=15*K&&h<=40*K) eraseRules(clean,G.cols,G.rows[i]+2,h-4,K); }
+    const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h>=15*K&&h<=55*K) eraseRules(clean,G.cols,G.rows[i]+2,h-4,K); }
     for(let i=0;i<G.rows.length-1;i++){
-      const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>40*K) continue;
+      const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>55*K) continue;
       const y=G.rows[i]+3*K, hh=h-6*K, rect=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
       progress(`страница ${p} из ${pdf.numPages}: строка ${i+1} из ${G.rows.length-1}`);
       const band={left:x0,top:G.rows[i],width:x5-x0,height:h}; if(inkFrac(c,band)<0.004) continue; // пустая строка
@@ -175,9 +175,10 @@ async function ocrPacking(file, progress, withItems, base){
   for(let pg=1;pg<=pdf.numPages;pg++){ const c=deskew(await renderPage(await pdf.getPage(pg),3300)); const G=tableGeom(c); if(!G) continue; const K=c.width/1653, cols=G.cols; const xc0=cols[cols.length-3], xc1=cols[cols.length-2], xq1=cols[cols.length-1];
     for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h<15*K) continue; const y=G.rows[i]+3*K, hh=h-6*K; progress(`упаковочный лист: страница ${pg} из ${pdf.numPages}, строка ${i+1} из ${G.rows.length-1}`);
       const rc=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
-      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'}); const codes=linesOf((await w.recognize(c,{rectangle:rc(xc0,xc1)},{text:true,blocks:true})).data); if(!codes.some(l=>looksCode(l.text))) continue;
-      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789'}); const qtys=linesOf((await w.recognize(c,{rectangle:rc(xc1,xq1)},{text:true,blocks:true})).data);
-      for(const cl of codes){ if(!looksCode(cl.text)) continue; let bq=null; for(const ql of qtys) if(/^\d+$/.test(ql.text)&&(bq===null||Math.abs(ql.y-cl.y)<Math.abs(bq.y-cl.y))) bq=ql; if(bq&&Math.abs(bq.y-cl.y)<14*K) items[cl.text]=(items[cl.text]||0)+ +bq.text; } } }
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/.'}); const codes=tokensOf((await w.recognize(c,{rectangle:rc(xc0,xc1)},{text:true,blocks:true})).data).filter(t=>looksCode(t.text)); if(!codes.length) continue;
+      await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789'}); const qtys=tokensOf((await w.recognize(c,{rectangle:rc(xc1,xq1)},{text:true,blocks:true})).data).filter(t=>/^\d{1,6}$/.test(t.text));
+      for(const cl of codes){ let bq=null; for(const ql of qtys) if(!ql.used&&(bq===null||Math.abs(ql.y-cl.y)<Math.abs(bq.y-cl.y))) bq=ql; if(bq&&Math.abs(bq.y-cl.y)<14*K){ bq.used=true; items[cl.text]=(items[cl.text]||0)+ +bq.text; } } } }
   p.items=items; p.pieces=Object.values(items).reduce((a,b)=>a+b,0); return p;
 }
+function tokensOf(d){ return wordsOf(d).map(w=>({text:w.text.replace(/\s+/g,''),y:(w.bbox.y0+w.bbox.y1)/2})).filter(t=>t.text); }
 function linesOf(d){ const out=[]; for(const b of d.blocks||[]) for(const par of b.paragraphs||[]) for(const l of par.lines||[]){ const text=(l.words||[]).map(w=>w.text).join('').replace(/\s+/g,'').trim(); if(text) out.push({text,y:(l.bbox.y0+l.bbox.y1)/2}); } return out; }

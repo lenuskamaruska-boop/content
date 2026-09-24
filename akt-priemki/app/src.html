@@ -179,7 +179,7 @@ function compute(){
   let priceDiffs=[], uom=[]; if(S.receipt){ for(const [k,e] of Object.entries(S.receipt.items)){ const i=inv[k]; if(!i) continue; const li=Math.round(i.qty*i.price*100)/100, l1=Math.round(e.qty*e.price*100)/100;
       if(Math.abs(l1-li)>0.01) priceDiffs.push({code:disp[k]||k,p_inv:i.price,p_1c:e.price,l_inv:li,l_1c:l1}); else if(Math.abs(e.price-i.price)>0.005) uom.push({code:disp[k]||k,k:Math.round(e.price/i.price*100)/100}); } }
   const fee=S.gtd?.fee||0, duty=S.gtd?.duty||0, vat=S.gtd?.vat||0; const totalRub=cat.border+cat.rf_broker+cat.prr+fee+duty+vat;
-  const pack1=[]; if(S.pack&&S.pack.items){ const pk={}; for(const [k,q] of Object.entries(S.pack.items)) pk[norm(k)]=(pk[norm(k)]||0)+q; for(const k in inv) if((pk[k]||0)!==inv[k].qty) pack1.push({code:disp[k],qi:inv[k].qty,qp:pk[k]||0}); for(const k in pk) if(!(k in inv)) pack1.push({code:k,qi:0,qp:pk[k]}); }
+  const pack1=[]; if(S.pack&&S.pack.items){ const pk={}; const byC={}; for(const k in inv) byC[canon(k)]=k; for(const [k0,q] of Object.entries(S.pack.items)){ let k=norm(k0); if(!(k in inv)&&byC[canon(k)]) k=byC[canon(k)]; pk[k]=(pk[k]||0)+q; } // артикулы упаковочного (в т.ч. после OCR) сводим к артикулам инвойса for(const k in inv) if((pk[k]||0)!==inv[k].qty) pack1.push({code:disp[k],qi:inv[k].qty,qp:pk[k]||0}); for(const k in pk) if(!(k in inv)) pack1.push({code:k,qi:0,qp:pk[k]}); }
   const stage2=diffs.reduce((a,d)=>a+d.sum,0);
   return {inv,disp,eur,usd,cat,conv,diffs,priceDiffs,uom,fee,duty,vat,totalRub,pack1,pct:eur&&sup.total?totalRub/(sup.total*eur)*100:0,stage2};
 }
