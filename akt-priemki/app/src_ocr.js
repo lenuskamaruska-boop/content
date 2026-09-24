@@ -48,6 +48,7 @@ function normalizeRows(rows){ if(rows.length<4) return rows; const gaps=[]; for(
   const kept=[rows[0]]; for(let i=1;i<rows.length;i++){ if(rows[i]-kept[kept.length-1]>=h*.75) kept.push(rows[i]); }
   const out=[kept[0]]; for(let i=1;i<kept.length;i++){ const g=kept[i]-kept[i-1]; const n=Math.round(g/h); if(n>=2&&n<=4&&Math.abs(g-n*h)<h*.2){ for(let k=1;k<n;k++) out.push(Math.round(kept[i-1]+g*k/n)); } out.push(kept[i]); }
   return out; }
+function inkFrac(c,r){ const d=c.getContext('2d').getImageData(r.left,r.top,r.width,r.height).data; let n=0; for(let i=0;i<d.length;i+=4) if((d[i]*299+d[i+1]*587+d[i+2]*114)/1000<160) n++; return n/(d.length/4); }
 function cropData(c,r,w){ const k=w/r.width; const c2=document.createElement('canvas'); c2.width=w; c2.height=Math.round(r.height*k); c2.getContext('2d').drawImage(c,r.left,r.top,r.width,r.height,0,0,c2.width,c2.height); return c2.toDataURL('image/jpeg',.8); }
 // варианты прочтения чисел с «ценой» правки: OCR часто теряет запятую или добавляет лишнюю цифру
 const uniqC=a=>{ const m=new Map(); for(const [v,sc] of a) if(v>0&&isFinite(v)&&(!m.has(v)||m.get(v)>sc)) m.set(v,sc); return [...m.entries()]; };
@@ -63,7 +64,7 @@ function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push(
 // допуск: цена в инвойсе печатается с 4 знаками, а сумма считается от точной цены — расхождение растёт с количеством
 const tol=q=>0.011+Math.min(q,3000)*0.00006;
 function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
-  for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st+st*0.1; if(!best||sc<best.score) best={qty:q,price:p,value:t,score:Math.round(sc)}; } // сумма — как напечатано в инвойсе (считана от точной цены)
+  for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st+st*0.1; if(!best||sc<best.sc) best={qty:q,price:p,value:t,score:Math.round(sc),sc}; } // сумма — как напечатано в инвойсе (считана от точной цены)
   if(best) return best;
   // кол-во не прочиталось: выводим из суммы и цены, но только если оно согласуется с прочитанными цифрами
   const rq=raw.qty.replace(/\D/g,'');
@@ -93,16 +94,18 @@ async function ocrInvoice(file, progress){
       const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>40*K) continue;
       const y=G.rows[i]+3*K, hh=h-6*K, rect=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
       progress(`страница ${p} из ${pdf.numPages}: строка ${i+1} из ${G.rows.length-1}`);
-      await w.setParameters(PARAMS_CODE); const code=(await w.recognize(clean,{rectangle:rect(x0,x1)})).data.text.trim().replace(/\s+/g,'');
-      if(!code||/^PARTCODE/.test(code)) continue;
+      const band={left:x0,top:G.rows[i],width:x5-x0,height:h}; if(inkFrac(c,band)<0.004) continue; // пустая строка
+      await w.setParameters(PARAMS_CODE); let code=(await w.recognize(clean,{rectangle:rect(x0,x1)})).data.text.trim().replace(/\s+/g,'');
+      if(/^PARTCODE/.test(code)) continue;
       await w.setParameters(PARAMS_NUM); const rn=rect(x2,x5); const d=(await w.recognize(clean,{rectangle:rn},{text:true,blocks:true})).data;
       const [q,pr,t]=splitByCols(d,[x3,x4],rn.left); const raw={qty:q,price:pr,total:t};
       const digits=[q,pr,t].filter(v=>/\d/.test(v)).length;
-      if(digits===0&&(!looksCode(code)||code.length<=2)){ dropped++; continue; } // совсем пустая строка-шум; всё остальное — на проверку с картинкой // шум (печать, подпись), не строка таблицы
+      if(!code&&digits===0&&inkFrac(c,band)<0.02){ dropped++; continue; } // почти пустая строка без цифр — шум; всё остальное — на проверку с картинкой
+      if(!code) code='?'; // шум (печать, подпись), не строка таблицы
       const res=resolveRow(raw);
       const gq=parseInt(q.replace(/\D/g,''))||0, gp=(candsPrice(pr)[0]||[0])[0];
       const row={pg:p, i, code, desc:'', score:res?res.score:null, qty:res?res.qty:gq, price:res?res.price:gp, value:res?res.value:Math.round(gq*gp*100)/100, ocr:true, ok:!!res, raw};
-      if(!res){ row.img=cropData(c,{left:x0,top:G.rows[i],width:x5-x0,height:h},1000); flagged.push(row); }
+      if(!res){ row.img=cropData(c,band,1000); flagged.push(row); }
       rows.push(row);
     }
   }
