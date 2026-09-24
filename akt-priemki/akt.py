@@ -293,8 +293,10 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
     inv_str = f"Инвойс {sup.number} от {sup.date:%d.%m.%Y}" if sup.date else f"Инвойс {sup.number}"
     ws['B11'] = inv_str
     if pack:
-        ws['B12'] = (f"Упаковочный лист (количество мест,  вес, объем) {pack.boxes} коробок, {pack.pallets} паллет, "
-                     f"{pack.volume:g} м³, вес брутто - {pack.gross:g} кг, вес нетто - {pack.net:g} кг.")
+        ru = lambda x: (f"{x:,.2f}".rstrip('0').rstrip('.') if isinstance(x, float) and not float(x).is_integer() else f"{x:,.0f}").replace(',', ' ').replace('.', ',')
+        places = (f"{pack.boxes} коробок, " if pack.boxes else '') + f"{pack.pallets} паллет"
+        ws['B12'] = (f"Упаковочный лист (количество мест,  вес, объем) {places}, "
+                     f"{ru(pack.volume)} м³, вес брутто - {ru(pack.gross)} кг, вес нетто - {ru(pack.net)} кг.")
     for key, cell in [('pickup_date','F14'), ('depart_date','G15'), ('to_date','F16'), ('arrival_date','G17')]:
         v = params.get(key) or (gtd.date if key=='to_date' and gtd else None)
         if v:
@@ -377,6 +379,14 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
         ws['M72'] = gtd.fee; ws['O72'] = gtd.duty; ws['Q72'] = gtd.vat
     if usd: ws['U78'] = usd
     if eur: ws['U79'] = eur
+    # скрыть неиспользованные строки этапов 2 и 4 — печать на одном листе, как в образце
+    filled = lambda lo, hi: max((rr for rr in range(lo, hi) if ws[f'E{rr}'].value not in (None, '')), default=lo) + 1
+    used2 = filled(28, 40); used4 = filled(42, 65)
+    for rr in range(28, 40): ws.row_dimensions[rr].hidden = rr >= used2   # раскрыть заполненные, скрыть пустые
+    for rr in range(42, 65): ws.row_dimensions[rr].hidden = rr >= used4
+    ws['U80'].number_format = '0.0000'
+    ws.page_setup.orientation = 'landscape'; ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.fitToWidth = 1; ws.page_setup.fitToHeight = 1
     wb.save(out)
     return {'label': label, 'invoice': asdict(sup) | {'rows': len(sup.rows)}, 'kvt': [asdict(k) for k in kvt],
             'gtd': asdict(gtd) if gtd else None, 'packing': asdict(pack) if pack else None,
