@@ -188,20 +188,23 @@ function cropData(c,r,w){ const k=w/r.width; const c2=document.createElement('ca
 const uniqC=a=>{ const m=new Map(); for(const [v,sc] of a) if(v>0&&isFinite(v)&&(!m.has(v)||m.get(v)>sc)) m.set(v,sc); return [...m.entries()]; };
 function candsPrice(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{4})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(D.length>=5) out.push([+(D.slice(0,-4)+'.'+D.slice(-4)),1]); if(D.length===4) out.push([+('0.'+D),1]);
   if(D.length>=6) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-4)+'.'+E.slice(-4)),4]); } return uniqC(out); }
-function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,1]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
+function candsTotal(s){ const out=[]; const m=s.match(/^(\d+)[,.](\d{1,2})$/); if(m) out.push([+(m[1]+'.'+m[2]),0]); const D=s.replace(/\D/g,''); if(!D) return out; out.push([+D,3]); if(D.length>=3) out.push([+(D.slice(0,-2)+'.'+D.slice(-2)),1]); if(D.length>=2) out.push([+(D.slice(0,-1)+'.'+D.slice(-1)),2]);
   if(D.length>=4) for(let i=0;i<D.length;i++){ const E=D.slice(0,i)+D.slice(i+1); out.push([+(E.slice(0,-2)+'.'+E.slice(-2)),4]); out.push([+E,4]); } return uniqC(out); }
-function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push([+D,0]); const sw={'0':'8','8':'0','9':'0','6':'0','5':'6','1':'7','7':'1','2':'7','3':'8'};
+function candsQty(s){ const D=s.replace(/\D/g,''); const out=[]; if(D) out.push([+D,0]); const sw={'0':'8','8':'0','9':'0','6':'0','5':'6','1':'7','7':'1','2':'7','3':'8'}; for(let k=0;k<10;k++) out.push([+(D+k),3]); // потерянная последняя цифра
   for(let i=0;i<D.length;i++) if(sw[D[i]]) out.push([+(D.slice(0,i)+sw[D[i]]+D.slice(i+1)),2]); if(D.length>=2) for(let i=0;i<D.length;i++) out.push([+(D.slice(0,i)+D.slice(i+1)),4]); return uniqC(out); }
 // допуск: цена в инвойсе печатается с 4 знаками, а сумма считается от точной цены — расхождение растёт с количеством
-const tol=q=>0.011+q*0.00006;
+const tol=q=>0.011+Math.min(q,3000)*0.00006;
 function resolveRow(raw){ const Q=candsQty(raw.qty), P=candsPrice(raw.price), T=candsTotal(raw.total); let best=null;
   for(const [q,sq] of Q) for(const [p,sp] of P) for(const [t,st] of T) if(Math.abs(q*p-t)<=tol(q)){ const sc=sq+sp+st; if(!best||sc<best.score) best={qty:q,price:p,value:Math.round(q*p*100)/100,score:sc}; }
   if(best) return best;
-  for(const [p,sp] of P) for(const [t,st] of T){ const q=Math.round(t/p); if(q>0&&q<100000&&Math.abs(q*p-t)<=tol(q)) return {qty:q,price:p,value:Math.round(q*p*100)/100,score:99,derived:true}; }
+  // кол-во не прочиталось: выводим из суммы и цены, но только если оно согласуется с прочитанными цифрами
+  const rq=raw.qty.replace(/\D/g,'');
+  for(const [p,sp] of P) for(const [t,st] of T){ const q=Math.round(t/p); if(q>0&&q<100000&&Math.abs(q*p-t)<=tol(q)&&(!rq||String(q).startsWith(rq)||String(q).endsWith(rq))&&(rq.length>=3||q<10000)) return {qty:q,price:p,value:Math.round(q*p*100)/100,score:99,derived:true}; }
   return null; }
 const looksCode=c=>/^[A-Z0-9][A-Z0-9\-\/.]{1,24}$/.test(c)&&(/\d/.test(c)||c.length<=6);
 // вертикальные линии колонок закрашиваем белым, иначе OCR читает их как «1»
-function whitenRules(c,cols,K){ const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; for(const x of cols) ctx.fillRect(Math.round(x-6*K),0,Math.round(12*K),c.height); }
+// стираем только саму линию колонки в полосе строки: тёмные пиксели, идущие сквозь всю высоту строки (цифры так не идут)
+function eraseRules(c,cols,top,h,K){ const ctx=c.getContext('2d'); const pad=Math.round(8*K); for(const x of cols){ const x0=Math.max(0,Math.round(x-pad)), w=2*pad; const im=ctx.getImageData(x0,top,w,h); const d=im.data; for(let xx=0;xx<w;xx++){ let n=0; for(let yy=0;yy<h;yy++){ const i=(yy*w+xx)*4; if((d[i]*299+d[i+1]*587+d[i+2]*114)/1000<215) n++; } if(n>h*.8){ for(let yy=0;yy<h;yy++){ const i=(yy*w+xx)*4; d[i]=d[i+1]=d[i+2]=255; } } } ctx.putImageData(im,x0,top); } }
 function cropCanvas(c,r){ const c2=document.createElement('canvas'); c2.width=r.width; c2.height=r.height; c2.getContext('2d').drawImage(c,r.left,r.top,r.width,r.height,0,0,r.width,r.height); return c2; }
 // слова числового блока раскладываем по колонкам по их положению
 function wordsOf(d){ if(d.words) return d.words; const out=[]; for(const b of d.blocks||[]) for(const p of b.paragraphs||[]) for(const l of p.lines||[]) for(const w of l.words||[]) out.push(w); return out; }
@@ -217,7 +220,7 @@ async function ocrInvoice(file, progress){
     if(p===pdf.numPages){ const small=deskew(await renderPage(page,1653)); await w.setParameters(PARAMS_TEXT); footer=(await w.recognize(cropCanvas(small,{left:Math.round(small.width*.5),top:0,width:Math.round(small.width*.5),height:small.height}))).data.text; }
     if(!G) continue;
     const [x0,x1,x2,x3,x4,x5]=G.cols, K=c.width/1653; // K — масштаб относительно скана 200 dpi
-    const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); whitenRules(clean,G.cols,K);
+    const clean=cropCanvas(c,{left:0,top:0,width:c.width,height:c.height}); for(let i=0;i<G.rows.length-1;i++){ const h=G.rows[i+1]-G.rows[i]; if(h>=15*K&&h<=40*K) eraseRules(clean,G.cols,G.rows[i]+2,h-4,K); }
     for(let i=0;i<G.rows.length-1;i++){
       const h=G.rows[i+1]-G.rows[i]; if(h<15*K||h>40*K) continue;
       const y=G.rows[i]+3*K, hh=h-6*K, rect=(a,b)=>({left:Math.round(a+3*K),top:Math.round(y),width:Math.round(b-a-6*K),height:Math.round(hh)});
