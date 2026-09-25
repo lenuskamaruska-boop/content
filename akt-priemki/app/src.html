@@ -129,8 +129,17 @@ function parseKvt(lines){
   const m=t.match(/Счет на оплату №\s*(\d+)\s+от\s+([^\n]+)/); const cur=/\((Usd|USD)\d?\)/.test(t)?'USD':(/\((Eur|EUR)\d?\)/.test(t)?'EUR':'RUB');
   const mt=t.match(/Всего к оплате:\s*([\d\s.,]+)/); const mv=t.match(/(?:Сумма НДС|В том числе НДС):\s*([\d\s.,]+)/);
   const body=t.split(/Сумма\n/)[1]?.split('Итого:')[0]||t;
-  const desc=(body.match(/\d+\s+(.+?)\s+1\s+шт/s)||[])[1]||'';
-  return {number:m?m[1]:'?',date:m?ruDate(m[2]):null,currency:cur,total:mt?num(mt[1]):0,vat:mv?num(mv[1]):0,category:classify(body,cur),desc:desc.slice(0,120),manual:false};
+  const base={number:m?m[1]:'?',date:m?ruDate(m[2]):null,currency:cur,total:mt?num(mt[1]):0,vat:mv?num(mv[1]):0,manual:false};
+  // строки услуг: «1 <описание> 1 шт <цена> <сумма>» + строки-продолжения описания
+  const items=[]; for(const l of body.split('\n')){ const mm=l.match(/^(\d{1,2})\s+(.+?)\s+(\d+)\s*шт\s+(\d{1,3}(?: \d{3})*(?:,\d{2})?)\s+(\d{1,3}(?: \d{3})*(?:,\d{2})?)$/); if(mm) items.push({n:+mm[1],desc:mm[2],sum:num(mm[5])}); else if(items.length&&l.trim()&&!/^\d+\s+[\d\s.,]+$/.test(l.trim())) items[items.length-1].desc+=' '+l.trim(); }
+  for(const it of items) it.category=classify(it.desc,cur);
+  const cats=[...new Set(items.map(i=>i.category))];
+  if(items.length<2||cats.length<2){ const desc=items[0]?items[0].desc:((body.match(/\d+\s+(.+?)\s+1\s+шт/s)||[])[1]||''); return {...base,category:items.length?items[0].category:classify(body,cur),desc:desc.slice(0,120)}; }
+  // строки относятся к разным категориям затрат — счёт делится на части пропорционально суммам строк (НДС и итог к оплате — тоже пропорционально)
+  const lineSum=items.reduce((a,i)=>a+i.sum,0); const parts=[]; let accT=0, accV=0;
+  items.forEach((it,k)=>{ const last=k===items.length-1; const tot=last?Math.round((base.total-accT)*100)/100:Math.round(base.total*it.sum/lineSum*100)/100; const vat=last?Math.round((base.vat-accV)*100)/100:Math.round(base.vat*it.sum/lineSum*100)/100; accT+=tot; accV+=vat;
+    parts.push({...base,number:`${base.number} (стр. ${it.n})`,parent:base.number,total:tot,vat,category:it.category,desc:it.desc.slice(0,120),split:true}); });
+  return parts;
 }
 function parseGtd(lines,fname){
   const t=lines.join(' '); if(!/ДЕКЛАРАЦИЯ НА ТОВАРЫ|ИМ 40 ЭД/.test(t)) return null;
@@ -203,10 +212,10 @@ function compute(){
   const cat={border:0,rf_broker:0,prr:0}, conv=[];
   for(const k of S.kvt){ let amt=+k.total||0; if(k.currency==='USD'){ if(usd){amt=Math.round(amt*usd*100)/100; conv.push(`счёт ${k.number}: ${fmt(k.total)} USD × ${usd} = ${fmt(amt)} ₽`);} else {conv.push(`счёт ${k.number}: ${fmt(k.total)} USD — курс USD не задан!`); amt=0;} }
     else if(k.currency==='EUR'&&eur) amt=Math.round(amt*eur*100)/100; cat[k.category]+=amt; }
-  const diffs=[]; if(S.fact){ for(const [k,qf] of Object.entries(S.fact).sort()){ const i=inv[k]; const qi=i?i.qty:0, pr=i?i.price:0; if(qf!==qi) diffs.push({code:disp[k]||k,qi,qf,price:pr,delta:qf-qi,sum:Math.round((qf-qi)*pr*100)/100}); }
-    for(const k in inv) if(!(k in S.fact)) diffs.push({code:disp[k],qi:inv[k].qty,qf:0,price:inv[k].price,delta:-inv[k].qty,sum:-inv[k].qty*inv[k].price}); }
+  const diffs=[]; if(S.fact){ for(const [k,qf] of Object.entries(S.fact).sort()){ const i=inv[k]; const qi=i?i.qty:0, pr=i?i.price:0; if(qf!==qi) diffs.push({code:disp[k]||k,qi,qf,price:pr,delta:qf-qi,sum:Math.round((qf-qi)*pr*(qf<qi?1.3:1)*100)/100}); } // недостача считается +30% (НДС, пошлина)
+    for(const k in inv) if(!(k in S.fact)) diffs.push({code:disp[k],qi:inv[k].qty,qf:0,price:inv[k].price,delta:-inv[k].qty,sum:Math.round(-inv[k].qty*inv[k].price*1.3*100)/100}); }
   let priceDiffs=[], uom=[]; if(S.receipt){ for(const [k,e] of Object.entries(S.receipt.items)){ const i=inv[k]; if(!i) continue; const li=Math.round(i.qty*i.price*100)/100, l1=Math.round(e.qty*e.price*100)/100;
-      if(Math.abs(l1-li)>0.01) priceDiffs.push({code:disp[k]||k,p_inv:i.price,p_1c:e.price,l_inv:li,l_1c:l1}); else if(Math.abs(e.price-i.price)>0.005) uom.push({code:disp[k]||k,k:Math.round(e.price/i.price*100)/100}); } }
+      if(Math.abs(l1-li)>Math.max(0.05,li*0.005)) priceDiffs.push({code:disp[k]||k,p_inv:i.price,p_1c:e.price,l_inv:li,l_1c:l1}); else if(Math.abs(e.price-i.price)>0.005) uom.push({code:disp[k]||k,k:Math.round(e.price/i.price*100)/100}); } }
   const fee=S.gtd?.fee||0, duty=S.gtd?.duty||0, vat=S.gtd?.vat||0; const totalRub=cat.border+cat.rf_broker+cat.prr+fee+duty+vat;
   const pack1=[]; if(S.pack&&S.pack.items){ const pk={}; const byC={}; for(const k in inv) byC[canon(k)]=k; /* артикулы упаковочного (в т.ч. после OCR) сводим к артикулам инвойса */ for(const [k0,q] of Object.entries(S.pack.items)){ let k=norm(k0); if(!(k in inv)&&byC[canon(k)]) k=byC[canon(k)]; pk[k]=(pk[k]||0)+q; } for(const k in inv) if((pk[k]||0)!==inv[k].qty) pack1.push({code:disp[k],qi:inv[k].qty,qp:pk[k]||0}); for(const k in pk) if(!(k in inv)) pack1.push({code:k,qi:0,qp:pk[k]}); }
   const stage2=diffs.reduce((a,d)=>a+d.sum,0);
@@ -219,7 +228,7 @@ async function buildXlsx(){
   const bin=Uint8Array.from(atob(TEMPLATE_B64),c=>c.charCodeAt(0)); await wb.xlsx.load(bin.buffer);
   const ws=wb.worksheets[0], ws2=wb.worksheets[1]; const old=ws.name; const label=P.label||`Отгрузка ${sup.supplier} 1 в ${new Date().getFullYear()}`; ws.name=label.slice(0,31);
   ws2.eachRow(r=>r.eachCell(c=>{ if(c.value&&typeof c.value==='object'&&c.value.formula&&c.value.formula.includes(old)) c.value={formula:c.value.formula.split(old).join(ws.name)}; }));
-  const set=(a,v)=>{ ws.getCell(a).value=v; }; const setDate=(a,d)=>{ if(d){ ws.getCell(a).value=d; ws.getCell(a).numFmt='dd.mm.yyyy'; } };
+  const set=(a,v)=>{ ws.getCell(a).value=v; }; const setDate=(a,d)=>{ if(d){ ws.getCell(a).value=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); ws.getCell(a).numFmt='dd.mm.yyyy'; } };
   const ad=ruDate(P.act_date);
   set('B7',`Акт № ${P.act_no||'1'}`); set('B9', ad?`от ${dRU(ad)} г.`:'от ');
   set('B11', sup.date?`Инвойс ${sup.number} от ${dRU(sup.date)}`:`Инвойс ${sup.number}`);
@@ -228,7 +237,7 @@ async function buildXlsx(){
   setDate('F14',ruDate(P.pickup_date)); setDate('G15',ruDate(P.depart_date)); setDate('F16',ruDate(P.to_date)||S.gtd?.date); setDate('G17',ruDate(P.arrival_date));
   set('D19',`${sup.supplier} инвойс`); set('F19',Math.round(sup.total*100)/100); set('C73',sup.supplier||'EMAS'); if(P.responsible) set('T27',P.responsible);
   // этап 2
-  let r=28; for(const d of C.diffs.slice(0,12)){ set(`E${r}`,d.code); set(`G${r}`,d.qi); set(`H${r}`,d.qf); ws.getCell(`I${r}`).value={formula:`H${r}-G${r}`}; set(`J${r}`,d.price); ws.getCell(`K${r}`).value={formula:`J${r}*I${r}`}; set(`P${r}`,d.qf>d.qi?'Излишек':'+30% от стоимости затраты НДС, пошлины'); r++; }
+  let r=28; for(const d of C.diffs.slice(0,12)){ set(`E${r}`,d.code); set(`G${r}`,d.qi); set(`H${r}`,d.qf); ws.getCell(`I${r}`).value={formula:`H${r}-G${r}`}; set(`J${r}`,d.price); ws.getCell(`K${r}`).value={formula:`J${r}*I${r}*IF(I${r}<0,1.3,1)`}; set(`P${r}`,d.qf>d.qi?'Излишек':'+30% от стоимости затраты НДС, пошлины'); r++; }
   if(C.pack1.length) set('E27',`Есть: ${C.pack1.length} поз. — `+C.pack1.slice(0,8).map(d=>`${d.code}: инвойс ${d.qi}, упак. ${d.qp}`).join('; ')+(C.pack1.length>8?'; …':''));
   if(!C.diffs.length&&S.fact) set('E28','Нет');
   for(let rr=28;rr<40;rr++) ws.getRow(rr).hidden = rr>=Math.max(29,28+C.diffs.slice(0,12).length);
@@ -316,7 +325,7 @@ function render(){ renderSteps(); const st=S.step; let h='';
     <table><tr><th>№</th><th>Дата</th><th>Услуга</th><th class=num>Сумма</th><th>Валюта</th><th>Категория в акте</th><th></th></tr>${S.kvt.map((k,i)=>`<tr><td>${k.manual?`<input type=text class=short value="${k.number}" onchange="S.kvt[${i}].number=this.value">`:k.number}</td><td>${dRU(k.date)}</td><td class=mute style="font-size:12.5px">${k.desc||(k.manual?'вручную':'')}</td><td class=num>${k.manual?`<input type=number step=0.01 class=short value="${k.total}" onchange="S.kvt[${i}].total=+this.value;render()">`:fmt(k.total)}</td><td>${k.manual?`<select onchange="S.kvt[${i}].currency=this.value"><option ${k.currency==='RUB'?'selected':''}>RUB</option><option ${k.currency==='USD'?'selected':''}>USD</option><option ${k.currency==='EUR'?'selected':''}>EUR</option></select>`:k.currency}</td>
       <td><select class=cat onchange="S.kvt[${i}].category=this.value">${Object.entries(CATS).map(([v,t])=>`<option value="${v}" ${k.category===v?'selected':''}>${t}</option>`).join('')}</select></td><td><button class=sec onclick="S.kvt.splice(${i},1);render()">✕</button></td></tr>`).join('')}</table>
     <div class=btns><button class=sec onclick="S.kvt.push({number:'',date:null,currency:'RUB',total:0,vat:0,category:'rf_broker',desc:'',manual:true});render()">+ Добавить счёт вручную</button></div>
-    ${S.kvt.length?`<p class=ok>✓ ${S.kvt.length} счетов · до границы ${fmt(S.kvt.filter(k=>k.category==='border').reduce((a,k)=>a+ +k.total,0))} · РФ+брокер ${fmt(S.kvt.filter(k=>k.category==='rf_broker').reduce((a,k)=>a+ +k.total,0))} ₽ · ПРР ${fmt(S.kvt.filter(k=>k.category==='prr').reduce((a,k)=>a+ +k.total,0))} ₽ ${S.kvt.some(k=>k.currency==='USD')?'<span class=warn>(суммы в USD — укажите курс на шаге 7)</span>':''}</p>`:''}${nav()}</div>`; }
+    ${S.kvt.some(k=>k.split)?`<p class=mute style="font-size:13px">Счёт с услугами разных категорий разбит на строки («стр. N»): каждая строка попадает в свою колонку раздела 6; категорию строки можно поправить.</p>`:''}${S.kvt.length?`<p class=ok>✓ ${S.kvt.length} счетов · до границы ${fmt(S.kvt.filter(k=>k.category==='border').reduce((a,k)=>a+ +k.total,0))} · РФ+брокер ${fmt(S.kvt.filter(k=>k.category==='rf_broker').reduce((a,k)=>a+ +k.total,0))} ₽ · ПРР ${fmt(S.kvt.filter(k=>k.category==='prr').reduce((a,k)=>a+ +k.total,0))} ₽ ${S.kvt.some(k=>k.currency==='USD')?'<span class=warn>(суммы в USD — укажите курс на шаге 7)</span>':''}</p>`:''}${nav()}</div>`; }
   if(st===2){ const g=S.gtd; h=`<div class=card><h2>3. ГТД / декларация на товары</h2><p class=hint>PDF ДТ. Берутся номер, дата ТО, курс EUR (графа 23) и платежи: сбор 1010, пошлина 2010, НДС 5010 (раздел B). Значения можно поправить.</p>${dropzone('gtd','.pdf',false,'PDF, один файл (можно многостраничный)')}
     ${g?`<div class=row style="margin-top:14px"><label class=f>Номер ДТ<input type=text value="${g.number}" onchange="S.gtd.number=this.value"></label><label class=f>Дата ТО<input type=date value="${dISO(g.date)}" onchange="S.gtd.date=ruDate(this.value)"></label><label class=f>Курс EUR (гр. 23)<input type=number step=0.0001 value="${g.rate}" onchange="S.gtd.rate=+this.value"></label>
     <label class=f>Таможенный сбор, ₽<input type=number step=0.01 value="${g.fee}" onchange="S.gtd.fee=+this.value"></label><label class=f>Пошлина, ₽<input type=number step=0.01 value="${g.duty}" onchange="S.gtd.duty=+this.value"></label><label class=f>НДС, ₽<input type=number step=0.01 value="${g.vat}" onchange="S.gtd.vat=+this.value"></label></div>
@@ -372,7 +381,7 @@ window.handleFiles=async(id,files)=>{ const list=[...files]; try{
       else if(await pdfHasText(f)){ s=parseSupplier(await pdfLines(f,'\t')); }
       if(!s||!s.rows.length){ S.ocr={msg:'запуск распознавания скана…'}; render(); try{ s=await ocrInvoice(f,ocrMsg); } finally { S.ocr=null; } }
       if(!s||!s.rows.length) throw new Error('Не удалось прочитать инвойс (нет строк таблицы): '+f.name); mergeSup(s); fixCodes(); }
-    if(id==='kvt'){ const k=parseKvt(await pdfLines(f)); if(!k) throw new Error('Это не счёт КВТ Сервис: '+f.name); if(!S.kvt.some(x=>x.number===k.number&&!x.manual)) S.kvt.push(k); }
+    if(id==='kvt'){ const k=parseKvt(await pdfLines(f)); if(!k) throw new Error('Это не счёт КВТ Сервис: '+f.name); for(const part of (Array.isArray(k)?k:[k])) if(!S.kvt.some(x=>x.number===part.number&&!x.manual)) S.kvt.push(part); }
     if(id==='gtd'){ const g=parseGtd(await pdfLines(f),f.name); if(!g) throw new Error('Это не декларация на товары: '+f.name); S.gtd=g; }
     if(id==='pack'){ let p=null; if(/\.(xlsx?|xlsm|csv)$/i.test(f.name)){ p=parsePackingXlsx(await xlsxRows(f)); if(!p) throw new Error('В Excel-упаковочном не нашёл колонки артикул / кол-во: '+f.name); }
       else if(await pdfHasText(f)){ const L=await pdfLines(f,'\t'); p=parsePackingEmas(L)||parsePacking(L.map(l=>l.replace(/\t/g,' '))); }

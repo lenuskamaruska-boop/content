@@ -140,7 +140,8 @@
   "gross": 7506.0,
   "net": 7296.0,
   "pieces": 12108,
-  "file": "Inseda_Packing_List.pdf"
+  "file": "Inseda_Packing_List.pdf",
+  "items": {}
  },
  "rates": {
   "USD": 82.9211,

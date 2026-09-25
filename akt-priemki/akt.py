@@ -86,6 +86,7 @@ CATEGORY_RULES = [
     ('prr',       r'ПРР|погрузо-?разгрузочн'),
     ('border',    r'(ISTANBUL|СТАМБУЛ|TURKIYE|ТУРЦИЯ).{0,200}(порт Новороссийск|РФ)|международной перевозки груза по маршруту:.{0,120}(TURK|ТУРЦ|ISTANBUL)'),
     ('rf_broker', r'таможенн|брокер|ДТ \d{8}/|хранени|СВХ|терминальн|линейный сбор|сверхнормативн|Организация перевозки груза по маршруту: Росси|Славянск|Новороссийск порт - '),
+    ('rf_broker', r'экспедирован|по маршруту:\s*Росси|Новороссийск.{0,40}Москв'),
 ]
 
 def classify(text: str, currency: str) -> str:
@@ -114,8 +115,23 @@ def parse_kvt(path: str) -> Optional[KvtInvoice]:
     vat = num(mv.group(1)) if mv else 0.0
     # блок услуг — между заголовком таблицы и "Итого:"
     body = t.split('Сумма',1)[-1].split('Итого:')[0]
-    cat = classify(body, cur)
-    return KvtInvoice(number, date, cur, total, vat, [body.strip()[:400]], cat, os.path.basename(path))
+    # строки услуг: «N / описание… / K шт / цена / сумма»; если категории строк разные — счёт делится на части
+    items = []
+    for m2 in re.finditer(r'(?:^|\n)(\d{1,2})\n([\s\S]*?)\n(\d+) шт\n(\d{1,3}(?: \d{3})*(?:,\d{2})?)\n(\d{1,3}(?: \d{3})*(?:,\d{2})?)(?=\n)', body):
+        items.append({'n': int(m2.group(1)), 'desc': m2.group(2).replace('\n', ' ').strip(), 'sum': num(m2.group(5))})
+    for it in items: it['category'] = classify(it['desc'], cur)
+    cats = {it['category'] for it in items}
+    if len(items) < 2 or len(cats) < 2:
+        cat = items[0]['category'] if items else classify(body, cur)
+        return KvtInvoice(number, date, cur, total, vat, [body.strip()[:400]], cat, os.path.basename(path))
+    line_sum = sum(it['sum'] for it in items) or 1; parts = []; acc_t = acc_v = 0.0
+    for k, it in enumerate(items):
+        last = k == len(items) - 1
+        tot = round(total - acc_t, 2) if last else round(total * it['sum'] / line_sum, 2)
+        v = round(vat - acc_v, 2) if last else round(vat * it['sum'] / line_sum, 2)
+        acc_t += tot; acc_v += v
+        parts.append(KvtInvoice(f"{number} (стр. {it['n']})", date, cur, tot, v, [it['desc'][:400]], it['category'], os.path.basename(path)))
+    return parts
 
 # ---------- ГТД ----------
 def parse_gtd(path: str) -> Optional[Gtd]:
@@ -342,7 +358,7 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
         for code, e in receipt.items():
             if code not in inv_map: continue
             q_inv, p_inv = inv_map[code]; line_inv = round(q_inv * p_inv, 2); line_1c = round(e['qty'] * e['price'], 2)
-            if abs(line_1c - line_inv) > 0.01:
+            if abs(line_1c - line_inv) > max(0.05, line_inv * 0.005):
                 price_diffs.append((disp.get(code, code), p_inv, e['price'], line_inv, line_1c))
             elif abs(e['price'] - p_inv) > 0.005:
                 k = round(e['price'] / p_inv, 2) if p_inv else 0
@@ -364,7 +380,7 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
         ws['P41'] = note or None
     for code, qi, qf, price in diffs[:12]:
         ws[f'E{r}'] = code; ws[f'G{r}'] = qi; ws[f'H{r}'] = qf; ws[f'I{r}'] = f'=H{r}-G{r}'
-        ws[f'J{r}'] = price; ws[f'K{r}'] = f'=J{r}*I{r}'
+        ws[f'J{r}'] = price; ws[f'K{r}'] = f'=J{r}*I{r}*IF(I{r}<0,1.3,1)'  # недостача +30% (НДС, пошлина)
         ws[f'P{r}'] = 'Излишек' if qf > qi else '+30% от стоимости затраты НДС, пошлины'
         r += 1
     if not diffs and fact: ws['E28'] = 'Нет'
@@ -433,7 +449,7 @@ def main():
         seen.add(h)
         if low.endswith('.pdf'):
             k = parse_kvt(f)
-            if k: kvt.append(k); continue
+            if k: kvt.extend(k if isinstance(k, list) else [k]); continue
             g = parse_gtd(f)
             if g: gtd = g; continue
             p = parse_packing_pdf(f)

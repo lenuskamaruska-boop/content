@@ -25,6 +25,8 @@ def val(c):
         if m: r = n('H'+m.group(1)) - n('G'+m.group(2))
         m = re.fullmatch(r'J(\d+)\*I(\d+)', f)
         if m and r is None: r = n('J'+m.group(1)) * n('I'+m.group(2))
+        m = re.fullmatch(r'J(\d+)\*I(\d+)\*IF\(I(\d+)<0,1\.3,1\)', f)  # недостача +30%
+        if m and r is None: i_ = n('I'+m.group(2)); r = n('J'+m.group(1)) * i_ * (1.3 if i_ < 0 else 1)
         m = re.fullmatch(r'SUM\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)', f)
         if m and r is None: r = sum(n(f'{m.group(1)}{i}') for i in range(int(m.group(2)), int(m.group(4))+1))
         if f == 'F19': r = val('F19')
