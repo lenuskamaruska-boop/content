@@ -12,6 +12,7 @@ s = s.replace("pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflar
 # OCR: tesseract.js (главный поток) + воркер, в который вшиты ядро wasm и языковые данные (fetch/importScripts перехвачены)
 tj = open('vendor/tesseract.min.js', encoding='utf-8').read()
 s = s.replace('<script src="vendor/tesseract.min.js"></script>', '<script>'+tj+'</script>')
+s = s.replace('<script src="vendor/xlsx.full.min.js"></script>', '<script>'+open('vendor/xlsx.full.min.js', encoding='utf-8').read()+'</script>')
 s = s.replace('<script src="src_ocr.js"></script>', '<script>'+open('src_ocr.js', encoding='utf-8').read()+'</script>')
 core_b64 = base64.b64encode(open('vendor/tesseract-core-simd-lstm.wasm.js','rb').read()).decode()
 lang_b64 = base64.b64encode(open('vendor/eng.traineddata.gz','rb').read()).decode()
