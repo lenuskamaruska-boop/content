@@ -157,11 +157,18 @@ function parsePackingEmas(lines){
 // поэтому нераспознанный артикул заменяем на единственный подходящий из них.
 const CANON={'O':'0','I':'1','L':'1','S':'5','B':'8','Z':'2','G':'6','Q':'0','D':'0'};
 const canon=c=>norm(c).replace(/[-./]/g,'').replace(/[OILSBZGQD]/g,ch=>CANON[ch]);
+function lev(a,b,max){ if(Math.abs(a.length-b.length)>max) return max+1; let prev=[...Array(b.length+1).keys()]; for(let i=1;i<=a.length;i++){ const cur=[i]; let rowMin=i; for(let j=1;j<=b.length;j++){ const v=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); cur.push(v); if(v<rowMin) rowMin=v; } if(rowMin>max) return max+1; prev=cur; } return prev[b.length]; }
 function fixCodes(){
   if(!S.sup||!S.sup.ocr) return 0;
-  const refs=new Set([...(S.pack&&S.pack.items?Object.keys(S.pack.items):[]),...(S.fact?Object.keys(S.fact):[]),...(S.receipt?Object.keys(S.receipt.items):[])].map(norm)); if(!refs.size) return 0;
-  const byCanon={}; for(const r of refs) (byCanon[canon(r)]=byCanon[canon(r)]||[]).push(r);
-  let n=0; for(const row of S.sup.rows){ const k=norm(row.code); if(refs.has(k)) continue; const cand=byCanon[canon(k)]; if(cand&&cand.length===1){ row.orig=row.orig||row.code; row.code=cand[0]; row.fixed=true; n++; } }
+  const refs=[...new Set([...(S.pack&&S.pack.items?Object.keys(S.pack.items):[]),...(S.fact?Object.keys(S.fact):[]),...(S.receipt?Object.keys(S.receipt.items):[])].map(norm))]; if(!refs.length) return 0;
+  const refSet=new Set(refs), byCanon={}; for(const r of refs) (byCanon[canon(r)]=byCanon[canon(r)]||[]).push(r);
+  let n=0; for(const row of S.sup.rows){ const k=norm(row.code); if(refSet.has(k)) continue; let pick=null;
+    const cand=byCanon[canon(k)]; if(cand&&cand.length===1) pick=cand[0];
+    else { // лишняя/пропущенная буква (B100ODHOY → B100DHOY): ближайший артикул по расстоянию редактирования, если он один
+      const ck=canon(k), max=Math.max(1,Math.round(ck.length*0.25)); let best=null,bd=max+1,second=max+1;
+      for(const r of refs){ const d=lev(ck,canon(r),max); if(d<bd){ second=bd; bd=d; best=r; } else if(d<second) second=d; }
+      if(best&&bd<=max&&second>bd) pick=best; }
+    if(pick){ row.orig=row.orig||row.code; row.code=pick; row.fixed=true; n++; } }
   if(n) log(`Артикулы уточнены по упаковочному листу / факту / 1С: ${n}`); return n;
 }
 

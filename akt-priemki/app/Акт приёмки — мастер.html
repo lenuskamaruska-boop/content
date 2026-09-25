@@ -298,11 +298,18 @@ function parsePackingEmas(lines){
 // поэтому нераспознанный артикул заменяем на единственный подходящий из них.
 const CANON={'O':'0','I':'1','L':'1','S':'5','B':'8','Z':'2','G':'6','Q':'0','D':'0'};
 const canon=c=>norm(c).replace(/[-./]/g,'').replace(/[OILSBZGQD]/g,ch=>CANON[ch]);
+function lev(a,b,max){ if(Math.abs(a.length-b.length)>max) return max+1; let prev=[...Array(b.length+1).keys()]; for(let i=1;i<=a.length;i++){ const cur=[i]; let rowMin=i; for(let j=1;j<=b.length;j++){ const v=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); cur.push(v); if(v<rowMin) rowMin=v; } if(rowMin>max) return max+1; prev=cur; } return prev[b.length]; }
 function fixCodes(){
   if(!S.sup||!S.sup.ocr) return 0;
-  const refs=new Set([...(S.pack&&S.pack.items?Object.keys(S.pack.items):[]),...(S.fact?Object.keys(S.fact):[]),...(S.receipt?Object.keys(S.receipt.items):[])].map(norm)); if(!refs.size) return 0;
-  const byCanon={}; for(const r of refs) (byCanon[canon(r)]=byCanon[canon(r)]||[]).push(r);
-  let n=0; for(const row of S.sup.rows){ const k=norm(row.code); if(refs.has(k)) continue; const cand=byCanon[canon(k)]; if(cand&&cand.length===1){ row.orig=row.orig||row.code; row.code=cand[0]; row.fixed=true; n++; } }
+  const refs=[...new Set([...(S.pack&&S.pack.items?Object.keys(S.pack.items):[]),...(S.fact?Object.keys(S.fact):[]),...(S.receipt?Object.keys(S.receipt.items):[])].map(norm))]; if(!refs.length) return 0;
+  const refSet=new Set(refs), byCanon={}; for(const r of refs) (byCanon[canon(r)]=byCanon[canon(r)]||[]).push(r);
+  let n=0; for(const row of S.sup.rows){ const k=norm(row.code); if(refSet.has(k)) continue; let pick=null;
+    const cand=byCanon[canon(k)]; if(cand&&cand.length===1) pick=cand[0];
+    else { // лишняя/пропущенная буква (B100ODHOY → B100DHOY): ближайший артикул по расстоянию редактирования, если он один
+      const ck=canon(k), max=Math.max(1,Math.round(ck.length*0.25)); let best=null,bd=max+1,second=max+1;
+      for(const r of refs){ const d=lev(ck,canon(r),max); if(d<bd){ second=bd; bd=d; best=r; } else if(d<second) second=d; }
+      if(best&&bd<=max&&second>bd) pick=best; }
+    if(pick){ row.orig=row.orig||row.code; row.code=pick; row.fixed=true; n++; } }
   if(n) log(`Артикулы уточнены по упаковочному листу / факту / 1С: ${n}`); return n;
 }
 
@@ -427,6 +434,29 @@ function parsePacking(lines){
   return p;
 }
 function findHeader(rows,need){ for(let i=0;i<Math.min(rows.length,25);i++){ const r=rows[i]||[]; const low=Array.from(r,v=>String(v??'').toLowerCase()); if(need.every(n=>low.some(v=>v.includes(n)))) return {i,low}; } return null; }
+// инвойс в XLSX: колонки артикул / кол-во / цена / сумма (заголовки на русском или английском)
+function parseSupplierXlsx(sheets,fname){
+  for(const sh of sheets){ const h=findHeader(sh.rows,['арт','кол'])||findHeader(sh.rows,['артикул','qty'])||findHeader(sh.rows,['part code','qty'])||findHeader(sh.rows,['код','кол'])||findHeader(sh.rows,['model','qty'])||findHeader(sh.rows,['модель','кол']); if(!h) continue;
+    const fi=(...names)=>h.low.findIndex(v=>names.some(n=>v.includes(n)));
+    const ci=fi('артикул','part code','код','model','модель','арт'), qi=h.low.findIndex((v,j)=>j!==ci&&/кол|qty|quantity|шт/.test(v)), pi=h.low.findIndex((v,j)=>j!==ci&&j!==qi&&/цена|price/.test(v)), ti=h.low.findIndex((v,j)=>j!==ci&&j!==qi&&j!==pi&&/сумма|total|amount|стоим/.test(v)), di=h.low.findIndex((v,j)=>j!==ci&&/наимен|name|описан|descr/.test(v));
+    if(ci<0||qi<0||pi<0) continue; const rows=[];
+    for(const r of sh.rows.slice(h.i+1)){ if(!r) continue; const c=r[ci], q=+String(r[qi]??'').replace(/\s/g,'').replace(',','.'), pr=+String(r[pi]??'').replace(/\s/g,'').replace(',','.'); if(!c||!(q>0)||!(pr>0)) continue; const t=ti>=0&&r[ti]!=null?+String(r[ti]).replace(/\s/g,'').replace(',','.'):NaN; rows.push({code:String(c).trim(),desc:di>=0?String(r[di]??''):'',qty:q,price:pr,value:isNaN(t)?Math.round(q*pr*100)/100:t}); }
+    if(!rows.length) continue;
+    const flat=sh.rows.slice(0,h.i).flat().map(v=>String(v??'')).join(' ')+' '+fname; const numbers=[...new Set(flat.match(/[A-Z]{2,4}\d{10,}/g)||[])]; const dm=flat.match(/(\d{2})[./](\d{2})[./](\d{4})/);
+    const supplier=/EMAS|EMA\d|эмас/i.test(flat)?'EMAS':(/CETINKAYA|CTI\d|четинкая|СР\b/i.test(flat)?'Cetinkaya Pano':'');
+    return {number:numbers.join(', ')||'?',date:dm?new Date(+dm[3],+dm[2]-1,+dm[1]):null,total:Math.round(rows.reduce((a,r)=>a+r.value,0)*100)/100,supplier,rows,xlsx:true}; }
+  return null; }
+// упаковочный лист в XLSX: артикул + кол-во (+ по возможности коробки/паллеты/вес из текста)
+function parsePackingXlsx(sheets){
+  for(const sh of sheets){ const h=findHeader(sh.rows,['арт','кол'])||findHeader(sh.rows,['description','quantity'])||findHeader(sh.rows,['артикул','qty'])||findHeader(sh.rows,['код','кол'])||findHeader(sh.rows,['model','qty']); if(!h) continue;
+    const ci=h.low.findIndex(v=>/артикул|description|код|model|модель|арт/.test(v)), qi=h.low.findIndex((v,j)=>j!==ci&&/кол|qty|quantity|шт/.test(v)); if(ci<0||qi<0) continue;
+    const p={pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0,items:{},container:'',invoices:[],kind:'emas',xlsx:true};
+    for(const r of sh.rows.slice(h.i+1)){ if(!r) continue; const c=r[ci], q=+String(r[qi]??'').replace(/\s/g,'').replace(',','.'); if(c&&q>0&&/^[A-Z0-9][A-Z0-9\-\/. ]{1,}$/i.test(String(c).trim())) p.items[String(c).trim()]=(p.items[String(c).trim()]||0)+q; }
+    if(!Object.keys(p.items).length) continue;
+    const t=sh.rows.flat().map(v=>String(v??'')).join(' '); let m=t.match(/(\d+)\s*BOXES\s+ON\s+(\d+)\s+PALLETS?\s+([\d.,]+)\s*CBM/i); if(m){p.boxes=+m[1];p.pallets=+m[2];p.volume=num(m[3]);}
+    m=t.match(/GROSS\s*WEIGHT\s*:?\s*(\d[\d.,]*)/i); if(m)p.gross=num(m[1]); m=t.match(/NET\s*WEIGHT\s*:?\s*(\d[\d.,]*)/i); if(m)p.net=num(m[1]); p.invoices=[...new Set(t.match(/[A-Z]{2,4}\d{10,}/g)||[])]; m=t.match(/\b([A-Z]{4}\d{7})\b/); if(m)p.container=m[1];
+    p.pieces=Object.values(p.items).reduce((a,b)=>a+b,0); return p; }
+  return null; }
 function parseFact(sheets){ // {код: факт}
   for(const sh of sheets){ const h=findHeader(sh.rows,['артикул','факт'])||findHeader(sh.rows,['модель','факт']); if(!h) continue;
     const ci=h.low.findIndex(v=>v.includes('артикул')||v.includes('модель')); const qi=h.low.findIndex((v,j)=>j!==ci&&v.includes('факт')); const out={};
@@ -554,9 +584,9 @@ function dropzone(id,accept,multiple,text){ return `<label class="drop" id="${id
 const nav=(prevOk=true,nextOk=true)=>`<div class="btns">${S.step>0?`<button class="sec" onclick="go(${S.step-1})">← Назад</button>`:''}${S.step<7?`<button class="pri" onclick="go(${S.step+1})" ${nextOk?'':'disabled'}>Далее →</button>`:''}</div>`;
 function render(){ renderSteps(); const st=S.step; let h='';
   if(st===0){ const sup=S.sup; const sumRows=sup?sup.rows.reduce((a,r)=>a+r.value,0):0; const bad=sup?sup.rows.map((r,i)=>[r,i]).filter(([r])=>r.ocr&&!r.ok):[];
-    h=`<div class=card><h2>1. Инвойс поставщика</h2><p class=hint>PDF-инвойс Cetinkaya Pano / EMAS. Текстовый PDF читается сразу; скан (как у EMAS) распознаётся прямо в браузере — это занимает несколько минут. Если инвойсов несколько, загрузите все.</p>${dropzone('sup','.pdf',true,'PDF, можно несколько файлов')}
+    h=`<div class=card><h2>1. Инвойс поставщика</h2><p class=hint>Инвойс Cetinkaya Pano / EMAS: PDF или Excel. Текстовый PDF и Excel читаются сразу и без ошибок; скан распознаётся прямо в браузере (несколько минут). Если инвойсов несколько, загрузите все.</p>${dropzone('sup','.pdf,.xlsx,.xls',true,'PDF или Excel (артикул / кол-во / цена / сумма), можно несколько файлов')}
     ${S.ocr?`<div class=note>⏳ Распознаю скан: <span id=ocrmsg>${S.ocr.msg}</span></div>`:''}
-    ${sup?`<div class=sum><div><small>Номер</small><b>${sup.number}</b></div><div><small>Дата</small><b>${dRU(sup.date)||'—'}</b></div><div><small>Поставщик</small><b>${sup.supplier||'—'}</b></div><div><small>Сумма</small><b>${fmt(sup.total)} €</b></div><div><small>Строк / Σ строк</small><b>${sup.rows.length} / ${fmt(sumRows)} €</b></div>${sup.ocr?`<div><small>Распознано со скана</small><b class=${bad.length?'warn':'ok'}>${sup.rows.length-bad.length} из ${sup.rows.length} строк${sup.pcs?` · ${fmt(sup.rows.reduce((a,r)=>a+r.qty,0),0)} / ${fmt(sup.pcs,0)} шт`:''}</b></div>`:''}</div>
+    ${sup?`<div class=sum><div><small>Номер</small><b>${sup.number}</b></div><div><small>Дата</small><b>${dRU(sup.date)||'—'}</b></div><div><small>Поставщик</small><b>${sup.supplier||'—'}</b></div><div><small>Сумма</small><b>${fmt(sup.total)} €</b></div><div><small>Строк / Σ строк</small><b>${sup.rows.length} / ${fmt(sumRows)} €</b></div>${sup.xlsx?`<div><small>Источник</small><b class=ok>Excel</b></div>`:''}${sup.ocr?`<div><small>Распознано со скана</small><b class=${bad.length?'warn':'ok'}>${sup.rows.length-bad.length} из ${sup.rows.length} строк${sup.pcs?` · ${fmt(sup.rows.reduce((a,r)=>a+r.qty,0),0)} / ${fmt(sup.pcs,0)} шт`:''}</b></div>`:''}</div>
     ${sup.ocr&&!sup.grand?`<div class=note>Итог инвойса в подвале не распознан — в акт идёт сумма строк (${fmt(sumRows)} €). Сверьте её с итогом на скане${sup.rows.length?'; при необходимости поправьте строки ниже':''}.</div>`:(Math.abs(sumRows-sup.total)>0.05?`<div class=note>Сумма строк (${fmt(sumRows)} €) не совпадает с итогом инвойса (${fmt(sup.total)} €)${sup.ocr?` — разница ${fmt(sup.total-sumRows)} €. Проверьте строки ниже; если строка под печатью не читается, впишите её по скану.`:' — часть строк не распознана. Проверьте PDF.'}</div>`:'<p class=ok>✓ Сумма строк совпадает с итогом инвойса</p>')}
     ${bad.length?`<h3 style="margin:16px 0 4px">Проверьте ${bad.length} строк: не сошлось «кол-во × цена = сумма»</h3><p class=hint>Сверьте с картинкой и впишите верные значения. Сумма пересчитается сама.</p>
     <table><tr><th>Скан строки</th><th>Артикул</th><th class=num>Кол-во</th><th class=num>Цена €</th><th class=num>Сумма €</th><th></th></tr>${bad.map(([r,i])=>`<tr><td style="width:46%"><img src="${r.img}" style="width:100%;border:1px solid var(--line);border-radius:6px"><div class=mute style="font-size:12px">прочитано: ${r.raw.qty||'—'} · ${r.raw.price||'—'} · ${r.raw.total||'—'}</div></td><td><input type=text value="${r.code}" onchange="updRow(${i},'code',this.value)">${!/\d/.test(r.raw.qty+r.raw.price+r.raw.total)?'<div class=mute style="font-size:11.5px;margin-top:4px">цифр не прочитано: если на картинке нет товара (шапка, печать) — удалите строку ✕</div>':''}</td><td><input type=text class=short value="${r.qty||''}" onchange="updRow(${i},'qty',this.value)"></td><td><input type=text class=short value="${r.price||''}" onchange="updRow(${i},'price',this.value)"></td><td class=num>${fmt(r.value)}</td><td><button class=sec title="удалить строку" onclick="delRow(${i})">✕</button></td></tr>`).join('')}</table>`:''}
@@ -573,10 +603,10 @@ function render(){ renderSteps(); const st=S.step; let h='';
     <label class=f>Таможенный сбор, ₽<input type=number step=0.01 value="${g.fee}" onchange="S.gtd.fee=+this.value"></label><label class=f>Пошлина, ₽<input type=number step=0.01 value="${g.duty}" onchange="S.gtd.duty=+this.value"></label><label class=f>НДС, ₽<input type=number step=0.01 value="${g.vat}" onchange="S.gtd.vat=+this.value"></label></div>
     ${S.sup&&g.invoice_sum&&Math.abs(g.invoice_sum-S.sup.total)>0.05?`<div class=note>Сумма по ДТ (${fmt(g.invoice_sum)} ${g.currency}) не равна сумме инвойса (${fmt(S.sup.total)} €). Проверьте, что ДТ относится к этой поставке.</div>`:(g.invoice_sum?'<p class=ok>✓ Сумма в ДТ совпадает с инвойсом</p>':'')}`:''}
     <div class=btns><button class=sec onclick="S.gtd=S.gtd||{number:'',date:null,currency:'EUR',invoice_sum:0,rate:0,fee:0,duty:0,vat:0};render()">Ввести платежи вручную (без PDF)</button></div>${nav()}</div>`; }
-  if(st===3){ const p=S.pack; h=`<div class=card><h2>4. Упаковочный лист</h2><p class=hint>PDF Packing List поставщика: паллеты, объём, вес брутто/нетто. Скан (EMAS) распознаётся: итоги — сразу, количества по артикулам — по кнопке.</p>${dropzone('pack','.pdf',false,'PDF, один файл')}
+  if(st===3){ const p=S.pack; h=`<div class=card><h2>4. Упаковочный лист</h2><p class=hint>Packing List поставщика: PDF или Excel. Паллеты, объём, вес брутто/нетто; по артикулам — сверка с инвойсом (этап 1). Скан распознаётся: итоги сразу, количества по кнопке.</p>${dropzone('pack','.pdf,.xlsx,.xls',false,'PDF или Excel, один файл')}
     ${S.ocr?`<div class=note>⏳ <span id=ocrmsg>${S.ocr.msg}</span></div>`:''}
     ${p?`<div class=row style="margin-top:14px"><label class=f>Паллет<input type=number value="${p.pallets}" onchange="S.pack.pallets=+this.value"></label><label class=f>Коробок<input type=number value="${S.params.boxes||p.boxes||''}" placeholder="если есть" onchange="S.params.boxes=this.value"></label><label class=f>Объём, м³<input type=number step=0.01 value="${p.volume}" onchange="S.pack.volume=+this.value"></label><label class=f>Брутто, кг<input type=number step=0.01 value="${p.gross}" onchange="S.pack.gross=+this.value"></label><label class=f>Нетто, кг<input type=number step=0.01 value="${p.net}" onchange="S.pack.net=+this.value"></label><label class=f>Всего шт<input type=number value="${p.pieces}" onchange="S.pack.pieces=+this.value"></label></div>
-    ${p.kind==='emas'?`<p class=ok>✓ Упаковочный лист EMAS${p.ocr?' (скан)':''}: ${p.boxes} коробок${p.items?`, ${Object.keys(p.items).length} артикулов`:''}${p.container?`, контейнер ${p.container}`:''}${p.invoices.length?`, инвойсы ${p.invoices.join(', ')}`:''}</p>`:''}
+    ${p.kind==='emas'?`<p class=ok>✓ Упаковочный лист${p.xlsx?' (Excel)':(p.ocr?' (скан)':'')}: ${p.boxes} коробок${p.items?`, ${Object.keys(p.items).length} артикулов`:''}${p.container?`, контейнер ${p.container}`:''}${p.invoices.length?`, инвойсы ${p.invoices.join(', ')}`:''}</p>`:''}
     ${p.ocr&&!p.items&&S.packFile&&!S.ocr?`<div class=btns><button class=sec onclick="ocrPackItems()">Распознать количества по артикулам (несколько минут) — для сверки с инвойсом</button></div>`:''}
     ${(()=>{ const C=S.sup&&p.items?compute():null; if(!C) return ''; return C.pack1.length?`<div class=note><b>Упаковочный лист ≠ инвойс: ${C.pack1.length} поз.</b> (попадёт в этап 1 акта)<br>${C.pack1.slice(0,15).map(d=>`${d.code}: инвойс ${d.qi}, упаковочный ${d.qp}`).join('<br>')}${C.pack1.length>15?'<br>…':''}</div>`:'<p class=ok>✓ Количества в упаковочном листе совпадают с инвойсом</p>'; })()}`:''}
     <div class=btns><button class=sec onclick="S.pack=S.pack||{pallets:0,boxes:0,volume:0,gross:0,net:0,pieces:0};render()">Ввести вручную</button></div>${nav()}</div>`; }
@@ -588,10 +618,10 @@ function render(){ renderSteps(); const st=S.step; let h='';
     ${C.uom.length?`<p class=mute>Разная единица измерения без расхождения по сумме: ${C.uom.length} поз. (${[...new Set(C.uom.map(u=>u.code.split(' ')[0]))].join(', ')}) — цена в 1С ×${[...new Set(C.uom.map(u=>u.k))].join('/')}, количество меньше.</p>`:''}`:''}${nav()}</div>`; }
   if(st===6){ const P=S.params; if(!P.to_date&&S.gtd?.date) P.to_date=dISO(S.gtd.date); if(!P.eur_rate&&S.gtd?.rate) P.eur_rate=S.gtd.rate; if(!P.label&&S.sup) P.label=`${S.sup.supplier==='Cetinkaya Pano'?'СР':S.sup.supplier} отгрузка 1 в ${String(new Date().getFullYear()).slice(2)}`;
     const f=(k,l,t='text',extra='')=>`<label class=f>${l}<input type=${t} ${extra} value="${P[k]??''}" onchange="S.params['${k}']=this.value"></label>`;
-    h=`<div class=card><h2>7. Реквизиты акта</h2><p class=hint>Даты и курсы. Дата ТО и курс EUR подставлены из ГТД. Курс USD — по ЦБ РФ на дату ТО (cbr.ru).</p>
+    h=`<div class=card><h2>7. Реквизиты акта</h2><p class=hint>Даты и курсы. Дата ТО и курс EUR подставлены из ГТД. Курс USD — по ЦБ РФ на дату ТО: кнопка «Курс ЦБ» подтягивает его при наличии интернета, иначе впишите вручную с cbr.ru.</p>
     <div class=row>${f('act_no','Номер акта')}${f('label','Название отгрузки (имя листа и файла)')}${f('act_date','Дата акта','date')}${f('responsible','Ответственный (продакт-менеджер)')}</div><br>
     <div class=row>${f('pickup_date','Дата забора груза от отправителя','date')}${f('depart_date','Дата выезда из г. Стамбул','date')}${f('to_date','Дата ТО','date')}${f('arrival_date','Дата поступления на склад','date')}</div><br>
-    <div class=row>${f('eur_rate','Курс EUR на дату ТО','number','step=0.0001')}${f('usd_rate','Курс USD на дату ТО','number','step=0.0001')}</div>
+    <div class=row>${f('eur_rate','Курс EUR на дату ТО','number','step=0.0001')}${f('usd_rate','Курс USD на дату ТО','number','step=0.0001')}<label class=f>&nbsp;<button class=sec style="display:block;margin-top:4px" onclick="fetchCbr()" ${P.to_date?'':'disabled'}>Курс ЦБ на дату ТО</button></label></div>${S.cbrMsg?`<p class=${/не удалось/.test(S.cbrMsg)?'warn':'ok'} style="font-size:13px">${S.cbrMsg}</p>`:''}
     ${S.kvt.some(k=>k.currency==='USD')&&!+P.usd_rate?'<div class=note>Есть счета в USD — без курса USD доставка до границы не будет посчитана.</div>':''}${nav()}</div>`; }
   if(st===7){ const C=S.sup?compute():null; if(!C){ h=`<div class=card><h2>8. Итог</h2><p class=err>Сначала загрузите инвойс поставщика (шаг 1).</p>${nav()}</div>`; }
     else { const P=S.params; h=`<div class=card><h2>8. Итог и файлы</h2>
@@ -609,14 +639,24 @@ window.updRow=(i,k,v)=>{ const r=S.sup.rows[i]; if(k==='code') r.code=v.trim().t
 window.delRow=i=>{ S.sup.rows.splice(i,1); render(); };
 const ocrMsg=m=>{ S.ocr={msg:m}; const el=document.getElementById('ocrmsg'); if(el) el.textContent=m; };
 window.ocrPackItems=async()=>{ if(!S.packFile) return; S.ocr={msg:'упаковочный лист: распознаю количества по артикулам…'}; render(); try{ const p=await ocrPacking(S.packFile,ocrMsg,true,S.pack); S.pack=p; fixCodes(); }catch(e){ alert('Ошибка распознавания: '+e.message); } finally{ S.ocr=null; render(); } };
+// курс ЦБ РФ на дату ТО: зеркало cbr-xml-daily.ru отдаёт JSON с разрешением для браузера; курс на выходной = курс предыдущего рабочего дня
+window.fetchCbr=async()=>{ const P=S.params; const d=ruDate(P.to_date); if(!d){ alert('Сначала укажите дату ТО'); return; } S.cbrMsg='запрашиваю курс ЦБ…'; render();
+  let got=null, err='';
+  for(let k=0;k<5&&!got;k++){ const dd=new Date(d.getTime()-k*864e5); const url=`https://www.cbr-xml-daily.ru/archive/${dd.getFullYear()}/${String(dd.getMonth()+1).padStart(2,'0')}/${String(dd.getDate()).padStart(2,'0')}/daily_json.js`;
+    try{ const r=await fetch(url,{cache:'no-store'}); if(r.status===404) continue; if(!r.ok) throw new Error('HTTP '+r.status); const j=await r.json(); got={usd:j.Valute?.USD?.Value,eur:j.Valute?.EUR?.Value,date:j.Date}; }catch(e){ err=e.message; break; } }
+  if(got&&got.usd){ P.usd_rate=String(Math.round(got.usd*10000)/10000); if(!+P.eur_rate&&got.eur) P.eur_rate=String(Math.round(got.eur*10000)/10000); S.cbrMsg=`Курс ЦБ на ${dRU(new Date(got.date))}: USD ${P.usd_rate}${got.eur?`, EUR ${Math.round(got.eur*10000)/10000}`:''} — подставлен USD${!+P.eur_rate?' и EUR':''} (EUR в акте — из ГТД).`; }
+  else S.cbrMsg='Курс не удалось получить (нет интернета или сайт недоступен'+(err?': '+err:'')+'). Впишите курс USD вручную: cbr.ru → Курсы валют → на дату ТО.';
+  render(); };
 window.handleFiles=async(id,files)=>{ const list=[...files]; try{
   for(const f of list){ const low=f.name.toLowerCase();
-    if(id==='sup'){ let s=null; if(await pdfHasText(f)){ s=parseSupplier(await pdfLines(f,'\t')); }
+    if(id==='sup'){ let s=null; if(/\.xlsx?$/i.test(f.name)){ s=parseSupplierXlsx(await xlsxRows(f),f.name); if(!s) throw new Error('В Excel-инвойсе не нашёл колонки артикул / кол-во / цена: '+f.name); }
+      else if(await pdfHasText(f)){ s=parseSupplier(await pdfLines(f,'\t')); }
       if(!s||!s.rows.length){ S.ocr={msg:'запуск распознавания скана…'}; render(); try{ s=await ocrInvoice(f,ocrMsg); } finally { S.ocr=null; } }
       if(!s||!s.rows.length) throw new Error('Не удалось прочитать инвойс (нет строк таблицы): '+f.name); mergeSup(s); fixCodes(); }
     if(id==='kvt'){ const k=parseKvt(await pdfLines(f)); if(!k) throw new Error('Это не счёт КВТ Сервис: '+f.name); if(!S.kvt.some(x=>x.number===k.number&&!x.manual)) S.kvt.push(k); }
     if(id==='gtd'){ const g=parseGtd(await pdfLines(f),f.name); if(!g) throw new Error('Это не декларация на товары: '+f.name); S.gtd=g; }
-    if(id==='pack'){ let p=null; if(await pdfHasText(f)){ const L=await pdfLines(f,'\t'); p=parsePackingEmas(L)||parsePacking(L.map(l=>l.replace(/\t/g,' '))); }
+    if(id==='pack'){ let p=null; if(/\.xlsx?$/i.test(f.name)){ p=parsePackingXlsx(await xlsxRows(f)); if(!p) throw new Error('В Excel-упаковочном не нашёл колонки артикул / кол-во: '+f.name); }
+      else if(await pdfHasText(f)){ const L=await pdfLines(f,'\t'); p=parsePackingEmas(L)||parsePacking(L.map(l=>l.replace(/\t/g,' '))); }
       else { S.ocr={msg:'упаковочный лист: распознаю скан…'}; render(); try{ p=await ocrPacking(f,ocrMsg,false); S.packFile=f; } finally{ S.ocr=null; } }
       if(!p) throw new Error('Это не Packing List: '+f.name); S.pack=p; fixCodes(); }
     if(id==='fact'){ const x=parseFact(await xlsxRows(f)); if(!x) throw new Error('Не нашёл колонки «Артикул» и «Факт»: '+f.name); S.fact=x; fixCodes(); }
