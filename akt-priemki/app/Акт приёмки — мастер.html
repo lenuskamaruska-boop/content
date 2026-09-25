@@ -396,7 +396,9 @@ async function pdfLines(file,sep=' '){
 async function xlsxRows(file){
   const u8=new Uint8Array(await file.arrayBuffer());
   // основной путь — SheetJS: понимает .xlsx, старый .xls, .csv и «Excel», сохранённый другими программами
-  if(typeof XLSX!=='undefined'){ try{ const wb=XLSX.read(u8,{type:'array',cellDates:false}); const out=[]; for(const name of wb.SheetNames){ const ws=wb.Sheets[name]; const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null}).map(r=>r.map(v=>v===null?undefined:v)); out.push({name,rows}); } if(out.some(sh=>sh.rows.length)) return out; }catch(e){ log('SheetJS не открыл файл: '+e.message); } }
+  if(typeof XLSX!=='undefined'){ try{ let wb; const isZip=u8[0]===0x50&&u8[1]===0x4b, isBiff=u8[0]===0xd0&&u8[1]===0xcf;
+      if(!isZip&&!isBiff&&(/\.csv$/i.test(file.name)||/^[\s\S]{0,4}[^\x00-\x08]/.test(''))){ /* текст (CSV / HTML): кодировка UTF-8, иначе windows-1251 */ let txt; try{ txt=new TextDecoder('utf-8',{fatal:true}).decode(u8); }catch(_){ txt=new TextDecoder('windows-1251').decode(u8); } wb=XLSX.read(txt,{type:'string',cellDates:false}); }
+      else wb=XLSX.read(u8,{type:'array',cellDates:false}); const out=[]; for(const name of wb.SheetNames){ const ws=wb.Sheets[name]; const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null}).map(r=>r.map(v=>v===null?undefined:v)); out.push({name,rows}); } if(out.some(sh=>sh.rows.length)) return out; }catch(e){ log('SheetJS не открыл файл: '+e.message); } }
   if(!(u8[0]===0x50&&u8[1]===0x4b)) throw new Error('Файл не открывается как Excel. Откройте его в Excel и сохраните как «Книга Excel (.xlsx)».'); const z=fflate.unzipSync(u8); const txt=n=>z[n]?fflate.strFromU8(z[n]):'';
   const xml=s=>new DOMParser().parseFromString(s,'application/xml');
   const sst=[]; const sx=txt('xl/sharedStrings.xml'); if(sx){ for(const si of xml(sx).getElementsByTagName('si')) sst.push([...si.getElementsByTagName('t')].map(t=>t.textContent).join('')); }
