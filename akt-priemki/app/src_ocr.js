@@ -7,7 +7,7 @@ const OCR_WORKER_B64 = '__OCR_WORKER_B64__';
 let _ocr = null;
 async function ocrWorker(){
   if(_ocr) return _ocr;
-  if(typeof Tesseract==='undefined' || OCR_WORKER_B64.length<100) throw new Error('В этот файл не встроен модуль распознавания сканов');
+  if(typeof Tesseract==='undefined' || OCR_WORKER_B64.length<100) throw new Error('Это скан без текстового слоя. В облегчённой версии сканы не читаются: загрузите Excel или текстовый PDF, либо используйте полную версию обработки.');
   const blob = new Blob([Uint8Array.from(atob(OCR_WORKER_B64), c=>c.charCodeAt(0))], {type:'text/javascript'});
   _ocr = await Tesseract.createWorker('eng', 1, {workerPath:URL.createObjectURL(blob), corePath:'x', langPath:'x', gzip:true, cacheMethod:'none', workerBlobURL:false, logger:()=>{}});
   return _ocr;
