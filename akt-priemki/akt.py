@@ -81,13 +81,16 @@ class Packing:
     items: dict = field(default_factory=dict)  # {артикул: кол-во} — только для формата EMAS (по коробкам)
 
 # ---------- классификация счетов КВТ ----------
+# категории строк счёта: border | prr | docs | marking | broker | rf; в акте docs/marking/broker/rf -> колонка «РФ + Брокер»
 CATEGORY_RULES = [
-    # (категория, регулярка по тексту услуги)
-    ('prr',       r'ПРР|погрузо-?разгрузочн'),
-    ('border',    r'(ISTANBUL|СТАМБУЛ|TURKIYE|ТУРЦИЯ).{0,200}(порт Новороссийск|РФ)|международной перевозки груза по маршруту:.{0,120}(TURK|ТУРЦ|ISTANBUL)'),
-    ('rf_broker', r'таможенн|брокер|ДТ \d{8}/|хранени|СВХ|терминальн|линейный сбор|сверхнормативн|Организация перевозки груза по маршруту: Росси|Славянск|Новороссийск порт - '),
-    ('rf_broker', r'экспедирован|по маршруту:\s*Росси|Новороссийск.{0,40}Москв'),
+    ('prr',     r'ПРР|погрузо-?разгрузочн'),
+    ('marking', r'маркиров|этикет|стикер'),
+    ('border',  r'(ISTANBUL|СТАМБУЛ|TURKIYE|ТУРЦИЯ).{0,200}(порт Новороссийск|РФ)|международной перевозки груза по маршруту:.{0,120}(TURK|ТУРЦ|ISTANBUL)'),
+    ('docs',    r'консультирован|дополнительн\w* лист|оформлени\w* документ|сертификат|декларирован|подготовк\w* документ'),
+    ('broker',  r'таможенн|брокер|ДТ \d{8}/|хранени|СВХ|терминальн|линейный сбор|сверхнормативн|экспедиционн\w* сопровожден|Новороссийск порт'),
+    ('rf',      r'перевозк|экспедирован|доставк|по маршруту:\s*Росси|Славянск|Москв'),
 ]
+CAT_COL = {'border':'border','prr':'prr','docs':'rf_broker','marking':'rf_broker','broker':'rf_broker','rf':'rf_broker','rf_broker':'rf_broker','other':'rf_broker'}
 
 def classify(text: str, currency: str) -> str:
     t = text.replace('\n',' ')
@@ -97,7 +100,7 @@ def classify(text: str, currency: str) -> str:
             return cat
     if currency == 'USD':   # фрахт до границы КВТ выставляет в USD
         return 'border'
-    return 'other'
+    return 'broker'
 
 def parse_kvt(path: str) -> Optional[KvtInvoice]:
     t = pdf_text(path)
@@ -114,14 +117,15 @@ def parse_kvt(path: str) -> Optional[KvtInvoice]:
     mv = re.search(r'(?:Сумма НДС|В том числе НДС):\s*\n?\s*([\d\s.,]+)', t)
     vat = num(mv.group(1)) if mv else 0.0
     # блок услуг — между заголовком таблицы и "Итого:"
-    body = t.split('Сумма',1)[-1].split('Итого:')[0]
-    # строки услуг: «N / описание… / K шт / цена / сумма»; если категории строк разные — счёт делится на части
+    body = t.split('Итого:')[0]
+    body = body.split('Сумма\n', 1)[-1]
+    # разрыв страницы: «<кол-во строк>\n<итог страницы>\nСчет на оплату № … Страница N … Сумма» — убираем целиком
+    body = re.sub(r'\n\d+\n\d{1,3}(?: \d{3})*(?:,\d{2})?\nСчет на оплату №[^\n]*\nСтраница \d+\n№\nТовар \(Услуга\)\nКол-во\nЕд\.\nЦена\nСумма', '', body)
     items = []
-    for m2 in re.finditer(r'(?:^|\n)(\d{1,2})\n([\s\S]*?)\n(\d+) шт\n(\d{1,3}(?: \d{3})*(?:,\d{2})?)\n(\d{1,3}(?: \d{3})*(?:,\d{2})?)(?=\n)', body):
+    for m2 in re.finditer(r'(?:^|\n)(\d{1,3})\n([\s\S]*?)\n(\d+) шт\n(\d{1,3}(?: \d{3})*(?:,\d{2})?)\n(\d{1,3}(?: \d{3})*(?:,\d{2})?)(?=\n)', body):
         items.append({'n': int(m2.group(1)), 'desc': m2.group(2).replace('\n', ' ').strip(), 'sum': num(m2.group(5))})
     for it in items: it['category'] = classify(it['desc'], cur)
-    cats = {it['category'] for it in items}
-    if len(items) < 2 or len(cats) < 2:
+    if len(items) <= 1:
         cat = items[0]['category'] if items else classify(body, cur)
         return KvtInvoice(number, date, cur, total, vat, [body.strip()[:400]], cat, os.path.basename(path))
     line_sum = sum(it['sum'] for it in items) or 1; parts = []; acc_t = acc_v = 0.0
@@ -398,7 +402,7 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
             ws[f'J{r}'] = price; ws[f'K{r}'] = f'=J{r}*I{r}'; r += 1
     # раздел 6 — затраты (рубли, строка 72)
     usd = rates.get('USD'); eur = rates.get('EUR') or (gtd.rate if gtd and gtd.currency=='EUR' else None)
-    cat_sum = {'border':0.0,'rf_broker':0.0,'prr':0.0,'other':0.0}; conv_notes = []
+    cat_sum = {'border':0.0,'rf_broker':0.0,'prr':0.0}; conv_notes = []
     for k in kvt:
         amt = k.total
         if k.currency == 'USD':
@@ -406,8 +410,7 @@ def fill_template(template: str, out: str, sup: SupplierInvoice, kvt: list, gtd:
             else: conv_notes.append(f"счёт {k.number}: {k.total:,.2f} USD — курс USD неизвестен, в рубли не переведён"); amt = 0.0
         elif k.currency == 'EUR' and eur:
             amt = round(k.total * eur, 2)
-        cat_sum[k.category] += amt
-    cat_sum['rf_broker'] += cat_sum.pop('other')
+        cat_sum[CAT_COL.get(k.category, 'rf_broker')] += amt
     ws['G72'] = round(cat_sum['border'],2); ws['I72'] = round(cat_sum['rf_broker'],2); ws['K72'] = round(cat_sum['prr'],2)
     if gtd:
         ws['M72'] = gtd.fee; ws['O72'] = gtd.duty; ws['Q72'] = gtd.vat

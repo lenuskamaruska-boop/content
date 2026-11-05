@@ -426,28 +426,36 @@ function parseSupplier(lines){
     if(/^[A-Z][A-Z0-9][A-Z0-9\-\. \/]{1,}$/.test(code)&&/^\d{1,3}(?:\.\d{3})*$/.test(q)&&/^[\d.]*\d,\d{2}$/.test(pr)&&/^[\d.]*\d,\d{2}$/.test(v)) inv.rows.push({code:code.trim(),desc:f.join(' '),qty:parseInt(q.replace(/\./g,'')),price:num(pr),value:num(v)}); }
   return inv;
 }
-const CATS={border:'Доставка до границы',rf_broker:'Доставка РФ + Брокер (хранение, СВХ, сборы)',prr:'Погрузо-разгрузочные работы (ПРР)'};
+// категории строк счёта (как просит продакт-менеджер). В акте только три колонки, поэтому
+// «Оформление документов», «Маркировка», «Брокер» и «Доставка РФ» вместе идут в колонку «Доставка РФ + Брокер»
+const CATS={border:'Доставка до границы',prr:'Погрузочно-разгрузочные работы',docs:'Оформление документов',marking:'Маркировка товаров',broker:'Брокер (хранение, сборы, СВХ)',rf:'Доставка РФ'};
+const CAT_COL={border:'border',prr:'prr',docs:'rf_broker',marking:'rf_broker',broker:'rf_broker',rf:'rf_broker',rf_broker:'rf_broker'};
 function classify(body,cur){
   if(/ПРР|погрузо-?разгрузочн/i.test(body)) return 'prr';
+  if(/маркиров|этикет|стикер/i.test(body)) return 'marking';
   if(/(ISTANBUL|СТАМБУЛ|TURKIYE|ТУРЦИЯ)[\s\S]{0,200}(порт Новороссийск|РФ)|международной перевозки груза по маршруту:[\s\S]{0,120}(TURK|ТУРЦ|ISTANBUL)/i.test(body)) return 'border';
-  if(/таможенн|брокер|ДТ \d{8}\/|хранени|СВХ|терминальн|линейный сбор|сверхнормативн|по маршруту: Росси|Славянск|Новороссийск порт/i.test(body)) return 'rf_broker';
-  return cur==='USD'?'border':'rf_broker';
+  if(/консультирован|дополнительн\w* лист|оформлени\w* документ|сертификат|декларирован|подготовк\w* документ/i.test(body)) return 'docs';
+  if(/таможенн|брокер|ДТ \d{8}\/|хранени|СВХ|терминальн|линейный сбор|сверхнормативн|экспедиционн\w* сопровожден|Новороссийск порт/i.test(body)) return 'broker';
+  if(/перевозк|экспедирован|доставк|по маршруту:\s*Росси|Славянск|Москв/i.test(body)) return 'rf';
+  return cur==='USD'?'border':'broker';
 }
 function parseKvt(lines){
   const t=lines.join('\n'); if(!/КВТ СЕРВИС/i.test(t)||!/Счет на оплату/.test(t)) return null;
   const m=t.match(/Счет на оплату №\s*(\d+)\s+от\s+([^\n]+)/); const cur=/\((Usd|USD)\d?\)/.test(t)?'USD':(/\((Eur|EUR)\d?\)/.test(t)?'EUR':'RUB');
   const mt=t.match(/Всего к оплате:\s*([\d\s.,]+)/); const mv=t.match(/(?:Сумма НДС|В том числе НДС):\s*([\d\s.,]+)/);
-  const body=t.split(/Сумма\n/)[1]?.split('Итого:')[0]||t;
   const base={number:m?m[1]:'?',date:m?ruDate(m[2]):null,currency:cur,total:mt?num(mt[1]):0,vat:mv?num(mv[1]):0,manual:false};
-  // строки услуг: «1 <описание> 1 шт <цена> <сумма>» + строки-продолжения описания
-  const items=[]; for(const l of body.split('\n')){ const mm=l.match(/^(\d{1,2})\s+(.+?)\s+(\d+)\s*шт\s+(\d{1,3}(?: \d{3})*(?:,\d{2})?)\s+(\d{1,3}(?: \d{3})*(?:,\d{2})?)$/); if(mm) items.push({n:+mm[1],desc:mm[2],sum:num(mm[5])}); else if(items.length&&l.trim()&&!/^\d+\s+[\d\s.,]+$/.test(l.trim())) items[items.length-1].desc+=' '+l.trim(); }
+  // строки услуг по всем страницам: «N <описание> K шт <цена> <сумма>» + строки-продолжения описания; шапки страниц пропускаем
+  const items=[]; let inTable=false;
+  for(const l0 of lines){ const l=l0.trim(); if(/^Сумма$/.test(l)||/Товар \(Услуга\)/.test(l)){ inTable=true; continue; } if(/^Итого:/.test(l)) break; if(!inTable||!l||l==='\f') continue;
+    if(/^Счет на оплату №|^Страница \d|^№$|^Кол-во$|^Ед\.$|^Цена$/.test(l)) continue;
+    const mm=l.match(/^(\d{1,3})\s+(.+?)\s+(\d+)\s*шт\s+(\d{1,3}(?: \d{3})*(?:,\d{2})?)\s+(\d{1,3}(?: \d{3})*(?:,\d{2})?)$/);
+    if(mm) items.push({n:+mm[1],desc:mm[2],sum:num(mm[5])}); else if(items.length&&!/^\d+\s+[\d\s.,]+$/.test(l)) items[items.length-1].desc+=' '+l; }
   for(const it of items) it.category=classify(it.desc,cur);
-  const cats=[...new Set(items.map(i=>i.category))];
-  if(items.length<2||cats.length<2){ const desc=items[0]?items[0].desc:((body.match(/\d+\s+(.+?)\s+1\s+шт/s)||[])[1]||''); return {...base,category:items.length?items[0].category:classify(body,cur),desc:desc.slice(0,120)}; }
-  // строки относятся к разным категориям затрат — счёт делится на части пропорционально суммам строк (НДС и итог к оплате — тоже пропорционально)
-  const lineSum=items.reduce((a,i)=>a+i.sum,0); const parts=[]; let accT=0, accV=0;
+  if(items.length<=1){ const desc=items[0]?items[0].desc:''; return {...base,category:items.length?items[0].category:classify(lines.join('\n'),cur),desc:desc.slice(0,160)}; }
+  // несколько строк: каждая — отдельная запись со своей категорией (НДС и итог к оплате делятся пропорционально суммам строк)
+  const lineSum=items.reduce((a,i)=>a+i.sum,0)||1; const parts=[]; let accT=0, accV=0;
   items.forEach((it,k)=>{ const last=k===items.length-1; const tot=last?Math.round((base.total-accT)*100)/100:Math.round(base.total*it.sum/lineSum*100)/100; const vat=last?Math.round((base.vat-accV)*100)/100:Math.round(base.vat*it.sum/lineSum*100)/100; accT+=tot; accV+=vat;
-    parts.push({...base,number:`${base.number} (стр. ${it.n})`,parent:base.number,total:tot,vat,category:it.category,desc:it.desc.slice(0,120),split:true}); });
+    parts.push({...base,number:`${base.number} (стр. ${it.n})`,parent:base.number,total:tot,vat,category:it.category,desc:it.desc.slice(0,160),split:true}); });
   return parts;
 }
 function parseGtd(lines,fname){
@@ -518,9 +526,9 @@ function compute(){
   const sup=S.sup, P=S.params; if(!sup) return null;
   const inv={}, disp={}; for(const r of sup.rows){ const k=norm(r.code); disp[k]=r.code; inv[k]=inv[k]?{qty:inv[k].qty+r.qty,price:r.price}:{qty:r.qty,price:r.price}; }
   const eur=+P.eur_rate||S.gtd?.rate||0, usd=+P.usd_rate||0;
-  const cat={border:0,rf_broker:0,prr:0}, conv=[];
+  const cat={border:0,rf_broker:0,prr:0}, byCat={}, conv=[];
   for(const k of S.kvt){ let amt=+k.total||0; if(k.currency==='USD'){ if(usd){amt=Math.round(amt*usd*100)/100; conv.push(`счёт ${k.number}: ${fmt(k.total)} USD × ${usd} = ${fmt(amt)} ₽`);} else {conv.push(`счёт ${k.number}: ${fmt(k.total)} USD — курс USD не задан!`); amt=0;} }
-    else if(k.currency==='EUR'&&eur) amt=Math.round(amt*eur*100)/100; cat[k.category]+=amt; }
+    else if(k.currency==='EUR'&&eur) amt=Math.round(amt*eur*100)/100; cat[CAT_COL[k.category]||'rf_broker']+=amt; byCat[k.category]=(byCat[k.category]||0)+amt; }
   const diffs=[]; if(S.fact){ for(const [k,qf] of Object.entries(S.fact).sort()){ const i=inv[k]; const qi=i?i.qty:0, pr=i?i.price:0; if(qf!==qi) diffs.push({code:disp[k]||k,qi,qf,price:pr,delta:qf-qi,sum:Math.round((qf-qi)*pr*(qf<qi?1.3:1)*100)/100}); } // недостача считается +30% (НДС, пошлина)
     for(const k in inv) if(!(k in S.fact)) diffs.push({code:disp[k],qi:inv[k].qty,qf:0,price:inv[k].price,delta:-inv[k].qty,sum:Math.round(-inv[k].qty*inv[k].price*1.3*100)/100}); }
   let priceDiffs=[], uom=[]; if(S.receipt){ for(const [k,e] of Object.entries(S.receipt.items)){ const i=inv[k]; if(!i) continue; const li=Math.round(i.qty*i.price*100)/100, l1=Math.round(e.qty*e.price*100)/100;
@@ -528,7 +536,7 @@ function compute(){
   const fee=S.gtd?.fee||0, duty=S.gtd?.duty||0, vat=S.gtd?.vat||0; const totalRub=cat.border+cat.rf_broker+cat.prr+fee+duty+vat;
   const pack1=[]; if(S.pack&&S.pack.items){ const pk={}; const byC={}; for(const k in inv) byC[canon(k)]=k; /* артикулы упаковочного (в т.ч. после OCR) сводим к артикулам инвойса */ for(const [k0,q] of Object.entries(S.pack.items)){ let k=norm(k0); if(!(k in inv)&&byC[canon(k)]) k=byC[canon(k)]; pk[k]=(pk[k]||0)+q; } for(const k in inv) if((pk[k]||0)!==inv[k].qty) pack1.push({code:disp[k],qi:inv[k].qty,qp:pk[k]||0}); for(const k in pk) if(!(k in inv)) pack1.push({code:k,qi:0,qp:pk[k]}); }
   const stage2=diffs.reduce((a,d)=>a+d.sum,0);
-  return {inv,disp,eur,usd,cat,conv,diffs,priceDiffs,uom,fee,duty,vat,totalRub,pack1,pct:eur&&sup.total?totalRub/(sup.total*eur)*100:0,stage2};
+  return {inv,disp,eur,usd,cat,byCat,conv,diffs,priceDiffs,uom,fee,duty,vat,totalRub,pack1,pct:eur&&sup.total?totalRub/(sup.total*eur)*100:0,stage2};
 }
 
 // ===================== заполнение шаблона =====================
@@ -633,8 +641,8 @@ function render(){ renderSteps(); const st=S.step; let h='';
   if(st===1){ h=`<div class=card><h2>2. Счета КВТ Сервис</h2><p class=hint>Все счета по этой поставке (фрахт, ПРР, хранение, брокер, перевозка по РФ). Категорию можно поправить. Счёт без PDF — добавьте вручную.</p>${dropzone('kvt','.pdf',true,'PDF, можно сразу несколько')}
     <table><tr><th>№</th><th>Дата</th><th>Услуга</th><th class=num>Сумма</th><th>Валюта</th><th>Категория в акте</th><th></th></tr>${S.kvt.map((k,i)=>`<tr><td>${k.manual?`<input type=text class=short value="${k.number}" onchange="S.kvt[${i}].number=this.value">`:k.number}</td><td>${dRU(k.date)}</td><td class=mute style="font-size:12.5px">${k.desc||(k.manual?'вручную':'')}</td><td class=num>${k.manual?`<input type=number step=0.01 class=short value="${k.total}" onchange="S.kvt[${i}].total=+this.value;render()">`:fmt(k.total)}</td><td>${k.manual?`<select onchange="S.kvt[${i}].currency=this.value"><option ${k.currency==='RUB'?'selected':''}>RUB</option><option ${k.currency==='USD'?'selected':''}>USD</option><option ${k.currency==='EUR'?'selected':''}>EUR</option></select>`:k.currency}</td>
       <td><select class=cat onchange="S.kvt[${i}].category=this.value">${Object.entries(CATS).map(([v,t])=>`<option value="${v}" ${k.category===v?'selected':''}>${t}</option>`).join('')}</select></td><td><button class=sec onclick="S.kvt.splice(${i},1);render()">✕</button></td></tr>`).join('')}</table>
-    <div class=btns><button class=sec onclick="S.kvt.push({number:'',date:null,currency:'RUB',total:0,vat:0,category:'rf_broker',desc:'',manual:true});render()">+ Добавить счёт вручную</button></div>
-    ${S.kvt.some(k=>k.split)?`<p class=mute style="font-size:13px">Счёт с услугами разных категорий разбит на строки («стр. N»): каждая строка попадает в свою колонку раздела 6; категорию строки можно поправить.</p>`:''}${S.kvt.length?`<p class=ok>✓ ${S.kvt.length} счетов · до границы ${fmt(S.kvt.filter(k=>k.category==='border').reduce((a,k)=>a+ +k.total,0))} · РФ+брокер ${fmt(S.kvt.filter(k=>k.category==='rf_broker').reduce((a,k)=>a+ +k.total,0))} ₽ · ПРР ${fmt(S.kvt.filter(k=>k.category==='prr').reduce((a,k)=>a+ +k.total,0))} ₽ ${S.kvt.some(k=>k.currency==='USD')?'<span class=warn>(суммы в USD — укажите курс на шаге 7)</span>':''}</p>`:''}${nav()}</div>`; }
+    <div class=btns><button class=sec onclick="S.kvt.push({number:'',date:null,currency:'RUB',total:0,vat:0,category:'broker',desc:'',manual:true});render()">+ Добавить счёт вручную</button></div>
+    ${S.kvt.some(k=>k.split)?`<p class=mute style="font-size:13px">Счета из нескольких строк показаны построчно («стр. N») — у каждой строки своя категория, её можно поправить. В акте «Оформление документов», «Маркировка», «Брокер» и «Доставка РФ» вместе идут в колонку «Доставка РФ + Брокер».</p>`:''}${S.kvt.length?`<p class=ok>✓ ${S.kvt.length} строк · ${Object.entries(CATS).map(([v,t])=>{ const sm=S.kvt.filter(k=>k.category===v).reduce((a,k)=>a+ +k.total,0); return sm?`${t}: ${fmt(sm)}`:''; }).filter(Boolean).join(' · ')} ${S.kvt.some(k=>k.currency==='USD')?'<span class=warn>(суммы в USD — укажите курс на шаге 7)</span>':''}</p>`:''}${nav()}</div>`; }
   if(st===2){ const g=S.gtd; h=`<div class=card><h2>3. ГТД / декларация на товары</h2><p class=hint>PDF ДТ. Берутся номер, дата ТО, курс EUR (графа 23) и платежи: сбор 1010, пошлина 2010, НДС 5010 (раздел B). Значения можно поправить.</p>${dropzone('gtd','.pdf',false,'PDF, один файл (можно многостраничный)')}
     ${g?`<div class=row style="margin-top:14px"><label class=f>Номер ДТ<input type=text value="${g.number}" onchange="S.gtd.number=this.value"></label><label class=f>Дата ТО<input type=date value="${dISO(g.date)}" onchange="S.gtd.date=ruDate(this.value)"></label><label class=f>Курс EUR (гр. 23)<input type=number step=0.0001 value="${g.rate}" onchange="S.gtd.rate=+this.value"></label>
     <label class=f>Таможенный сбор, ₽<input type=number step=0.01 value="${g.fee}" onchange="S.gtd.fee=+this.value"></label><label class=f>Пошлина, ₽<input type=number step=0.01 value="${g.duty}" onchange="S.gtd.duty=+this.value"></label><label class=f>НДС, ₽<input type=number step=0.01 value="${g.vat}" onchange="S.gtd.vat=+this.value"></label></div>
