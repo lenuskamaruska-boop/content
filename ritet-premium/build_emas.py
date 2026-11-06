@@ -70,8 +70,48 @@ def card(it):
   </div>
 </article>'''
 
+# ---- большие группы: карточка на модель, цветовые варианты внутри (data/emas-svet.json из prep_svet.py)
+import os
+SV = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'emas-svet.json'), encoding='utf-8'))
+
+def mcard(m):
+    tbl = ''.join(f'<tr><th>{esc(k)}</th><td>{esc(v)}</td></tr>' for k, v in m['specs'])
+    img = f'<img src="{m["img"]}" alt="{esc(m["code"])}" loading="lazy">' if m['img'] else '<div class="noimg">фото</div>'
+    vars_ = ''.join(
+        (f'<span class="var" title="{esc(v["label"])}"><i style="background:{v["color"]}"></i>{esc(v["art"])}</span>' if v['color']
+         else f'<span class="var"><b>{esc(v["label"])}</b>{esc(v["art"])}</span>') for v in m['variants'])
+    return f'''<article class="pcard" id="{esc(m['code'].rstrip('•'))}">
+  <div class="pcard-media">{img}</div>
+  <div class="pcard-body">
+    <div class="art">{esc(m['code'])}<span class="ser">{len(m['variants'])} {'варианта' if len(m['variants']) in (2,3,4) else 'вариантов'}</span></div>
+    <h3>{esc(m['title'])}</h3>
+    {f'<table class="specs">{tbl}</table>' if tbl else ''}
+    <div class="vars">{vars_}</div>
+    <div class="pcard-foot">{f'<span class="cert" title="{esc(m["cert"])}">Сертификат ЕАЭС</span>' if m['cert'] else ''}<a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article>'''
+
+def svet_section():
+    n_models = sum(len(s['models']) for s in SV['series'])
+    subs = []
+    for s in SV['series']:
+        adv = ''.join(f'<li>{esc(a)}</li>' for a in s['adv'][:4])
+        subs.append(f'''<div class="sub" id="svet-{esc(s['code'].lower())}">
+  <div class="sub-head"><div><h3>{esc(s['title'])}</h3><p>{esc(s['lead'])}</p></div><ul class="adv">{adv}</ul></div>
+  <div class="pgrid">{''.join(mcard(m) for m in s['models'])}</div>
+</div>''')
+    chips = ''.join(f'<a href="#svet-{esc(s["code"].lower())}">{esc(s["code"])}<span>{len(s["models"])}</span></a>' for s in SV['series'])
+    return f'''<section class="pgroup" id="{slug(SV['group'])}">
+  <div class="pgroup-head"><div class="eyebrow">EMAS · {n_models} моделей · {SV['articles']} артикулов</div><h2>{esc(SV['group'])}</h2><p>{esc(SV['lead'])}</p>
+  <div class="subnav">{chips}</div></div>
+  {''.join(subs)}
+</section>''', n_models
+
 sections = []
 nav = []
+svet_html, svet_n = svet_section()
+nav.append(f'<a href="#{slug(SV["group"])}">{esc(SV["group"])}<span>{svet_n}</span></a>')
+sections.append(svet_html)
 for g, lead in GROUPS:
     its = cards[g]
     if not its: continue
@@ -117,6 +157,10 @@ img{{max-width:100%;display:block}}a{{color:inherit;text-decoration:none}}
 .pcard-foot{{margin-top:auto;padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}}
 .cert{{font-size:12px;font-weight:700;color:#15803d;background:#e8f4ea;padding:4px 10px;border-radius:100px}}.ask{{font-weight:700;color:var(--blue);font-size:14px}}.ask:hover{{color:var(--blue-2)}}
 .foot{{margin-top:60px;border-top:1px solid var(--line);padding:26px 0;color:var(--fg-mute);font-size:13.5px}}
+.subnav{{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}}.subnav a{{padding:6px 12px;border-radius:100px;border:1px solid var(--line-2);font-size:13.5px;font-weight:700;color:var(--fg-dim);display:inline-flex;gap:7px;align-items:center}}.subnav a span{{color:var(--blue);font-size:12px}}.subnav a:hover{{border-color:var(--blue);color:var(--blue)}}
+.sub{{padding:26px 0 6px;border-top:1px solid var(--line);margin-top:14px}}.sub-head{{display:grid;grid-template-columns:1.3fr 1fr;gap:18px 40px;margin-bottom:18px;align-items:start}}.sub-head h3{{margin:0 0 6px;font-size:21px;color:var(--navy);letter-spacing:-.01em}}.sub-head p{{margin:0;color:var(--fg-dim);font-size:15px}}.sub-head .adv{{margin-top:4px}}
+@media(max-width:760px){{.sub-head{{grid-template-columns:1fr}}}}
+.vars{{display:flex;flex-wrap:wrap;gap:6px}}.var{{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--fg-dim);background:var(--bg-2);border:1px solid var(--line);border-radius:100px;padding:3px 9px 3px 5px}}.var i{{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.12);display:inline-block}}.var b{{font-weight:600;color:var(--fg-mute);font-size:11px;letter-spacing:0}}
 .note{{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:12px;padding:12px 16px;font-size:14px;margin-top:18px;max-width:760px}}
 </style>
 </head>
@@ -131,11 +175,11 @@ img{{max-width:100%;display:block}}a{{color:inherit;text-decoration:none}}
   <div class="eyebrow">Эксклюзивный поставщик в России</div>
   <h1>Продукция <em>EMAS</em></h1>
   <p>Коммутационная аппаратура и устройства управления турецкого завода EMAS: кнопки, пульты, концевые выключатели, реле, датчики, разъёмы. Вся продукция сертифицирована в ЕАЭС, поставляется со склада в Москве.</p>
-  <div class="note">Прототип: показаны 5 групп из 25 — чтобы согласовать подачу. Остальные группы добавляются тем же способом.</div>
+  <div class="note">Прототип: показаны 6 групп из 25 — чтобы согласовать подачу. Большие группы (например, светосигнальная арматура: 317 артикулов) показаны по моделям, цветовые варианты — внутри карточки.</div>
 </div></section>
 <nav class="gnav"><div class="wrap">{''.join(nav)}</div></nav>
 <main class="wrap">{''.join(sections)}</main>
 <footer class="foot"><div class="wrap">ООО «РИТЕТ» · Москва, 2-й Магистральный туп., 7А, стр. 2 · 8 (800) 775-73-91</div></footer>
 </body></html>'''
 open('/home/user/content/ritet-premium/emas.html', 'w', encoding='utf-8').write(page)
-print('emas.html:', len(page)//1024, 'KB; cards:', sum(len(v) for v in cards.values()))
+print('emas.html:', len(page)//1024, 'KB; cards:', sum(len(v) for v in cards.values()), '+ models:', svet_n)

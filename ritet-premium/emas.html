@@ -34,6 +34,10 @@ img{max-width:100%;display:block}a{color:inherit;text-decoration:none}
 .pcard-foot{margin-top:auto;padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .cert{font-size:12px;font-weight:700;color:#15803d;background:#e8f4ea;padding:4px 10px;border-radius:100px}.ask{font-weight:700;color:var(--blue);font-size:14px}.ask:hover{color:var(--blue-2)}
 .foot{margin-top:60px;border-top:1px solid var(--line);padding:26px 0;color:var(--fg-mute);font-size:13.5px}
+.subnav{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}.subnav a{padding:6px 12px;border-radius:100px;border:1px solid var(--line-2);font-size:13.5px;font-weight:700;color:var(--fg-dim);display:inline-flex;gap:7px;align-items:center}.subnav a span{color:var(--blue);font-size:12px}.subnav a:hover{border-color:var(--blue);color:var(--blue)}
+.sub{padding:26px 0 6px;border-top:1px solid var(--line);margin-top:14px}.sub-head{display:grid;grid-template-columns:1.3fr 1fr;gap:18px 40px;margin-bottom:18px;align-items:start}.sub-head h3{margin:0 0 6px;font-size:21px;color:var(--navy);letter-spacing:-.01em}.sub-head p{margin:0;color:var(--fg-dim);font-size:15px}.sub-head .adv{margin-top:4px}
+@media(max-width:760px){.sub-head{grid-template-columns:1fr}}
+.vars{display:flex;flex-wrap:wrap;gap:6px}.var{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--fg-dim);background:var(--bg-2);border:1px solid var(--line);border-radius:100px;padding:3px 9px 3px 5px}.var i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.12);display:inline-block}.var b{font-weight:600;color:var(--fg-mute);font-size:11px;letter-spacing:0}
 .note{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:12px;padding:12px 16px;font-size:14px;margin-top:18px;max-width:760px}
 </style>
 </head>
@@ -48,10 +52,614 @@ img{max-width:100%;display:block}a{color:inherit;text-decoration:none}
   <div class="eyebrow">Эксклюзивный поставщик в России</div>
   <h1>Продукция <em>EMAS</em></h1>
   <p>Коммутационная аппаратура и устройства управления турецкого завода EMAS: кнопки, пульты, концевые выключатели, реле, датчики, разъёмы. Вся продукция сертифицирована в ЕАЭС, поставляется со склада в Москве.</p>
-  <div class="note">Прототип: показаны 5 групп из 25 — чтобы согласовать подачу. Остальные группы добавляются тем же способом.</div>
+  <div class="note">Прототип: показаны 6 групп из 25 — чтобы согласовать подачу. Большие группы (например, светосигнальная арматура: 317 артикулов) показаны по моделям, цветовые варианты — внутри карточки.</div>
 </div></section>
-<nav class="gnav"><div class="wrap"><a href="#dvurucnye-pul-ty-upravlenia">Двуручные пульты управления<span>8</span></a><a href="#djojstiki">Джойстики<span>16</span></a><a href="#perekrestnye-koncevye-vyklucateli">Перекрестные концевые выключатели<span>6</span></a><a href="#termostaty">Термостаты<span>8</span></a><a href="#gibkie-kabel-kanaly">Гибкие кабель каналы<span>13</span></a></div></nav>
-<main class="wrap"><section class="pgroup" id="dvurucnye-pul-ty-upravlenia">
+<nav class="gnav"><div class="wrap"><a href="#svetosignal-naa-armatura">Светосигнальная арматура<span>64</span></a><a href="#dvurucnye-pul-ty-upravlenia">Двуручные пульты управления<span>8</span></a><a href="#djojstiki">Джойстики<span>16</span></a><a href="#perekrestnye-koncevye-vyklucateli">Перекрестные концевые выключатели<span>6</span></a><a href="#termostaty">Термостаты<span>8</span></a><a href="#gibkie-kabel-kanaly">Гибкие кабель каналы<span>13</span></a></div></nav>
+<main class="wrap"><section class="pgroup" id="svetosignal-naa-armatura">
+  <div class="pgroup-head"><div class="eyebrow">EMAS · 64 моделей · 317 артикулов</div><h2>Светосигнальная арматура</h2><p>Индикаторные лампы EMAS для щитов и пультов: от компактных неоновых Ø6 мм до модульных Ø22 мм в металлическом корпусе IP65. Пять цветов линзы, светодиодные и ламповые блоки на все стандартные напряжения.</p>
+  <div class="subnav"><a href="#svet-s">S<span>22</span></a><a href="#svet-mb">MB<span>11</span></a><a href="#svet-md">MD<span>8</span></a><a href="#svet-d">D<span>3</span></a><a href="#svet-b">B<span>5</span></a><a href="#svet-cp">CP<span>5</span></a><a href="#svet-cm">CM<span>5</span></a><a href="#svet-h">H<span>5</span></a></div></div>
+  <div class="sub" id="svet-s">
+  <div class="sub-head"><div><h3>Серия S — компактная арматура Ø6–22 мм</h3><p>Неоновые и светодиодные лампы в пластиковом корпусе IP40. Подключение кабелем 12 см, клеммами 6,3×0,8 или винтом; монтаж гайкой или на защёлках.</p></div><ul class="adv"><li>Полная устойчивость к нагреву и ударам благодаря линзе из поликарбоната</li><li>Простота подключения к различным типам клемм</li><li>Различные варианты напряжения</li><li>Быстрая сборка: гайка или защёлки</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="S060N">
+  <div class="pcard-media"><img src="img/products/svet-S060NY.jpg" alt="S060N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S060N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø6 мм, лампа накаливания, кабель 12 см, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø6</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Кабель 12 см</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S060NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S060NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S060NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S060NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S060NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S100L">
+  <div class="pcard-media"><img src="img/products/svet-S106NY.jpg" alt="S100L•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S100L•<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, светодиод, кабель 12 см, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>4 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Кабель 12 см</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S100LB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S100LK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S100LM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S100LS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S100LY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S100L•1">
+  <div class="pcard-media"><img src="img/products/svet-S106NY.jpg" alt="S100L•1" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S100L•1<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, светодиод, кабель 12 см, 12 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12 В AC/DC</td></tr><tr><th>Ток</th><td>6 мА</td></tr><tr><th>Мощность</th><td>0,1 Вт</td></tr><tr><th>Подключение</th><td>кабель 12 см</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S100LB1</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S100LK1</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S100LM1</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S100LS1</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S100LY1</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S100L•2">
+  <div class="pcard-media"><img src="img/products/svet-S106NY.jpg" alt="S100L•2" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S100L•2<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, светодиод, кабель 12 см, 24 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>24 В AC/DC</td></tr><tr><th>Ток</th><td>6 мА</td></tr><tr><th>Мощность</th><td>0,2 Вт</td></tr><tr><th>Подключение</th><td>кабель 12 см</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S100LB2</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S100LK2</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S100LM2</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S100LS2</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S100LY2</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S100N">
+  <div class="pcard-media"><img src="img/products/svet-S106NY.jpg" alt="S100N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S100N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, лампа накаливания, кабель 12 см, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Кабель 12 см</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S100NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S100NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S100NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S100NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S100NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S100N•5SP0">
+  <div class="pcard-media"><img src="img/products/svet-S106NY.jpg" alt="S100N•5SP0" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S100N•5SP0<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, лампа накаливания, кабель силиконовый 12 см, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Силиконовый кабель 12 см</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S100NB5SP0</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S100NK5SP0</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S100NM5SP0</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S100NS5SP0</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S100NY5SP0</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S102N">
+  <div class="pcard-media"><img src="img/products/svet-S102NY.jpg" alt="S102N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S102N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, лампа накаливания, с клеммами, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Клемма 6,3x0,8</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S102NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S102NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S102NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S102NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S102NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S105N">
+  <div class="pcard-media"><img src="img/products/svet-S105NY.jpg" alt="S105N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S105N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, лампа накаливания, с клеммами, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Клемма 6,3x0,8</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S105NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S105NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S105NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S105NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S105NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S106N">
+  <div class="pcard-media"><img src="img/products/svet-S106NY.jpg" alt="S106N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S106N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø10 мм, лампа накаливания, монтаж без гайки, с кабелем, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø10</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Кабель 12 см</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S106NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S106NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S106NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S106NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S106NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S140N">
+  <div class="pcard-media"><img src="img/products/svet-S145NB.jpg" alt="S140N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S140N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø14 мм, лампа накаливания, с клеммами, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø14</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Клемма 6,3x0,8</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S140NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S140NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S140NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S140NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S140NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S140N•1">
+  <div class="pcard-media"><img src="img/products/svet-S145NB.jpg" alt="S140N•1" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S140N•1<span class="ser">5 вариантов</span></div>
+    <h3>Ø14 мм, лампа накаливания, с клеммами, 12 В DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø14</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>12 В AC/DC</td></tr><tr><th>Ток</th><td>80 мА</td></tr><tr><th>Мощность</th><td>1,1 Вт</td></tr><tr><th>Подключение</th><td>Клемма 6,3x0,8</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S140NB1</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S140NK1</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S140NM1</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S140NS1</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S140NY1</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S140N•2">
+  <div class="pcard-media"><img src="img/products/svet-S145NB.jpg" alt="S140N•2" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S140N•2<span class="ser">5 вариантов</span></div>
+    <h3>Ø14 мм, лампа накаливания, с клеммами, 24 В DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø14</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>24 В DC</td></tr><tr><th>Ток</th><td>6 мА</td></tr><tr><th>Мощность</th><td>0,2 Вт</td></tr><tr><th>Подключение</th><td>Клемма 6,3x0,8</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S140NB2</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S140NK2</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S140NM2</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S140NS2</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S140NY2</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S145N">
+  <div class="pcard-media"><img src="img/products/svet-S145NB.jpg" alt="S145N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S145N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø14 мм, лампа накаливания, монтаж без гайки, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø14</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Клемма 6,3x0,8</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S145NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S145NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S145NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S145NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S145NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S220N">
+  <div class="pcard-media"><img src="img/products/svet-S220NY.jpg" alt="S220N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S220N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, лампа накаливания, коническая линза, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S220NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S220NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S220NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S220NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S220NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S220N•6">
+  <div class="pcard-media"><img src="img/products/svet-S220NY.jpg" alt="S220N•6" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S220N•6<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, под патрон с резьбой Ba9S, коническая линза, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>патрон BA9s, без лампы</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr><tr><th>Линза</th><td>Круглая коническая плоская</td></tr><tr><th>Рабочая температура</th><td>от -15 до +70</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S220NB6</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S220NK6</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S220NM6</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S220NS6</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S220NY6</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S222L">
+  <div class="pcard-media"><img src="img/products/svet-S222LY.jpg" alt="S222L•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S222L•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, светодиод, винтовой зажим, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>18 мА</td></tr><tr><th>Мощность</th><td>менее 4 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S222LB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S222LK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S222LM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S222LS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S222LY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S222L•1">
+  <div class="pcard-media"><img src="img/products/svet-S222LY.jpg" alt="S222L•1" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S222L•1<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, светодиод, винтовой зажим, 12 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12 В AC/DC</td></tr><tr><th>Ток</th><td>20 мА</td></tr><tr><th>Мощность</th><td>0,4 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S222LB1</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S222LK1</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S222LM1</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S222LS1</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S222LY1</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S222L•2">
+  <div class="pcard-media"><img src="img/products/svet-S222LY.jpg" alt="S222L•2" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S222L•2<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, светодиод, винтовой зажим, 24 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>24 В AC/DC</td></tr><tr><th>Ток</th><td>17 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S222LB2</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S222LK2</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S222LM2</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S222LS2</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S222LY2</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S222N">
+  <div class="pcard-media"><img src="img/products/svet-S222LY.jpg" alt="S222N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S222N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, лампа накаливания, винтовой зажим, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>0,4 мА</td></tr><tr><th>Мощность</th><td>0,25 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S222NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S222NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S222NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S222NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S222NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S224N">
+  <div class="pcard-media"><img src="img/products/svet-S222LY.jpg" alt="S224N•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S224N•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, лампа накаливания, клемма+винт, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>лампа накаливания (неон)</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>3 мА</td></tr><tr><th>Мощность</th><td>0,6 Вт</td></tr><tr><th>Подключение</th><td>Винтовое / клемма 6,3x0,8</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S224NB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S224NK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S224NM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S224NS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S224NY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S224N•7">
+  <div class="pcard-media"><img src="img/products/svet-S222LY.jpg" alt="S224N•7" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S224N•7<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, под патрон с резьбой Ba9S (без лампы), 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP40</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>патрон BA9s, без лампы</td></tr><tr><th>Подключение</th><td>Винтовое / клемма 6,3x0,8</td></tr><tr><th>Линза</th><td>Круглая плоская</td></tr><tr><th>Рабочая температура</th><td>от -15 до +70</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>S224NB7</span><span class="var" title="Красный"><i style="background:#e11d48"></i>S224NK7</span><span class="var" title="Синий"><i style="background:#2563eb"></i>S224NM7</span><span class="var" title="Желтый"><i style="background:#facc15"></i>S224NS7</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>S224NY7</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="S22RGB024">
+  <div class="pcard-media"><img src="img/products/svet-S22RGB024PC.jpg" alt="S22RGB024" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">S22RGB024<span class="ser">4 варианта</span></div>
+    <h3>RGB-светодиод (красный, синий, зелёный), 24 В DC, Ø22 мм</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP67</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>24 В DC</td></tr><tr><th>Ток</th><td>15 мА</td></tr><tr><th>Подключение</th><td>NPN, кабель 1м</td></tr><tr><th>Линза</th><td>Круглая плоская</td></tr></table>
+    <div class="vars"><span class="var"><b>NPN, кабель 1м</b>S22RGB024NC</span><span class="var"><b>NPN, разъём M12</b>S22RGB024NX</span><span class="var"><b>PNP, кабель 1м</b>S22RGB024PC</span><span class="var"><b>PNP, разъём M12</b>S22RGB024PX</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div><div class="sub" id="svet-mb">
+  <div class="sub-head"><div><h3>Серия MB — моноблочная Ø22 мм</h3><p>Светодиодная арматура в едином корпусе: плоская или ячеистая линза, винтовое подключение, контакты AgNi, IP50. Напряжения от 12 до 230 В.</p></div><ul class="adv"><li>Устойчивость к нагреву и механическим ударам (линза ПК)</li><li>Различные варианты напряжения</li><li>Контакты AgNi, кабель 1,5–2,5 мм²</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="MBSD012">
+  <div class="pcard-media"><img src="img/products/svet-MBSD012M.jpg" alt="MBSD012•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSD012•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, плоская линза, 12 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12 В AC/DC</td></tr><tr><th>Ток</th><td>18 мA</td></tr><tr><th>Мощность</th><td>0,3 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSD012B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSD012K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSD012M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSD012S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSD012Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSD024">
+  <div class="pcard-media"><img src="img/products/svet-MBSD012M.jpg" alt="MBSD024•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSD024•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, плоская линза, 24 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>24 В AC/DC</td></tr><tr><th>Ток</th><td>13 мA</td></tr><tr><th>Мощность</th><td>0,4 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSD024B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSD024K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSD024M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSD024S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSD024Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSD048">
+  <div class="pcard-media"><img src="img/products/svet-MBSD012M.jpg" alt="MBSD048•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSD048•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, плоская линза, 48 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>48 В AC/DC</td></tr><tr><th>Ток</th><td>8 мА</td></tr><tr><th>Мощность</th><td>0,4 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSD048B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSD048K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSD048M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSD048S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSD048Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSD048D">
+  <div class="pcard-media"><img src="img/products/svet-MBSD012M.jpg" alt="MBSD048D•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSD048D•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, плоская линза, 48 В DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>48 В DC</td></tr><tr><th>Ток</th><td>8 мА</td></tr><tr><th>Мощность</th><td>0,4 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSD048DB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSD048DK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSD048DM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSD048DS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSD048DY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSD110">
+  <div class="pcard-media"><img src="img/products/svet-MBSD012M.jpg" alt="MBSD110•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSD110•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, плоская линза, 110 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC</td></tr><tr><th>Ток</th><td>5 мА</td></tr><tr><th>Мощность</th><td>0,55 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSD110B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSD110K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSD110M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSD110S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSD110Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSD110D">
+  <div class="pcard-media"><img src="img/products/svet-MBSD012M.jpg" alt="MBSD110D•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSD110D•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, плоская линза, 110 В DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В DC</td></tr><tr><th>Ток</th><td>5 мА</td></tr><tr><th>Мощность</th><td>0,55 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSD110DB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSD110DK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSD110DM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSD110DS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSD110DY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSD220">
+  <div class="pcard-media"><img src="img/products/svet-MBSD012M.jpg" alt="MBSD220•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSD220•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, плоская линза, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>15 мА</td></tr><tr><th>Мощность</th><td>менее 4 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSD220B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSD220K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSD220M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSD220S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSD220Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSP012">
+  <div class="pcard-media"><img src="img/products/svet-MBSP012S.jpg" alt="MBSP012•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSP012•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, ячеистая линза, 12 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12 В AC/DC</td></tr><tr><th>Ток</th><td>18 мA</td></tr><tr><th>Мощность</th><td>0,3 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSP012B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSP012K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSP012M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSP012S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSP012Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSP024">
+  <div class="pcard-media"><img src="img/products/svet-MBSP024Y.jpg" alt="MBSP024•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSP024•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, ячеистая линза, 24 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>24 В AC/DC</td></tr><tr><th>Ток</th><td>13 мA</td></tr><tr><th>Мощность</th><td>0,4 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSP024B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSP024K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSP024M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSP024S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSP024Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSP110">
+  <div class="pcard-media"><img src="img/products/svet-MBSP024Y.jpg" alt="MBSP110•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSP110•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, ячеистая линза, 110 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC/DC</td></tr><tr><th>Ток</th><td>4–5 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSP110B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSP110K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSP110M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSP110S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSP110Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MBSP220">
+  <div class="pcard-media"><img src="img/products/svet-MBSP220S.jpg" alt="MBSP220•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MBSP220•<span class="ser">5 вариантов</span></div>
+    <h3>Ø22 мм, ячеистая линза, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>15 мА</td></tr><tr><th>Мощность</th><td>менее 4 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MBSP220B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MBSP220K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MBSP220M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MBSP220S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MBSP220Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div><div class="sub" id="svet-md">
+  <div class="sub-head"><div><h3>Серия MD — моноблочная Ø16 мм</h3><p>Компактная светодиодная арматура в едином корпусе под отверстие Ø16 мм: плоская или ячеистая линза, винтовое подключение, IP50.</p></div><ul class="adv"><li>Устойчивость к нагреву и механическим ударам (линза ПК)</li><li>Различные варианты напряжения</li><li>Винтовое подключение, кабель 1,5–2,5 мм²</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="MDSD012">
+  <div class="pcard-media"><img src="img/products/svet-MDSD012K.jpg" alt="MDSD012•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSD012•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, плоская линза, 12 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12 В AC/DC</td></tr><tr><th>Ток</th><td>17 мА</td></tr><tr><th>Мощность</th><td>0,22 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSD012B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSD012K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSD012M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSD012S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSD012Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MDSD024">
+  <div class="pcard-media"><img src="img/products/svet-MDSD012K.jpg" alt="MDSD024•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSD024•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, плоская линза, 24 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>24 В AC/DC</td></tr><tr><th>Ток</th><td>18 мА</td></tr><tr><th>Мощность</th><td>0,44 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSD024B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSD024K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSD024M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSD024S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSD024Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MDSD110">
+  <div class="pcard-media"><img src="img/products/svet-MDSD012K.jpg" alt="MDSD110•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSD110•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, плоская линза, 110 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC/DC</td></tr><tr><th>Ток</th><td>4–5 мА</td></tr><tr><th>Мощность</th><td>0,55 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSD110B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSD110K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSD110M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSD110S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSD110Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MDSD220">
+  <div class="pcard-media"><img src="img/products/svet-MDSD012K.jpg" alt="MDSD220•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSD220•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, плоская линза, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>7 мА</td></tr><tr><th>Мощность</th><td>1,6 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSD220B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSD220K</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSD220M</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSD220S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSD220Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MDSP012">
+  <div class="pcard-media"><img src="img/products/svet-MDSP012S.jpg" alt="MDSP012•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSP012•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, ячеистая линза, 12 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12 В AC/DC</td></tr><tr><th>Ток</th><td>17 мА</td></tr><tr><th>Мощность</th><td>0,22 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSP012B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSP012K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSP012M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSP012S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSP012Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MDSP024">
+  <div class="pcard-media"><img src="img/products/svet-MDSP012S.jpg" alt="MDSP024•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSP024•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, ячеистая линза, 24 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>24 В AC/DC</td></tr><tr><th>Ток</th><td>18 мА</td></tr><tr><th>Мощность</th><td>0,44 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSP024B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSP024K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSP024M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSP024S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSP024Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MDSP110">
+  <div class="pcard-media"><img src="img/products/svet-MDSP012S.jpg" alt="MDSP110•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSP110•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, ячеистая линза, 110 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC/DC</td></tr><tr><th>Ток</th><td>4–5 мА</td></tr><tr><th>Мощность</th><td>0,55 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSP110B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSP110K</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSP110M</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSP110S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSP110Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="MDSP220">
+  <div class="pcard-media"><img src="img/products/svet-MDSP012S.jpg" alt="MDSP220•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">MDSP220•<span class="ser">5 вариантов</span></div>
+    <h3>Ø16 мм, ячеистая линза, 230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В AC</td></tr><tr><th>Ток</th><td>7 мА</td></tr><tr><th>Мощность</th><td>1,6 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>MDSP220B</span><span class="var" title="Красный"><i style="background:#e11d48"></i>MDSP220K</span><span class="var" title="Желтый"><i style="background:#facc15"></i>MDSP220M</span><span class="var" title="Синий"><i style="background:#2563eb"></i>MDSP220S</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>MDSP220Y</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div><div class="sub" id="svet-d">
+  <div class="sub-head"><div><h3>Серия D — модульная Ø16 мм</h3><p>Сигнальная арматура EMAS для индикации состояния электрических цепей в щитовом оборудовании. Светодиодный блок 12–30 В AC/DC, клеммы 2,8×0,5; линза круглая, квадратная или прямоугольная.</p></div><ul class="adv"><li>Круглые, квадратные и прямоугольные формы</li><li>Широкая гамма способов соединения</li><li>Корпус устойчив к механическим воздействиям</li><li>Быстрый и удобный монтаж</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="D050DX">
+  <div class="pcard-media"><img src="img/products/svet-D090DXY.jpg" alt="D050DX•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">D050DX•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиод 12–30 В AC/DC, прямоугольная линза</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12–30 В AC/DC</td></tr><tr><th>Ток</th><td>10–20 мА</td></tr><tr><th>Мощность</th><td>0,6 Вт</td></tr><tr><th>Подключение</th><td>Клемма 2,8x0,5</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>D050DXB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>D060DXK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>D070DXM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>D080DXS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>D090DXY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="D050KX">
+  <div class="pcard-media"><img src="img/products/svet-D060KXK.jpg" alt="D050KX•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">D050KX•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиод 12–30 В AC/DC, квадратная линза</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12–30 В AC/DC</td></tr><tr><th>Ток</th><td>10–20 мА</td></tr><tr><th>Мощность</th><td>0,6 Вт</td></tr><tr><th>Подключение</th><td>Клемма 2,8x0,5</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>D050KXB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>D060KXK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>D070KXM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>D080KXS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>D090KXY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="D050YX">
+  <div class="pcard-media"><img src="img/products/svet-D090YXY.jpg" alt="D050YX•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">D050YX•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиод 12–30 В AC/DC, круглая линза</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø16</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12–30 В AC/DC</td></tr><tr><th>Ток</th><td>10–20 мА</td></tr><tr><th>Мощность</th><td>0,6 Вт</td></tr><tr><th>Подключение</th><td>Клемма 2,8x0,5</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>D050YXB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>D060YXK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>D070YXM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>D080YXS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>D090YXY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div><div class="sub" id="svet-b">
+  <div class="sub-head"><div><h3>Серия B — модульная Ø22 мм, пластик</h3><p>Базовая модульная арматура: адаптер + светодиодный блок на нужное напряжение или патрон BA9s под свою лампу. Корпус из пластика, IP50.</p></div><ul class="adv"><li>Защита пальцев для максимальной безопасности</li><li>Ударопрочная линза из поликарбоната</li><li>Неплавящиеся контактные блоки V0 PA6.6</li><li>Установка блоков на адаптер без инструмента</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="B030X">
+  <div class="pcard-media"><img src="img/products/svet-B0D0XK.jpg" alt="B030X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">B030X•<span class="ser">5 вариантов</span></div>
+    <h3>Под лампу с цоколем BA9s (без лампы)</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>патрон BA9s, без лампы</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr><tr><th>Линза</th><td>Круглая плоская</td></tr><tr><th>Рабочая температура</th><td>от -15 до +70</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>B030XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>B030XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>B030XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>B030XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>B030XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="B050X">
+  <div class="pcard-media"><img src="img/products/svet-B080XS.jpg" alt="B050X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">B050X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 12–30 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12–30 В AC/DC</td></tr><tr><th>Ток</th><td>5–20 мА</td></tr><tr><th>Мощность</th><td>0,7 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>B050XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>B060XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>B070XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>B080XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>B090XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="B0B0X">
+  <div class="pcard-media"><img src="img/products/svet-B0Z0XY.jpg" alt="B0B0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">B0B0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 100–230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>100–230 В AC</td></tr><tr><th>Ток</th><td>5–15 мА</td></tr><tr><th>Мощность</th><td>менее 4 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>B0B0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>B0K0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>B0M0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>B0S0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>B0Y0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="B0C0X">
+  <div class="pcard-media"><img src="img/products/svet-B0D0XK.jpg" alt="B0C0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">B0C0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 110 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC/DC</td></tr><tr><th>Ток</th><td>4–5 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>B0C0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>B0D0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>B0E0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>B0F0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>B0G0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="B0Q0X">
+  <div class="pcard-media"><img src="img/products/svet-B0Z0XY.jpg" alt="B0Q0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">B0Q0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 48 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>48 В AC/DC</td></tr><tr><th>Ток</th><td>6–10 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>B0Q0XB</span><span class="var" title="Синий"><i style="background:#2563eb"></i>B0V0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>B0W0XS</span><span class="var" title="Красный"><i style="background:#e11d48"></i>B0X0XK</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>B0Z0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div><div class="sub" id="svet-cp">
+  <div class="sub-head"><div><h3>Серия CP — модульная Ø22 мм, пластик IP65</h3><p>Пластиковая арматура с силиконовыми уплотнениями, IP65. Светодиодные блоки 12–30, 48, 110, 100–230 В AC и 220 В DC.</p></div><ul class="adv"><li>Защита IP65 — силиконовые уплотнения</li><li>Ударопрочная линза из поликарбоната</li><li>Неплавящиеся контактные блоки V0 PA6.6</li><li>Установка блоков на адаптер без инструмента</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="CP050X">
+  <div class="pcard-media"><img src="img/products/svet-CP080XS.jpg" alt="CP050X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CP050X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 12–30 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12–30 В AC/DC</td></tr><tr><th>Ток</th><td>5–20 мА</td></tr><tr><th>Мощность</th><td>0,7 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CP050XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CP060XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CP070XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CP080XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CP090XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CP0B0X">
+  <div class="pcard-media"><img src="img/products/svet-CP0S0XS.jpg" alt="CP0B0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CP0B0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 100–230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>100–230 В AC</td></tr><tr><th>Ток</th><td>5–15 мА</td></tr><tr><th>Мощность</th><td>менее 4 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CP0B0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CP0K0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CP0M0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CP0S0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CP0Y0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CP0C0X">
+  <div class="pcard-media"><img src="img/products/svet-CP0V0XM.jpg" alt="CP0C0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CP0C0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 110 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC/DC</td></tr><tr><th>Ток</th><td>4–5 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CP0C0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CP0D0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CP0E0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CP0F0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CP0G0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CP0N0X">
+  <div class="pcard-media"><img src="img/products/svet-CP0S0XS.jpg" alt="CP0N0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CP0N0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 220 В DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В DC</td></tr><tr><th>Ток</th><td>3–5 мА</td></tr><tr><th>Мощность</th><td>1 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CP0N0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CP0O0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CP0P0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CP0R0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CP0T0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CP0Q0X">
+  <div class="pcard-media"><img src="img/products/svet-CP0V0XM.jpg" alt="CP0Q0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CP0Q0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 48 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>48 В AC/DC</td></tr><tr><th>Ток</th><td>6–10 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CP0Q0XB</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CP0V0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CP0W0XS</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CP0X0XK</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CP0Z0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div><div class="sub" id="svet-cm">
+  <div class="sub-head"><div><h3>Серия CM — модульная Ø22 мм, металл IP65</h3><p>Арматура в хромированном металлическом корпусе для тяжёлых условий эксплуатации, IP65. Те же светодиодные блоки, что и в серии CP.</p></div><ul class="adv"><li>Металлическая конструкция, устойчивая к суровым условиям</li><li>Хромирование против коррозии</li><li>Защита IP65 — силиконовые уплотнения</li><li>Адаптер легко снимается одной рукой</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="CM050X">
+  <div class="pcard-media"><img src="img/products/svet-CM090XY.jpg" alt="CM050X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CM050X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 12–30 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12–30 В AC/DC</td></tr><tr><th>Ток</th><td>5–20 мА</td></tr><tr><th>Мощность</th><td>0,7 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CM050XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CM060XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CM070XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CM080XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CM090XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CM0B0X">
+  <div class="pcard-media"><img src="img/products/svet-CM0M0XM.jpg" alt="CM0B0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CM0B0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 100–230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>100–230 В AC</td></tr><tr><th>Ток</th><td>5–15 мА</td></tr><tr><th>Мощность</th><td>менее 4 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CM0B0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CM0K0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CM0M0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CM0S0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CM0Y0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CM0C0X">
+  <div class="pcard-media"><img src="img/products/svet-CM0F0XS.jpg" alt="CM0C0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CM0C0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 110 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC/DC</td></tr><tr><th>Ток</th><td>4–5 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CM0C0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CM0D0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CM0E0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CM0F0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CM0G0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CM0N0X">
+  <div class="pcard-media"><img src="img/products/svet-CM0O0XK.jpg" alt="CM0N0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CM0N0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 220 В DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>230 В DC</td></tr><tr><th>Ток</th><td>3–5 мА</td></tr><tr><th>Мощность</th><td>1 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CM0N0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CM0O0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CM0P0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CM0R0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CM0T0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="CM0Q0X">
+  <div class="pcard-media"><img src="img/products/svet-CM090XY.jpg" alt="CM0Q0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">CM0Q0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 48 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP65</td></tr><tr><th>Монтажное отверстие</th><td>Ø22</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>48 В AC/DC</td></tr><tr><th>Ток</th><td>6–10 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>CM0Q0XB</span><span class="var" title="Синий"><i style="background:#2563eb"></i>CM0V0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>CM0W0XS</span><span class="var" title="Красный"><i style="background:#e11d48"></i>CM0X0XK</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>CM0Z0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div><div class="sub" id="svet-h">
+  <div class="sub-head"><div><h3>Серия H — увеличенная линза Ø30 мм</h3><p>Модульная арматура с линзой Ø30 мм под стандартное отверстие Ø22 мм. Пластик, IP50; светодиодные блоки или патрон BA9s.</p></div><ul class="adv"><li>Крупная линза Ø30 мм — хорошо видна издалека</li><li>Защита пальцев для максимальной безопасности</li><li>Неплавящиеся контактные блоки V0 PA6.6</li><li>Установка блоков на адаптер без инструмента</li></ul></div>
+  <div class="pgrid"><article class="pcard" id="H030X">
+  <div class="pcard-media"><img src="img/products/svet-H030XY.jpg" alt="H030X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">H030X•<span class="ser">3 варианта</span></div>
+    <h3>Под лампу с цоколем BA9s (без лампы)</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22 (линза Ø30)</td></tr><tr><th>Источник света</th><td>патрон BA9s, без лампы</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr><tr><th>Линза</th><td>Круглая высокая</td></tr><tr><th>Рабочая температура</th><td>от -15 до +70</td></tr></table>
+    <div class="vars"><span class="var" title="Красный"><i style="background:#e11d48"></i>H030XK</span><span class="var" title="Желтый"><i style="background:#facc15"></i>H030XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>H030XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="H050X">
+  <div class="pcard-media"><img src="img/products/svet-H070XM.jpg" alt="H050X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">H050X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 12–30 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22 (линза Ø30)</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>12–30 В AC/DC</td></tr><tr><th>Ток</th><td>5–20 мА</td></tr><tr><th>Мощность</th><td>0,7 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>H050XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>H060XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>H070XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>H080XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>H090XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="H0B0X">
+  <div class="pcard-media"><img src="img/products/svet-H070XM.jpg" alt="H0B0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">H0B0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 100–230 В AC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22 (линза Ø30)</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>100–230 В AC</td></tr><tr><th>Ток</th><td>5–15 мА</td></tr><tr><th>Мощность</th><td>менее 4 ВА</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>H0B0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>H0K0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>H0M0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>H0S0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>H0Y0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="H0C0X">
+  <div class="pcard-media"><img src="img/products/svet-H070XM.jpg" alt="H0C0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">H0C0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 110 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22 (линза Ø30)</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>110 В AC/DC</td></tr><tr><th>Ток</th><td>4–5 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>H0C0XB</span><span class="var" title="Красный"><i style="background:#e11d48"></i>H0D0XK</span><span class="var" title="Синий"><i style="background:#2563eb"></i>H0E0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>H0F0XS</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>H0G0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ЕАЭС RU C-TR.НВ26.B.04597/24">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article><article class="pcard" id="H0Q0X">
+  <div class="pcard-media"><img src="img/products/svet-H070XM.jpg" alt="H0Q0X•" loading="lazy"></div>
+  <div class="pcard-body">
+    <div class="art">H0Q0X•<span class="ser">5 вариантов</span></div>
+    <h3>Светодиодный блок 48 В AC/DC</h3>
+    <table class="specs"><tr><th>Степень защиты</th><td>IP50</td></tr><tr><th>Монтажное отверстие</th><td>Ø22 (линза Ø30)</td></tr><tr><th>Источник света</th><td>светодиод</td></tr><tr><th>Напряжение</th><td>48 В AC/DC</td></tr><tr><th>Ток</th><td>6–10 мА</td></tr><tr><th>Мощность</th><td>0,5 Вт</td></tr><tr><th>Подключение</th><td>Винтовое</td></tr></table>
+    <div class="vars"><span class="var" title="Белый"><i style="background:#f4f5f7"></i>H0Q0XB</span><span class="var" title="Синий"><i style="background:#2563eb"></i>H0V0XM</span><span class="var" title="Желтый"><i style="background:#facc15"></i>H0W0XS</span><span class="var" title="Красный"><i style="background:#e11d48"></i>H0X0XK</span><span class="var" title="Зеленый"><i style="background:#16a34a"></i>H0Z0XY</span></div>
+    <div class="pcard-foot"><span class="cert" title="ОР № 25/01/30-20 от 30.12.2024">Сертификат ЕАЭС</span><a class="ask" href="index.html#contact">Запросить цену</a></div>
+  </div>
+</article></div>
+</div>
+</section><section class="pgroup" id="dvurucnye-pul-ty-upravlenia">
   <div class="pgroup-head"><div class="eyebrow">EMAS · 8 позиций</div><h2>Двуручные пульты управления</h2><p>Безопасное управление прессами и станками: оборудование включается только двумя руками одновременно.</p></div>
   <div class="pgrid"><article class="pcard" id="CEKA">
   <div class="pcard-media"><img src="img/products/CEKA.jpg" alt="CEKA" loading="lazy"></div>
